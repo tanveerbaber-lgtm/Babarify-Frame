@@ -1,13 +1,15 @@
-"""Capture evidence screenshots of the real player (M2): video playing, fullscreen, audio-only, error.
+"""Capture evidence screenshots of the real player: home, playback, responsive, fullscreen, states.
 
 Screen-grabs the window region so Direct3D video output is included (QWidget.grab cannot see it).
-Usage:  python tools/player_screenshot.py docs/milestones/M2/evidence
+Uses a throw-away settings folder so the user's real preferences are never touched.
+Usage:  python tools/player_screenshot.py docs/milestones/M3/evidence
 """
 
 from __future__ import annotations
 
 import ctypes
 import sys
+import tempfile
 import time
 from ctypes import wintypes
 from pathlib import Path
@@ -15,6 +17,7 @@ from pathlib import Path
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 
+from babarify_frame.configuration.preferences import PreferencesStore
 from babarify_frame.core.models import PlaybackState as S
 from babarify_frame.playback.factory import default_factory
 from babarify_frame.ui.app import load_icon
@@ -87,21 +90,35 @@ def main() -> int:
     out.mkdir(parents=True, exist_ok=True)
     app = QApplication(sys.argv[:1])
     app.setStyleSheet(STYLESHEET)
-    window = MainWindow(default_factory(), load_icon())
+    config = Path(tempfile.mkdtemp(prefix="babarify-shots-")) / "settings.json"
+    window = MainWindow(default_factory(), load_icon(), store=PreferencesStore(config))
     window.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)  # capture only our own pixels
-    window.resize(1100, 700)
+    window.resize(1180, 740)
     window.show()
     window.start_engine()
     wait(app, window, S.READY)
+    grab(app, window, out / "home.png")
+
+    window.show_page(window.settings)
+    grab(app, window, out / "settings.png")
 
     window.open_path(str(MEDIA / "h264_1080p30_aac.mp4"))
     wait(app, window, S.PLAYING)
     pump(app, 2.5)
     grab(app, window, out / "playing.png")
 
+    window.resize(640, 480)
+    pump(app, 1.0)
+    grab(app, window, out / "playing_narrow.png")
+    window.resize(1180, 740)
+    pump(app, 0.5)
+
     window.toggle_fullscreen()
-    pump(app, 1.5)
-    grab(app, window, out / "fullscreen.png")
+    pump(app, 1.0)
+    grab(app, window, out / "fullscreen_controls.png")
+    pump(app, 4.0)  # longer than the default 3 s auto-hide delay, mouse untouched
+    print(f"controls hidden after idle: {window.player.controls_hidden}")
+    grab(app, window, out / "fullscreen_idle.png")
     window.exit_fullscreen()
     pump(app, 0.8)
 

@@ -1,0 +1,44 @@
+﻿{
+  "thresholds": {
+    "p95_ms": 16.0,
+    "max_ms": 100.0
+  },
+  "results": {
+    "idle": {
+      "ticks": 499,
+      "p50_ms": 0.06,
+      "p95_ms": 2.11,
+      "p99_ms": 2.76,
+      "max_ms": 2.95
+    },
+    "playing_4k_hevc": {
+      "ticks": 499,
+      "p50_ms": 0.0,
+      "p95_ms": 2.15,
+      "p99_ms": 2.82,
+      "max_ms": 3.5
+    },
+    "playing_with_interaction": {
+      "ticks": 445,
+      "p50_ms": 0.0,
+      "p95_ms": 2.49,
+      "p99_ms": 14.87,
+      "max_ms": 111.67
+    }
+  },
+  "max_lag_per_action_ms": {
+    "resize 900x600": 26.9,
+    "seek 5 s": 2.7,
+    "page: settings": 14.9,
+    "resize 1400x860": 111.7,
+    "page: player": 3.1,
+    "seek 12 s": 3.5,
+    "resize 700x480": 4.8,
+    "enter fullscreen": 36.9,
+    "exit fullscreen": 82.0,
+    "resize 1180x740": 17.2,
+    "pause": 2.8,
+    "play": 2.8
+  },
+  "pass": false
+}

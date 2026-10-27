@@ -831,7 +831,7 @@ Copy the prompt below into Codex while its working directory is the intended `Ba
 Use the following checklist as the project status source of truth. Mark a milestone complete only after reviewing its evidence and acceptance report.
 
 - [x] M1 — Feasibility and Architecture — **CONDITIONAL**, accepted by the owner 2026-10-27 ([report](docs/milestones/M1/acceptance-report.md))
-- [ ] M2 — Real Playback Prototype
+- [x] M2 — Real Playback Prototype — **PASS**, accepted by the owner 2026-10-27 ([report](docs/milestones/M2/acceptance-report.md))
 - [ ] M3 — Premium UI Foundation
 - [ ] M4 — Playback Reliability and Performance
 - [ ] M5 — Audio and Subtitle Studio
@@ -850,8 +850,8 @@ Use the following checklist as the project status source of truth. Mark a milest
 ### Current status
 
 **Project planning baseline:** Defined in this document.  
-**Implementation status:** M1 accepted as CONDITIONAL (2026-10-27). Playback engine: libVLC, provisional ([ADR-0001](docs/decisions/ADR-0001-playback-engine.md)).  
-**Next action:** Owner review of M2 — Real Playback Prototype ([report](docs/milestones/M2/acceptance-report.md)); proposed PASS.
+**Implementation status:** M1 accepted as CONDITIONAL, M2 accepted as PASS (2026-10-27). Playback engine: libVLC, provisional ([ADR-0001](docs/decisions/ADR-0001-playback-engine.md)).  
+**Next action:** Owner review of M3 — Premium UI Foundation ([report](docs/milestones/M3/acceptance-report.md)); proposed CONDITIONAL.
 
 ---
 

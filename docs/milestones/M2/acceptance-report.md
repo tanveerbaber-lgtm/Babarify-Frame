@@ -4,7 +4,7 @@
 **Machine:** same as M1 (i7-8565U, Intel UHD 620, Windows 11, 4K display) ·
 **Prepared by:** Claude (Claude Code) · **Decision owner:** Tanveer Baber
 
-## Proposed decision: **PASS**
+## Decision: **PASS** — accepted by the owner on 2026-10-27
 
 Every M2 deliverable is implemented and every acceptance criterion has test or
 screenshot evidence on the target environment. Open items are scoped to later

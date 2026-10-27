@@ -74,3 +74,5 @@ disallow_untyped_calls = false
 [tool.ruff.lint.per-file-ignores]
 # Report text deliberately uses typographic dashes and the multiplication sign.
 "tools/engine-benchmark/bench.py" = ["RUF001"]
+# Qt stylesheet rules read best one per line.
+"src/babarify_frame/ui/theme.py" = ["E501"]

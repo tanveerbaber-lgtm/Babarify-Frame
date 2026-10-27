@@ -1,50 +1,149 @@
-"""Babarify dark theme: deep navy surfaces, blue/cyan highlights, green accents.
+"""Babarify design tokens and the application stylesheet.
 
-M2 keeps styling minimal and functional; the premium visual design is M3.
+Dark, premium surfaces; blue -> cyan for interactive accents; green for "on/active"
+confirmation. Every colour, spacing step, radius and type size used by the UI is defined
+here so the look stays consistent (M3 acceptance: branding and spacing consistency).
 """
 
 from __future__ import annotations
 
-BG = "#070B15"
-SURFACE = "#0E1628"
-SURFACE_RAISED = "#16213A"
+# Colour
+BG = "#070B15"  # window background
+SURFACE = "#0E1628"  # panels, control bar
+SURFACE_RAISED = "#16213A"  # hover, cards
+SURFACE_PRESSED = "#1E2B48"
 BORDER = "#22304D"
 TEXT = "#E6EDF7"
 TEXT_MUTED = "#8A9AB5"
+TEXT_DISABLED = "#4A5875"
 BLUE = "#3B82F6"
 CYAN = "#22D3EE"
 GREEN = "#22C55E"
 AMBER = "#F59E0B"
 RED = "#F87171"
 
+# Spacing scale (px)
+XS, S, M, L, XL, XXL = 4, 8, 12, 16, 24, 32
+
+# Corner radius (px)
+RADIUS_S, RADIUS_M, RADIUS_L = 6, 10, 16
+
+# Type scale (pt)
+FONT_CAPTION, FONT_BODY, FONT_SUBTITLE, FONT_TITLE, FONT_DISPLAY = 9, 10, 12, 15, 24
+
+ACCENT_GRADIENT = f"qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {BLUE}, stop:1 {CYAN})"
+FONT_STACK = '"Segoe UI Variable Text", "Segoe UI", sans-serif'
+MONO_STACK = '"Cascadia Mono", "Consolas", monospace'
+
 STYLESHEET = f"""
-QMainWindow, QWidget#root {{ background: {BG}; color: {TEXT}; }}
-QWidget {{ color: {TEXT}; font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif; font-size: 10pt; }}
-QMenuBar {{ background: {BG}; color: {TEXT}; }}
+* {{ font-family: {FONT_STACK}; font-size: {FONT_BODY}pt; color: {TEXT}; }}
+QMainWindow, QWidget#root {{ background: {BG}; }}
+QToolTip {{
+    background: {SURFACE_RAISED}; color: {TEXT}; border: 1px solid {BORDER};
+    padding: {XS}px {S}px; border-radius: {RADIUS_S}px;
+}}
+
+/* Menus */
+QMenuBar {{ background: {BG}; padding: 2px {XS}px; }}
+QMenuBar::item {{ padding: {XS}px {M}px; border-radius: {RADIUS_S}px; }}
 QMenuBar::item:selected {{ background: {SURFACE_RAISED}; }}
-QMenu {{ background: {SURFACE}; border: 1px solid {BORDER}; }}
+QMenu {{ background: {SURFACE}; border: 1px solid {BORDER}; padding: {XS}px; border-radius: {RADIUS_S}px; }}
+QMenu::item {{ padding: {S - 2}px {XL}px {S - 2}px {M}px; border-radius: {RADIUS_S}px; }}
 QMenu::item:selected {{ background: {SURFACE_RAISED}; }}
-QMenu::item:disabled {{ color: {TEXT_MUTED}; }}
-QWidget#header {{ background: {BG}; }}
-QLabel#productName {{ font-size: 14pt; font-weight: 600; }}
-QLabel#brand {{ color: {CYAN}; font-size: 8pt; font-weight: 600; letter-spacing: 2px; }}
-QLabel#tagline {{ color: {TEXT_MUTED}; }}
+QMenu::item:disabled {{ color: {TEXT_DISABLED}; }}
+QMenu::item:checked {{ color: {CYAN}; }}
+QMenu::separator {{ height: 1px; background: {BORDER}; margin: {XS}px {S}px; }}
+
+/* Navigation rail */
+QFrame#navRail {{ background: {SURFACE}; border-right: 1px solid {BORDER}; }}
+QToolButton#navButton {{
+    border: none; border-radius: {RADIUS_M}px; padding: {S}px; margin: 2px {S}px;
+    color: {TEXT_MUTED}; font-size: {FONT_CAPTION}pt;
+}}
+QToolButton#navButton:hover {{ background: {SURFACE_RAISED}; color: {TEXT}; }}
+QToolButton#navButton:checked {{ background: {SURFACE_PRESSED}; color: {TEXT}; border-left: 3px solid {CYAN}; }}
+QToolButton#navButton:disabled {{ color: {TEXT_DISABLED}; }}
+
+/* Typography roles */
+QLabel#brand {{ color: {CYAN}; font-size: {FONT_CAPTION}pt; font-weight: 600; letter-spacing: 3px; }}
+QLabel#display {{ font-size: {FONT_DISPLAY}pt; font-weight: 600; }}
+QLabel#title {{ font-size: {FONT_TITLE}pt; font-weight: 600; }}
+QLabel#subtitle {{ font-size: {FONT_SUBTITLE}pt; font-weight: 600; }}
+QLabel#muted {{ color: {TEXT_MUTED}; }}
+QLabel#caption {{ color: {TEXT_MUTED}; font-size: {FONT_CAPTION}pt; }}
+QLabel#tagline {{ color: {TEXT_MUTED}; font-size: {FONT_SUBTITLE}pt; }}
+QLabel#errorIcon {{ color: {RED}; }}
+QLabel#time {{ color: {TEXT_MUTED}; font-family: {MONO_STACK}; font-size: {FONT_CAPTION}pt; }}
+QLabel#mediaTitle {{ font-weight: 600; }}
+QLabel#kbd {{
+    background: {SURFACE_RAISED}; border: 1px solid {BORDER}; border-radius: 4px;
+    padding: 1px {S - 2}px; font-family: {MONO_STACK}; font-size: {FONT_CAPTION}pt;
+}}
+
+/* Pages */
+QWidget#page {{ background: {BG}; }}
+QFrame#dropZone {{
+    background: {SURFACE}; border: 1px dashed {BORDER}; border-radius: {RADIUS_L}px;
+}}
+QFrame#dropZone[dragActive="true"] {{ border: 2px dashed {CYAN}; background: {SURFACE_RAISED}; }}
+QFrame#card {{ background: {SURFACE}; border: 1px solid {BORDER}; border-radius: {RADIUS_M}px; }}
 QFrame#messagePage {{
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {SURFACE}, stop:1 {BG});
 }}
-QLabel#messageTitle {{ font-size: 15pt; font-weight: 600; }}
-QLabel#messageBody {{ color: {TEXT_MUTED}; }}
-QFrame#controlBar {{ background: {SURFACE}; border-top: 1px solid {BORDER}; }}
-QLabel#timeLabel {{ color: {TEXT_MUTED}; font-family: "Cascadia Mono", "Consolas", monospace; }}
-QToolButton {{ border-radius: 6px; padding: 4px; }}
-QToolButton:hover {{ background: {SURFACE_RAISED}; }}
-QToolButton:disabled {{ background: transparent; }}
-QSlider::groove:horizontal {{ height: 4px; background: {BORDER}; border-radius: 2px; }}
-QSlider::sub-page:horizontal {{
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {BLUE}, stop:1 {CYAN}); border-radius: 2px;
+
+/* Buttons */
+QPushButton {{
+    background: {SURFACE_RAISED}; border: 1px solid {BORDER}; border-radius: {RADIUS_M}px;
+    padding: {S}px {L}px;
 }}
+QPushButton:hover {{ background: {SURFACE_PRESSED}; }}
+QPushButton:disabled {{ color: {TEXT_DISABLED}; }}
+QPushButton#primary {{
+    background: {ACCENT_GRADIENT}; border: none; color: #04101F; font-weight: 600;
+    padding: {M}px {XL}px; font-size: {FONT_SUBTITLE}pt;
+}}
+QPushButton#primary:hover {{ background: {CYAN}; }}
+QToolButton {{ border: none; border-radius: {RADIUS_S}px; padding: {XS}px; }}
+QToolButton:hover {{ background: {SURFACE_RAISED}; }}
+QToolButton:pressed {{ background: {SURFACE_PRESSED}; }}
+QToolButton:disabled {{ background: transparent; }}
+QToolButton#playButton {{ background: {ACCENT_GRADIENT}; border-radius: 20px; }}
+QToolButton#playButton:hover {{ background: {CYAN}; }}
+QToolButton#playButton:disabled {{ background: {SURFACE_RAISED}; }}
+QToolButton#speedButton {{ font-family: {MONO_STACK}; font-size: {FONT_CAPTION}pt; padding: {XS}px {S}px; }}
+QToolButton::menu-indicator {{ image: none; width: 0; }}
+
+/* Keyboard focus is always visible */
+QPushButton:focus, QToolButton:focus, QComboBox:focus, QCheckBox:focus, QSpinBox:focus {{
+    outline: none; border: 2px solid {CYAN};
+}}
+
+/* Control bar */
+QFrame#controlBar {{ background: {SURFACE}; border-top: 1px solid {BORDER}; }}
+
+/* Sliders */
+QSlider::groove:horizontal {{ height: 4px; background: {BORDER}; border-radius: 2px; }}
+QSlider::sub-page:horizontal {{ background: {ACCENT_GRADIENT}; border-radius: 2px; }}
 QSlider::sub-page:horizontal:disabled {{ background: {BORDER}; }}
 QSlider::handle:horizontal {{ background: {TEXT}; width: 12px; margin: -5px 0; border-radius: 6px; }}
-QSlider::handle:horizontal:disabled {{ background: {TEXT_MUTED}; }}
+QSlider::handle:horizontal:hover {{ background: {CYAN}; }}
+QSlider::handle:horizontal:disabled {{ background: {TEXT_DISABLED}; }}
+QSlider#seek::groove:horizontal {{ height: 5px; }}
+
+/* Settings form */
+QComboBox, QSpinBox {{
+    background: {SURFACE_RAISED}; border: 1px solid {BORDER}; border-radius: {RADIUS_S}px;
+    padding: {XS}px {S}px; min-width: 120px;
+}}
+QComboBox QAbstractItemView {{ background: {SURFACE}; border: 1px solid {BORDER}; selection-background-color: {SURFACE_PRESSED}; }}
+QCheckBox {{ spacing: {S}px; }}
+QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 1px solid {BORDER}; background: {SURFACE_RAISED}; }}
+QCheckBox::indicator:checked {{ background: {GREEN}; border-color: {GREEN}; }}
+QScrollArea {{ background: transparent; border: none; }}
+QScrollBar:vertical {{ background: transparent; width: 10px; }}
+QScrollBar::handle:vertical {{ background: {BORDER}; border-radius: 5px; min-height: 30px; }}
+QScrollBar::add-line, QScrollBar::sub-line {{ height: 0; }}
+
 QStatusBar {{ background: {BG}; color: {TEXT_MUTED}; }}
+QStatusBar::item {{ border: none; }}
 """

@@ -18,6 +18,15 @@ GLYPHS = {
     "mute": "",
     "fullscreen": "",
     "exit_fullscreen": "",
+    "back": "",  # Rewind
+    "forward": "",  # FastForward
+    "home": "",
+    "now_playing": "",  # Video
+    "settings": "",
+    "info": "",
+    "error": "",
+    "music": "",
+    "drop": "",  # Download / drop target
 }
 
 

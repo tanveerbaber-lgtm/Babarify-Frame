@@ -1,13 +1,14 @@
-# Babarify Frame — Architecture Overview (M2)
+# Babarify Frame — Architecture Overview (M3)
 
-This describes the code as it exists at the end of Milestone 2. The product-level
+This describes the code as it exists at the end of Milestone 3. The product-level
 architecture and roadmap are in the
 [plan](../../Babarify_Vision_Official_Architecture_and_Milestones.md).
 
 ## Layers and dependency rule
 
 ```text
-ui/  (PySide6)                 presentation: player window, widgets, theme, Qt thread bridge
+ui/  (PySide6)                 presentation: shell, pages, controls, theme tokens, Qt thread bridge
+configuration/                 typed preferences and local JSON store (no Qt)
   │  depends on ↓ only
 playback/controller.py         application layer: owns the active engine, survives engine switches
 playback/contracts.py          the common playback contract (PlaybackEngine) + EngineBase
@@ -86,15 +87,32 @@ libVLC's Direct3D11 output and its log callback; see the benchmark report §6).
 
 Therefore:
 
-1. `MainWindow.closeEvent` calls `PlaybackController.shutdown()` before the window is
+1. `MainWindow.closeEvent` calls `PlayerPage.shutdown()` (which shuts the controller down) before the window is
    destroyed (implemented in M2; covered by `test_close_shuts_engine_down_before_window`).
 2. Changing or destroying the video widget requires closing (or detaching) the
    engine first.
 3. Tests must not let pytest-qt destroy a window that an engine still renders into.
 
-## Player window (M2)
+## UI structure (M3)
 
-- `MainWindow` owns a `PlaybackController` and talks to nothing else in the playback layer.
+- `ui/main_window.py` — `MainWindow`, the shell: navigation rail, page stack, menus,
+  shortcuts, fullscreen, drag-and-drop, preferences load/save. It owns no playback logic.
+- `ui/pages/home.py` (empty state), `ui/pages/player.py` (`PlayerPage`: video, state
+  messages, controller wiring), `ui/pages/settings.py` (preferences form).
+- `ui/controls.py` — `ControlBar`, a view with signals; responsive breakpoints at 760 and
+  540 px hide secondary controls.
+- `ui/theme.py` — design tokens (colour, spacing, radius, type) and the stylesheet.
+- **Keyboard model:** playback actions are window actions enabled only while Now Playing
+  is shown; navigation, open, exit, F1 and Esc are always active.
+- **Fullscreen:** the rail, menu and status bar are hidden; the control bar auto-hides
+  after the configured delay while playing, detected by polling the cursor position
+  (the engine's native window receives the mouse events, not Qt).
+- **Preferences:** `configuration.PreferencesStore` validates untrusted JSON, writes
+  atomically and quarantines corrupt files. Tests and tools always use temporary stores.
+
+## Player page (M2, now `PlayerPage`)
+
+- `PlayerPage` owns a `PlaybackController` and talks to nothing else in the playback layer.
 - The engine is created on a worker thread (`start_engine`) and handed to the controller
   on the UI thread with `PlaybackController.attach()`. A file requested before the engine
   is ready (e.g. from the command line) is opened as soon as it is.

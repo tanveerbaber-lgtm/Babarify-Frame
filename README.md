@@ -2,10 +2,11 @@
 
 **Every Frame, Better.** A free, privacy-focused media player by Babarify.
 
-> Status: **Milestone 2 — Real Playback Prototype** (awaiting acceptance). The app plays
-> local video and audio files with basic controls and fullscreen. The premium interface
-> is M3. See [the plan](Babarify_Vision_Official_Architecture_and_Milestones.md) and the
-> milestone reports for [M1](docs/milestones/M1/) and [M2](docs/milestones/M2/).
+> Status: **Milestone 3 — Premium UI Foundation** (awaiting acceptance). The app plays
+> local video and audio files in a branded interface with Home, Now Playing and Settings
+> pages, fullscreen with auto-hiding controls, and saved preferences. See
+> [the plan](Babarify_Vision_Official_Architecture_and_Milestones.md) and the milestone
+> reports for [M1](docs/milestones/M1/), [M2](docs/milestones/M2/) and [M3](docs/milestones/M3/).
 
 - No ads, no account, no telemetry by default.
 - First platform: Windows 10/11 64-bit. Android and iOS come after dedicated feasibility milestones.
@@ -45,11 +46,18 @@ Open files with **Ctrl+O**, by dragging them onto the window, or as a command-li
 | Key | Action |
 |---|---|
 | Space | Play / pause |
-| ← / → | Back / forward 5 s |
+| ← / → | Seek back / forward (step set in Settings, default 10 s) |
 | ↑ / ↓ | Volume up / down |
 | M | Mute |
+| S | Stop |
 | F, F11, double-click video | Fullscreen (Esc to leave) |
+| Ctrl+1 / 2 / 3 | Home / Now Playing / Settings |
 | Ctrl+O / Ctrl+Q | Open / exit |
+| F1 | Keyboard shortcuts |
+
+Playback keys act on the Now Playing page. Preferences (volume, window size, seek step,
+fullscreen behaviour) are stored only on this PC in `%APPDATA%\Babarify\Frame\settings.json`
+(override the folder with `BABARIFY_CONFIG_DIR`).
 
 `--smoke-test [MS]` opens the window (and FILE), then exits after MS milliseconds (used by tests).
 
@@ -86,9 +94,10 @@ src/babarify_frame/
   core/        typed models, errors, events (no engine or UI imports)
   playback/    contract, lifecycle rules, factory, controller
     adapters/  mock, libvlc (prototype), mpv (prototype) — the only place engine bindings are imported
-  ui/          PySide6 player window, widgets, theme, Qt thread bridge
+  configuration/ typed preferences + local JSON store
+  ui/          PySide6 shell (main_window), pages (home, player, settings), controls, theme tokens
 tests/         unit, integration, ui, stress
-tools/         engine-benchmark (media corpus + benchmark), player_screenshot
+tools/         engine-benchmark, player_screenshot, ui_responsiveness, real_input_check
 branding/      icon source and generator
 docs/          architecture, decisions (ADRs), milestone reports
 ```
