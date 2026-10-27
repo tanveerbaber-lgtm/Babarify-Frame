@@ -10,7 +10,7 @@ rendering into a real Qt window.
 
 | File | Purpose |
 |---|---|
-| `make_media.py` | Generates synthetic test media (FFmpeg `testsrc2` + -60 dB sine) and `media-manifest.json` with commands and SHA-256 |
+| `make_media.py` | Generates synthetic test media (FFmpeg `testsrc2` + -60 dB sine): the benchmark set, the M2 playback corpus (`c_*` files, 19 containers/codecs) and invalid files, plus `media-manifest.json` with commands, expectations and SHA-256 |
 | `trial.py` | One scenario, one engine, one fresh process; prints a `RESULT {json}` line |
 | `bench.py` | Runs all trials (engine order alternates), records machine info, writes `results/` |
 | `results/summary.md`, `summary.json` | Committed evidence for the M1 benchmark report |

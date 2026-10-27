@@ -2,15 +2,15 @@
 
 **Every Frame, Better.** A free, privacy-focused media player by Babarify.
 
-> Status: **Milestone 1 — Feasibility and Architecture.** The app opens a branded
-> shell and reports which playback engines it can load. It does not play media
-> yet; real playback is M2. See [the plan](Babarify_Vision_Official_Architecture_and_Milestones.md)
-> and [M1 reports](docs/milestones/M1/).
+> Status: **Milestone 2 — Real Playback Prototype** (awaiting acceptance). The app plays
+> local video and audio files with basic controls and fullscreen. The premium interface
+> is M3. See [the plan](Babarify_Vision_Official_Architecture_and_Milestones.md) and the
+> milestone reports for [M1](docs/milestones/M1/) and [M2](docs/milestones/M2/).
 
 - No ads, no account, no telemetry by default.
 - First platform: Windows 10/11 64-bit. Android and iOS come after dedicated feasibility milestones.
-- Playback engine: **not selected yet** — libVLC and mpv are being compared
-  ([ADR-0001](docs/decisions/ADR-0001-playback-engine.md)).
+- Playback engine: **libVLC** (provisional, [ADR-0001](docs/decisions/ADR-0001-playback-engine.md));
+  mpv is kept as a maintained alternative.
 
 ## Development setup (Windows)
 
@@ -37,10 +37,21 @@ A 32-bit VLC installation cannot be used from 64-bit Python.
 ## Run
 
 ```powershell
-.\.venv\Scripts\python.exe -m babarify_frame
+.\.venv\Scripts\python.exe -m babarify_frame [FILE] [--engine libvlc|mpv]
 ```
 
-`--smoke-test` opens the window, waits briefly and exits with code 0 (used by tests).
+Open files with **Ctrl+O**, by dragging them onto the window, or as a command-line argument.
+
+| Key | Action |
+|---|---|
+| Space | Play / pause |
+| ← / → | Back / forward 5 s |
+| ↑ / ↓ | Volume up / down |
+| M | Mute |
+| F, F11, double-click video | Fullscreen (Esc to leave) |
+| Ctrl+O / Ctrl+Q | Open / exit |
+
+`--smoke-test [MS]` opens the window (and FILE), then exits after MS milliseconds (used by tests).
 
 ## Checks
 
@@ -51,7 +62,13 @@ A 32-bit VLC installation cannot be used from 64-bit Python.
 .\.venv\Scripts\python.exe -m mypy
 ```
 
-Integration tests skip automatically when an engine library is missing.
+Integration tests skip automatically when an engine library or the generated media is
+missing (generate it with `tools\engine-benchmark\make_media.py`). mpv tests are opt-in:
+set `BABARIFY_TEST_MPV=1` (see M1 finding S1). Resource stress tests run separately:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -m stress -s
+```
 
 ## Engine benchmark
 
@@ -69,9 +86,9 @@ src/babarify_frame/
   core/        typed models, errors, events (no engine or UI imports)
   playback/    contract, lifecycle rules, factory, controller
     adapters/  mock, libvlc (prototype), mpv (prototype) — the only place engine bindings are imported
-  ui/          PySide6 shell
-tests/         unit, integration, ui
-tools/         engine-benchmark
+  ui/          PySide6 player window, widgets, theme, Qt thread bridge
+tests/         unit, integration, ui, stress
+tools/         engine-benchmark (media corpus + benchmark), player_screenshot
 branding/      icon source and generator
 docs/          architecture, decisions (ADRs), milestone reports
 ```

@@ -1,4 +1,7 @@
-"""Babarify dark theme: deep navy surfaces, blue/cyan highlights, green accents."""
+"""Babarify dark theme: deep navy surfaces, blue/cyan highlights, green accents.
+
+M2 keeps styling minimal and functional; the premium visual design is M3.
+"""
 
 from __future__ import annotations
 
@@ -22,16 +25,26 @@ QMenuBar::item:selected {{ background: {SURFACE_RAISED}; }}
 QMenu {{ background: {SURFACE}; border: 1px solid {BORDER}; }}
 QMenu::item:selected {{ background: {SURFACE_RAISED}; }}
 QMenu::item:disabled {{ color: {TEXT_MUTED}; }}
-QLabel#productName {{ font-size: 18pt; font-weight: 600; }}
-QLabel#brand {{ color: {CYAN}; font-size: 9pt; font-weight: 600; letter-spacing: 2px; }}
+QWidget#header {{ background: {BG}; }}
+QLabel#productName {{ font-size: 14pt; font-weight: 600; }}
+QLabel#brand {{ color: {CYAN}; font-size: 8pt; font-weight: 600; letter-spacing: 2px; }}
 QLabel#tagline {{ color: {TEXT_MUTED}; }}
-QFrame#videoArea {{
+QFrame#messagePage {{
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {SURFACE}, stop:1 {BG});
-    border: 1px solid {BORDER}; border-radius: 14px;
 }}
-QLabel#emptyTitle {{ font-size: 15pt; font-weight: 600; }}
-QLabel#emptyBody {{ color: {TEXT_MUTED}; }}
-QFrame#enginePanel {{ background: {SURFACE}; border: 1px solid {BORDER}; border-radius: 10px; }}
-QLabel#panelTitle {{ color: {TEXT_MUTED}; font-size: 9pt; font-weight: 600; letter-spacing: 1px; }}
+QLabel#messageTitle {{ font-size: 15pt; font-weight: 600; }}
+QLabel#messageBody {{ color: {TEXT_MUTED}; }}
+QFrame#controlBar {{ background: {SURFACE}; border-top: 1px solid {BORDER}; }}
+QLabel#timeLabel {{ color: {TEXT_MUTED}; font-family: "Cascadia Mono", "Consolas", monospace; }}
+QToolButton {{ border-radius: 6px; padding: 4px; }}
+QToolButton:hover {{ background: {SURFACE_RAISED}; }}
+QToolButton:disabled {{ background: transparent; }}
+QSlider::groove:horizontal {{ height: 4px; background: {BORDER}; border-radius: 2px; }}
+QSlider::sub-page:horizontal {{
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {BLUE}, stop:1 {CYAN}); border-radius: 2px;
+}}
+QSlider::sub-page:horizontal:disabled {{ background: {BORDER}; }}
+QSlider::handle:horizontal {{ background: {TEXT}; width: 12px; margin: -5px 0; border-radius: 6px; }}
+QSlider::handle:horizontal:disabled {{ background: {TEXT_MUTED}; }}
 QStatusBar {{ background: {BG}; color: {TEXT_MUTED}; }}
 """

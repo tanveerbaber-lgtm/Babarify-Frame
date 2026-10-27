@@ -1,13 +1,13 @@
-# Babarify Frame — Architecture Overview (M1)
+# Babarify Frame — Architecture Overview (M2)
 
-This describes the code as it exists at the end of Milestone 1. The product-level
+This describes the code as it exists at the end of Milestone 2. The product-level
 architecture and roadmap are in the
 [plan](../../Babarify_Vision_Official_Architecture_and_Milestones.md).
 
 ## Layers and dependency rule
 
 ```text
-ui/  (PySide6)                 presentation: windows, widgets, theme, Qt thread bridge
+ui/  (PySide6)                 presentation: player window, widgets, theme, Qt thread bridge
   │  depends on ↓ only
 playback/controller.py         application layer: owns the active engine, survives engine switches
 playback/contracts.py          the common playback contract (PlaybackEngine) + EngineBase
@@ -86,11 +86,28 @@ libVLC's Direct3D11 output and its log callback; see the benchmark report §6).
 
 Therefore:
 
-1. `MainWindow.closeEvent` (M2) must call `PlaybackController.shutdown()` before the
-   window is destroyed.
+1. `MainWindow.closeEvent` calls `PlaybackController.shutdown()` before the window is
+   destroyed (implemented in M2; covered by `test_close_shuts_engine_down_before_window`).
 2. Changing or destroying the video widget requires closing (or detaching) the
    engine first.
 3. Tests must not let pytest-qt destroy a window that an engine still renders into.
+
+## Player window (M2)
+
+- `MainWindow` owns a `PlaybackController` and talks to nothing else in the playback layer.
+- The engine is created on a worker thread (`start_engine`) and handed to the controller
+  on the UI thread with `PlaybackController.attach()`. A file requested before the engine
+  is ready (e.g. from the command line) is opened as soon as it is.
+- Engine events (state, media info, errors) are delivered through `UiBridge`. Position is
+  **polled** every 100 ms instead of reacting to every engine position event (mpv emits
+  one per frame).
+- The video area is a native child window (`VideoSurface`) that the engine renders into.
+  Text cannot be drawn over a Direct3D child window, so idle, error and audio-only states
+  switch a `QStackedWidget` to a message page instead of overlaying the video.
+- libVLC's mouse and keyboard handling in its video window is disabled so Qt receives
+  double-click (fullscreen) and keyboard shortcuts. Shortcuts are window actions, so they
+  keep working in fullscreen while the menu bar is hidden.
+- Codec names are normalised to FFmpeg/ffprobe vocabulary by every adapter.
 
 ## Capability reporting
 

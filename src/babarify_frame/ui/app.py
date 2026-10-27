@@ -13,12 +13,13 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
 from babarify_frame import BRAND, PRODUCT_NAME, __version__
-from babarify_frame.playback.factory import default_factory
+from babarify_frame.playback.factory import EngineFactory, default_factory
 from babarify_frame.ui.main_window import MainWindow
 from babarify_frame.ui.theme import STYLESHEET
 
 ICON_DIR = Path(__file__).resolve().parent.parent / "resources" / "icons"
 APP_USER_MODEL_ID = "Babarify.Frame"
+DEFAULT_ENGINE = "libvlc"  # ADR-0001 (accepted, provisional)
 
 
 def load_icon() -> QIcon:
@@ -36,21 +37,29 @@ def _set_windows_app_id() -> None:
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_USER_MODEL_ID)
 
 
-def parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
+def parse_args(argv: Sequence[str] | None, engines: Sequence[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="babarify-frame", description=f"{PRODUCT_NAME} {__version__}")
+    parser.add_argument("file", nargs="?", help="media file to open")
+    parser.add_argument(
+        "--engine",
+        choices=list(engines),
+        default=DEFAULT_ENGINE,
+        help=f"playback engine (default: {DEFAULT_ENGINE})",
+    )
     parser.add_argument(
         "--smoke-test",
         nargs="?",
         type=int,
         const=1500,
         metavar="MS",
-        help="open the window, run engine probes, then exit after MS milliseconds",
+        help="open the window (and FILE, if given), then exit after MS milliseconds",
     )
     return parser.parse_args(argv)
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    args = parse_args(argv)
+def main(argv: Sequence[str] | None = None, factory: EngineFactory | None = None) -> int:
+    factory = factory or default_factory()
+    args = parse_args(argv, factory.names())
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     _set_windows_app_id()
 
@@ -63,9 +72,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     icon = load_icon()
     app.setWindowIcon(icon)
 
-    window = MainWindow(default_factory(), icon)
+    window = MainWindow(factory, icon, engine_name=args.engine)
     window.show()
-    window.start_engine_probes()
+    window.start_engine()
+    if args.file:
+        window.open_path(args.file)
 
     if args.smoke_test is not None:
         QTimer.singleShot(args.smoke_test, window.close)

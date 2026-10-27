@@ -224,6 +224,110 @@ CLIPS: dict[str, dict[str, object]] = {
 }
 
 
+for spec in CLIPS.values():
+    spec["set"] = "benchmark"
+
+
+def _clip(video: str | None, tones: list[int], args: str, expect: dict[str, object]) -> dict[str, object]:
+    inputs = ([video] if video else []) + [TONE.format(f=f) for f in tones]
+    return {"inputs": inputs, "args": args.split(), "expect": expect, "set": "corpus"}
+
+
+# M2 playback corpus: common containers and codecs, 8-10 s each. Codec names in "expect"
+# use FFmpeg/ffprobe vocabulary, which is also what the engine adapters report.
+_V720 = VIDEO.format(w=1280, h=720, fps=25)
+_X264 = "-c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p"
+CORPUS: dict[str, dict[str, object]] = {
+    "c_h264_aac_720p.mkv": _clip(
+        _V720,
+        [440],
+        f"-t 8 {_X264} -c:a aac",
+        {"video": "h264", "width": 1280, "height": 720, "audio": "aac"},
+    ),
+    "c_h264_aac_1080p.mov": _clip(
+        VIDEO.format(w=1920, h=1080, fps=30),
+        [440],
+        f"-t 8 {_X264} -c:a aac",
+        {"video": "h264", "width": 1920, "height": 1080, "audio": "aac"},
+    ),
+    "c_h264_aac_1080p60.mp4": _clip(
+        VIDEO.format(w=1920, h=1080, fps=60),
+        [440],
+        f"-t 8 {_X264} -c:a aac -movflags +faststart",
+        {"video": "h264", "width": 1920, "height": 1080, "fps": 60, "audio": "aac"},
+    ),
+    "c_h264_aac_portrait_1080x1920.mp4": _clip(
+        VIDEO.format(w=1080, h=1920, fps=30),
+        [440],
+        f"-t 8 {_X264} -c:a aac",
+        {"video": "h264", "width": 1080, "height": 1920, "audio": "aac"},
+    ),
+    "c_h264_aac_odd_854x480.mp4": _clip(
+        VIDEO.format(w=854, h=480, fps=30),
+        [440],
+        f"-t 8 {_X264} -c:a aac",
+        {"video": "h264", "width": 854, "height": 480, "audio": "aac"},
+    ),
+    "c_h264_ac3_720p.ts": _clip(
+        _V720,
+        [440],
+        f"-t 8 {_X264} -c:a ac3",
+        {"video": "h264", "width": 1280, "height": 720, "audio": "ac3"},
+    ),
+    "c_mpeg4_mp3_480p.avi": _clip(
+        VIDEO.format(w=640, h=480, fps=25),
+        [440],
+        "-t 8 -c:v mpeg4 -vtag xvid -q:v 4 -c:a libmp3lame -b:a 128k",
+        {"video": "mpeg4", "width": 640, "height": 480, "audio": "mp3"},
+    ),
+    "c_mpeg2_mp2_576p.mpg": _clip(
+        VIDEO.format(w=720, h=576, fps=25),
+        [440],
+        "-t 8 -c:v mpeg2video -b:v 5M -c:a mp2 -b:a 192k -f vob",
+        {"video": "mpeg2video", "width": 720, "height": 576, "audio": "mp2"},
+    ),
+    "c_vp8_vorbis_720p.webm": _clip(
+        _V720,
+        [440],
+        "-t 8 -c:v libvpx -deadline realtime -cpu-used 8 -b:v 2M -c:a libvorbis",
+        {"video": "vp8", "width": 1280, "height": 720, "audio": "vorbis"},
+    ),
+    "c_hevc10_aac_1080p.mp4": _clip(
+        VIDEO.format(w=1920, h=1080, fps=30),
+        [440],
+        "-t 8 -c:v libx265 -preset ultrafast -crf 28 -pix_fmt yuv420p10le -tag:v hvc1 "
+        "-x265-params log-level=error -c:a aac",
+        {"video": "hevc", "width": 1920, "height": 1080, "audio": "aac", "bit_depth": 10},
+    ),
+    "c_wmv2_wmav2_480p.wmv": _clip(
+        VIDEO.format(w=640, h=480, fps=25),
+        [440],
+        "-t 8 -c:v wmv2 -b:v 2M -c:a wmav2 -b:a 128k",
+        {"video": "wmv2", "width": 640, "height": 480, "audio": "wmav2"},
+    ),
+    "c_theora_vorbis_480p.ogv": _clip(
+        VIDEO.format(w=640, h=480, fps=25),
+        [440],
+        "-t 8 -c:v libtheora -q:v 6 -c:a libvorbis",
+        {"video": "theora", "width": 640, "height": 480, "audio": "vorbis"},
+    ),
+    "c_audio_mp3.mp3": _clip(
+        None, [440], "-t 10 -ac 2 -ar 44100 -c:a libmp3lame -b:a 192k", {"audio": "mp3"}
+    ),
+    "c_audio_flac.flac": _clip(None, [440], "-t 10 -ac 2 -c:a flac", {"audio": "flac"}),
+    "c_audio_aac.m4a": _clip(None, [440], "-t 10 -ac 2 -c:a aac -b:a 160k", {"audio": "aac"}),
+    "c_audio_pcm.wav": _clip(None, [440], "-t 10 -ac 2 -c:a pcm_s16le", {"audio": "pcm_s16le"}),
+    "c_audio_opus.opus": _clip(None, [440], "-t 10 -ac 2 -c:a libopus -b:a 96k", {"audio": "opus"}),
+    "c_audio_vorbis.ogg": _clip(None, [440], "-t 10 -ac 2 -c:a libvorbis", {"audio": "vorbis"}),
+    "c_audio_ac3_51.ac3": _clip(
+        None,
+        [440],
+        "-t 10 -af aformat=channel_layouts=5.1 -c:a ac3 -b:a 384k",
+        {"audio": "ac3", "channels": 6},
+    ),
+}
+
+
 def run(cmd: list[str]) -> None:
     subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
 
@@ -251,7 +355,7 @@ def main() -> int:
     (OUT / "fra.ass").write_text(ASS_FRA, encoding="utf-8")
 
     entries = []
-    for name, spec in CLIPS.items():
+    for name, spec in {**CLIPS, **CORPUS}.items():
         target = OUT / name
         cmd = [ffmpeg, "-hide_banner", "-y"]
         for source in spec["inputs"]:  # type: ignore[attr-defined]
@@ -266,6 +370,7 @@ def main() -> int:
             {
                 "file": name,
                 "kind": "valid",
+                "set": spec["set"],
                 "expect": spec["expect"],
                 "command": " ".join(Path(c).name if c == ffmpeg else c for c in cmd),
                 "bytes": target.stat().st_size,

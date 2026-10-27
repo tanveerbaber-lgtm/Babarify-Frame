@@ -39,8 +39,11 @@ class PlaybackController:
 
     def start(self, engine_name: str) -> None:
         """Create (or switch to) an engine. The previous engine is closed first."""
+        self.attach(self._factory.create(engine_name))
+
+    def attach(self, engine: PlaybackEngine) -> None:
+        """Adopt an already-initialised engine (e.g. created on a worker thread)."""
         self.shutdown()
-        engine = self._factory.create(engine_name)
         self._unsubscribe = engine.subscribe(self._dispatch)
         if self._window_id is not None:
             engine.set_video_output(self._window_id)

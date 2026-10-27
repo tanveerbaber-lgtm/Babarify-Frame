@@ -3,7 +3,9 @@
 **Date:** 2026-10-27 · **Branch:** `main` (uncommitted at time of writing) ·
 **Prepared by:** Claude (Claude Code) · **Decision owner:** Tanveer Baber
 
-## Proposed decision: **CONDITIONAL**
+## Decision: **CONDITIONAL** — accepted by the owner on 2026-10-27
+
+The owner also accepted ADR-0001 (libVLC, provisional). M2 may start.
 
 Every M1 deliverable exists and every acceptance criterion has evidence. M1 is
 conditional, not a clean PASS, because the engine choice in ADR-0001 is a *provisional*

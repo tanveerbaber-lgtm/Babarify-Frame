@@ -1,17 +1,25 @@
-"""Real-engine smoke tests. Skipped when an engine library or the generated media is missing."""
+"""Real-engine tests. Skipped when an engine library or the generated media is missing.
+
+libVLC (the selected engine, ADR-0001) runs by default. mpv runs only with
+BABARIFY_TEST_MPV=1: processes that create several mpv instances end in an access
+violation (M1 finding S1), which would fail the whole pytest process.
+"""
 
 from __future__ import annotations
 
+import json
+import os
 import time
 from collections.abc import Callable, Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 from PySide6.QtWidgets import QWidget
 from pytestqt.qtbot import QtBot
 
 from babarify_frame.core.errors import ErrorCode, PlaybackError
-from babarify_frame.core.events import ErrorOccurred, PlaybackEvent
+from babarify_frame.core.events import ErrorOccurred, PlaybackEvent, StateChanged
 from babarify_frame.core.models import PlaybackState as S
 from babarify_frame.core.models import TrackKind
 from babarify_frame.playback.contracts import PlaybackEngine
@@ -19,23 +27,35 @@ from babarify_frame.playback.factory import default_factory
 
 pytestmark = [pytest.mark.integration, pytest.mark.ui]
 
-MEDIA = Path(__file__).resolve().parents[1] / "fixtures" / "media" / "generated"
+ROOT = Path(__file__).resolve().parents[2]
+MEDIA = ROOT / "tests" / "fixtures" / "media" / "generated"
+MANIFEST = ROOT / "tools" / "engine-benchmark" / "media-manifest.json"
 H264 = MEDIA / "h264_1080p30_aac.mp4"
 TIMEOUT_MS = 15_000
 
 
-def _engine_params() -> list[object]:
+def _engine_params() -> list[Any]:
     factory = default_factory()
     params = []
     for name in ("libvlc", "mpv"):
         probe = factory.probe(name)
-        params.append(
-            pytest.param(
-                name,
-                marks=pytest.mark.skipif(not probe.available, reason=f"{name} unavailable: {probe.detail}"),
+        marks = [pytest.mark.skipif(not probe.available, reason=f"{name} unavailable: {probe.detail}")]
+        if name == "mpv":
+            marks.append(
+                pytest.mark.skipif(
+                    os.environ.get("BABARIFY_TEST_MPV") != "1",
+                    reason="mpv is the alternate engine; set BABARIFY_TEST_MPV=1 (see M1 finding S1)",
+                )
             )
-        )
+        params.append(pytest.param(name, marks=marks, id=name))
     return params
+
+
+def _valid_media() -> list[Any]:
+    if not MANIFEST.exists():
+        return []
+    entries = json.loads(MANIFEST.read_text(encoding="utf-8"))["files"]
+    return [pytest.param(e, id=e["file"]) for e in entries if e["kind"] == "valid"]
 
 
 @pytest.fixture(params=_engine_params())
@@ -67,55 +87,109 @@ def wait_true(qtbot: QtBot, check: Callable[[], bool]) -> None:
     qtbot.waitUntil(check, timeout=TIMEOUT_MS)
 
 
-def test_play_pause_seek_volume(engine: PlaybackEngine, qtbot: QtBot) -> None:
-    engine.open_media(str(H264))
+def record_states(engine: PlaybackEngine) -> list[S]:
+    states: list[S] = []
+    engine.subscribe(lambda ev: states.append(ev.new) if isinstance(ev, StateChanged) else None)
+    return states
+
+
+@pytest.mark.parametrize("media", _valid_media())
+def test_corpus_file_plays_with_correct_media_info(
+    engine: PlaybackEngine, qtbot: QtBot, media: dict[str, Any]
+) -> None:
+    expect = media["expect"]
+    engine.open_media(str(MEDIA / media["file"]))
     wait_state(qtbot, engine, S.PLAYING)
     wait_true(qtbot, lambda: engine.get_playback_state().position_ms > 300)
 
-    wait_true(qtbot, lambda: engine.get_media_info() is not None)
+    def info_complete() -> bool:
+        info = engine.get_media_info()
+        return info is not None and ("width" not in expect or info.width is not None)
+
+    wait_true(qtbot, info_complete)
     info = engine.get_media_info()
     assert info is not None
-    assert (info.width, info.height) == (1920, 1080)
-    assert info.video_codec == "h264"
-    assert info.duration_ms is not None and 29_000 <= info.duration_ms <= 31_000
+    if "video" in expect:
+        assert info.video_codec == expect["video"]
+        assert (info.width, info.height) == (expect["width"], expect["height"])
+    else:
+        assert info.video_codec is None
+    if "audio" in expect:
+        assert info.audio_codec == expect["audio"]
+    if "audio_tracks" in expect:
+        assert len(info.tracks_of(TrackKind.AUDIO)) == expect["audio_tracks"]
+        assert len(info.tracks_of(TrackKind.SUBTITLE)) == expect["subtitle_tracks"]
+    assert info.duration_ms is not None and info.duration_ms > 0
 
+
+def test_controls_play_pause_seek_volume_rate(engine: PlaybackEngine, qtbot: QtBot) -> None:
+    engine.open_media(str(H264))
+    wait_state(qtbot, engine, S.PLAYING)
     engine.pause()
     wait_state(qtbot, engine, S.PAUSED)
-
     engine.seek(15_000)
     wait_true(qtbot, lambda: abs(engine.get_playback_state().position_ms - 15_000) < 1_500)
-
     engine.set_volume(50)
     engine.set_muted(True)
     engine.set_playback_rate(1.5)
     status = engine.get_playback_state()
     assert (status.volume, status.muted, status.rate) == (50, True, 1.5)
-
     engine.play()
     wait_state(qtbot, engine, S.PLAYING)
+    wait_true(qtbot, lambda: engine.get_playback_state().position_ms > 15_500)
+
+
+def test_open_paused(engine: PlaybackEngine, qtbot: QtBot) -> None:
+    states = record_states(engine)
+    engine.open_media(str(H264), autoplay=False)
+    wait_state(qtbot, engine, S.PAUSED)
+    assert S.PLAYING not in states
+
+
+def test_stop_then_play_restarts(engine: PlaybackEngine, qtbot: QtBot) -> None:
+    engine.open_media(str(H264))
+    wait_true(qtbot, lambda: engine.get_playback_state().position_ms > 1_000)
     engine.stop()
     assert engine.get_playback_state().state is S.READY
-
-
-def test_tracks_are_listed(engine: PlaybackEngine, qtbot: QtBot) -> None:
-    engine.open_media(str(MEDIA / "multitrack_720p.mkv"))
+    assert engine.get_playback_state().position_ms == 0
+    engine.play()
     wait_state(qtbot, engine, S.PLAYING)
-    wait_true(qtbot, lambda: engine.get_media_info() is not None)
-    info = engine.get_media_info()
-    assert info is not None
-    assert len(info.tracks_of(TrackKind.AUDIO)) == 2
-    assert len(info.tracks_of(TrackKind.SUBTITLE)) == 2
+    wait_true(qtbot, lambda: engine.get_playback_state().position_ms > 300)
+
+
+def test_end_then_play_restarts(engine: PlaybackEngine, qtbot: QtBot) -> None:
+    engine.open_media(str(H264))
+    wait_state(qtbot, engine, S.PLAYING)
+    engine.seek(29_000)
+    wait_state(qtbot, engine, S.ENDED)
+    engine.play()
+    wait_state(qtbot, engine, S.PLAYING)
+    wait_true(qtbot, lambda: 0 < engine.get_playback_state().position_ms < 10_000)
+
+
+def test_seek_after_end_pauses_at_target(engine: PlaybackEngine, qtbot: QtBot) -> None:
+    engine.open_media(str(H264))
+    wait_state(qtbot, engine, S.PLAYING)
+    engine.seek(29_000)
+    wait_state(qtbot, engine, S.ENDED)
+    engine.seek(10_000)
+    wait_state(qtbot, engine, S.PAUSED)
+    wait_true(qtbot, lambda: abs(engine.get_playback_state().position_ms - 10_000) < 1_500)
 
 
 @pytest.mark.parametrize("bad", ["not_media.mp4", "truncated.mp4"])
-def test_invalid_media_fails_gracefully_and_engine_recovers(
+def test_invalid_media_fails_without_playing_and_engine_recovers(
     engine: PlaybackEngine, qtbot: QtBot, bad: str
 ) -> None:
+    states = record_states(engine)
     errors: list[PlaybackEvent] = []
     engine.subscribe(lambda ev: errors.append(ev) if isinstance(ev, ErrorOccurred) else None)
     engine.open_media(str(MEDIA / bad))
     wait_state(qtbot, engine, S.ERROR)
     assert errors, "an ErrorOccurred event must accompany the ERROR state"
+    assert isinstance(errors[0], ErrorOccurred)
+    assert errors[0].error.code is ErrorCode.MEDIA_OPEN_FAILED
+    assert S.PLAYING not in states, f"bad media must not appear to play: {states}"
 
     engine.open_media(str(H264))
     wait_state(qtbot, engine, S.PLAYING)
@@ -127,11 +201,14 @@ def test_missing_file_rejected_before_engine(engine: PlaybackEngine) -> None:
     assert exc.value.code is ErrorCode.MEDIA_NOT_FOUND
 
 
-def test_end_of_media_reports_ended(engine: PlaybackEngine, qtbot: QtBot) -> None:
-    engine.open_media(str(H264))
+def test_tracks_are_listed(engine: PlaybackEngine, qtbot: QtBot) -> None:
+    engine.open_media(str(MEDIA / "multitrack_720p.mkv"))
     wait_state(qtbot, engine, S.PLAYING)
-    engine.seek(28_500)
-    wait_state(qtbot, engine, S.ENDED)
+    wait_true(qtbot, lambda: engine.get_media_info() is not None)
+    info = engine.get_media_info()
+    assert info is not None
+    assert len(info.tracks_of(TrackKind.AUDIO)) == 2
+    assert len(info.tracks_of(TrackKind.SUBTITLE)) == 2
 
 
 @pytest.mark.parametrize("name", _engine_params())

@@ -10,6 +10,12 @@ Findings encoded here (see docs/milestones/M1/benchmark-report.md):
   read from the log ("Using <api> for hardware decoding").
 * libVLC event callbacks run on libVLC threads and must not call back into
   the player synchronously, so follow-up commands go through a worker thread.
+* libVLC fires "Playing" before it knows a file is readable, and reports
+  unreadable files as Playing -> EndReached without an error. The adapter holds
+  LOADING until the media is confirmed (length, position or video output) and
+  maps "ended with nothing decoded" to MEDIA_OPEN_FAILED.
+* No TimeChanged while paused; seeking an ended player needs a restart; MPEG-TS/PS
+  and Ogg report streams and video size late. Each is handled below.
 """
 
 from __future__ import annotations
@@ -17,8 +23,10 @@ from __future__ import annotations
 import ctypes
 import os
 import re
+import time
 from collections import deque
 from collections.abc import Mapping
+from dataclasses import dataclass
 from typing import Any
 
 from babarify_frame.core.errors import ErrorCode, PlaybackError
@@ -30,14 +38,30 @@ from babarify_frame.playback.factory import EngineProbe
 S = PlaybackState
 _HW_RE = re.compile(r"Using (.+?) for hardware decoding")
 _VOUT_RE = re.compile(r'using (?:vout display|video output) module "([^"]+)"')
+# libVLC fourcc -> FFmpeg/ffprobe codec name (the vocabulary used across the app).
 _FOURCC_NAMES = {
     "h264": "h264",
     "hevc": "hevc",
     "VP90": "vp9",
+    "VP80": "vp8",
     "av01": "av1",
+    "mp4v": "mpeg4",
+    "mpgv": "mpeg2video",
+    "mp2v": "mpeg2video",
+    "theo": "theora",
+    "WMV2": "wmv2",
+    "WMV3": "wmv3",
     "mp4a": "aac",
     "a52 ": "ac3",
+    "eac3": "eac3",
+    "dts ": "dts",
+    "mpga": "mp2",
+    "mp3 ": "mp3",
     "Opus": "opus",
+    "vorb": "vorbis",
+    "flac": "flac",
+    "s16l": "pcm_s16le",
+    "WMA2": "wmav2",
     "subt": "subrip",
     "ssa ": "ass",
 }
@@ -65,14 +89,43 @@ def probe() -> EngineProbe:
     return EngineProbe("libvlc", True, vlc.libvlc_get_version().decode(), str(find_vlc_dir()))
 
 
+class _RawVideoTrack(ctypes.Structure):
+    # Leading fields of libvlc_video_track_t (libVLC 3.x). Note: height comes first.
+    _fields_ = [
+        ("height", ctypes.c_uint),
+        ("width", ctypes.c_uint),
+        ("sar_num", ctypes.c_uint),
+        ("sar_den", ctypes.c_uint),
+        ("frame_rate_num", ctypes.c_uint),
+        ("frame_rate_den", ctypes.c_uint),
+    ]
+
+
 class _RawTrack(ctypes.Structure):
-    # Leading fields of libvlc_media_track_t (libVLC 3.x), enough to read codec and type safely.
+    # libvlc_media_track_t (libVLC 3.x). The union holds a pointer to the per-kind struct.
     _fields_ = [
         ("codec", ctypes.c_uint32),
         ("original_fourcc", ctypes.c_uint32),
         ("id", ctypes.c_int),
         ("type", ctypes.c_int),
+        ("profile", ctypes.c_int),
+        ("level", ctypes.c_int),
+        ("details", ctypes.c_void_p),
+        ("bitrate", ctypes.c_uint),
+        ("language", ctypes.c_char_p),
+        ("description", ctypes.c_char_p),
     ]
+
+
+@dataclass(frozen=True)
+class _Track:
+    id: int
+    type: int
+    codec: str
+    language: str | None
+    width: int = 0
+    height: int = 0
+    fps: float = 0.0
 
 
 class _RawStats(ctypes.Structure):
@@ -113,6 +166,14 @@ class LibVlcEngine(EngineBase):
         self._stop_requested = False
         self._version = ""
         self._info_pending = False
+        self._info_refresh_queued = False
+        self._size_retries = 0  # media-info refreshes left while the video size is unknown
+        self._last_size_retry = 0.0
+        # libVLC fires "Playing" before it knows the media is readable. While LOADING we hold
+        # the target state until the media is confirmed (length, position or video output).
+        self._confirmed = False
+        self._loading_target: PlaybackState | None = None
+        self._pending_seek: int | None = None  # seek requested after end of media
 
     # ------------------------------------------------------------ setup
     def _do_initialize(self) -> None:
@@ -135,6 +196,8 @@ class LibVlcEngine(EngineBase):
             (E.MediaPlayerTimeChanged, self._on_time),
             (E.MediaPlayerLengthChanged, self._on_length),
             (E.MediaPlayerBuffering, self._on_buffering),
+            (E.MediaPlayerESAdded, self._on_es_added),
+            (E.MediaPlayerVout, self._on_vout),
         ):
             events.event_attach(event_type, handler)
 
@@ -170,7 +233,7 @@ class LibVlcEngine(EngineBase):
             supports_subtitle_tracks=True,
             supports_embedding=True,
             hardware_decoding="requested",
-            notes=("Prototype: seeking after end of media is not implemented.",),
+            notes=("Hardware decoder in use is read from the libVLC log.",),
         )
 
     def diagnostics(self) -> Mapping[str, str]:
@@ -205,11 +268,18 @@ class LibVlcEngine(EngineBase):
     # ---------------------------------------------------------- commands
     def _do_set_video_output(self, window_id: int | None) -> None:
         self._player.set_hwnd(window_id or None)
+        # Let the host (Qt) receive mouse and keyboard input over the video, e.g. double-click
+        # for fullscreen. Must be set before the video output is created.
+        self._player.video_set_mouse_input(False)
+        self._player.video_set_key_input(False)
 
     def _do_open(self, uri: str, autoplay: bool) -> None:
         self._stop_requested = False
         self._hwdec = None
         self._info_pending = True
+        self._confirmed = False
+        self._loading_target = None
+        self._pending_seek = None
         old = self._media
         self._media = self._instance.media_new_path(uri)
         self._player.set_media(self._media)
@@ -223,8 +293,14 @@ class LibVlcEngine(EngineBase):
         if state is S.PAUSED:
             self._player.set_pause(0)
         elif state is S.ENDED:
-            self._info_pending = True
-            self._player.play()
+            self._restart()
+
+    def _restart(self) -> None:
+        # An ended libVLC 3 player ignores play(); it must be stopped first. The automatic
+        # "Stopped" event is ignored because no stop was requested by the user.
+        self._info_pending = True
+        self._player.stop()
+        self._player.play()
 
     def _do_pause(self) -> None:
         if self.state in (S.PLAYING, S.BUFFERING):
@@ -238,7 +314,10 @@ class LibVlcEngine(EngineBase):
 
     def _do_seek(self, position_ms: int) -> None:
         if self.state is S.ENDED:
-            raise PlaybackError(ErrorCode.UNSUPPORTED, "libVLC prototype cannot seek after end of media")
+            # libVLC cannot seek an ended player: restart it, then seek and pause on "Playing".
+            self._pending_seek = position_ms
+            self._restart()
+            return
         self._player.set_time(position_ms)
         if self.state is S.PAUSED:
             # libVLC sends no TimeChanged while paused, so report the accepted target ourselves.
@@ -272,17 +351,57 @@ class LibVlcEngine(EngineBase):
 
     # ------------------------------------------------- libVLC callbacks
     # These run on libVLC threads: update state only, defer player calls.
+    def _on_es_added(self, _event: Any) -> None:
+        # Some demuxers (MPEG-TS/PS, Ogg) announce streams, and their video size, only after
+        # Playing: refresh media info when streams are added and when the video output appears.
+        if self._info_pending or self._info_refresh_queued:
+            return
+        self._info_refresh_queued = True
+        self._defer(self._refresh_media_info)
+
+    def _refresh_media_info(self) -> None:
+        self._info_refresh_queued = False
+        self._collect_media_info()
+
     def _on_playing(self, _event: Any) -> None:
         if self._info_pending:
             self._info_pending = False
             self._defer(self._collect_media_info)
-        if self.state is S.LOADING and not self._autoplay:
-            self._defer(self._player.set_pause, 1)  # Paused event moves us to PAUSED
+        state = self.state
+        if state is S.ENDED and self._pending_seek is not None:
+            target, self._pending_seek = self._pending_seek, None
+            self._defer(self._seek_and_pause, target)  # Paused event moves us ENDED -> PAUSED
+            return
+        if state is S.LOADING:
+            if not self._autoplay:
+                self._defer(self._player.set_pause, 1)  # Paused event sets the target
+                return
+            self._loading_target = S.PLAYING
+            self._enter_target_if_confirmed()
             return
         self._transition(S.PLAYING)
 
     def _on_paused(self, _event: Any) -> None:
+        if self.state is S.LOADING:
+            self._loading_target = S.PAUSED
+            self._enter_target_if_confirmed()
+            return
         self._transition(S.PAUSED)
+
+    def _confirm_media(self) -> None:
+        if not self._confirmed:
+            self._confirmed = True
+            self._enter_target_if_confirmed()
+
+    def _enter_target_if_confirmed(self) -> None:
+        if self._confirmed and self._loading_target is not None and self.state is S.LOADING:
+            target, self._loading_target = self._loading_target, None
+            self._transition(target)
+
+    def _seek_and_pause(self, position_ms: int) -> None:
+        self._player.set_time(position_ms)
+        self._player.set_pause(1)
+        self._set_position(position_ms)
 
     def _on_stopped(self, _event: Any) -> None:
         if self._stop_requested and self.state is not S.CLOSED:
@@ -307,9 +426,27 @@ class LibVlcEngine(EngineBase):
 
     def _on_time(self, event: Any) -> None:
         self._set_position(event.u.new_time)
+        if event.u.new_time > 0:
+            self._confirm_media()
+        # Video size can arrive after every event that announces it (MPEG-TS/PS, Ogg):
+        # retry media info a few times while playback progresses.
+        if self._size_retries and not self._info_refresh_queued:
+            now = time.monotonic()
+            if now - self._last_size_retry >= 0.5:
+                self._last_size_retry = now
+                self._size_retries -= 1
+                self._info_refresh_queued = True
+                self._defer(self._refresh_media_info)
 
     def _on_length(self, event: Any) -> None:
         self._set_duration(event.u.new_length)
+        if event.u.new_length > 0:
+            self._confirm_media()
+
+    def _on_vout(self, event: Any) -> None:
+        if event.u.new_count > 0:
+            self._confirm_media()
+        self._on_es_added(event)
 
     def _on_buffering(self, event: Any) -> None:
         cache = event.u.new_cache
@@ -322,9 +459,9 @@ class LibVlcEngine(EngineBase):
     # ------------------------------------------------------------ helpers
     def _last_error(self) -> str:
         errors = [line for line in self._log if line.startswith("4 ")]
-        return errors[-1] if errors else "libVLC reported an error"
+        return errors[-1][2:] if errors else "libVLC reported an error"  # strip the log-level prefix
 
-    def _read_tracks(self) -> list[tuple[int, int, str]]:
+    def _read_tracks(self) -> list[_Track]:
         dll = self._vlc.dll
         get, release = dll.libvlc_media_tracks_get, dll.libvlc_media_tracks_release
         get.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.POINTER(ctypes.POINTER(_RawTrack)))]
@@ -338,7 +475,13 @@ class LibVlcEngine(EngineBase):
             for i in range(count):
                 t = array[i].contents
                 fourcc = t.codec.to_bytes(4, "little").decode("latin-1")
-                out.append((t.id, t.type, _FOURCC_NAMES.get(fourcc, fourcc.strip())))
+                lang = t.language.decode("utf-8", "replace") if t.language else None
+                track = _Track(t.id, t.type, _FOURCC_NAMES.get(fourcc, fourcc.strip()), lang)
+                if t.type == 1 and t.details:  # video
+                    v = ctypes.cast(t.details, ctypes.POINTER(_RawVideoTrack)).contents
+                    fps = v.frame_rate_num / v.frame_rate_den if v.frame_rate_den else 0.0
+                    track = _Track(track.id, track.type, track.codec, lang, v.width, v.height, fps)
+                out.append(track)
             return out
         finally:
             if count:
@@ -359,20 +502,25 @@ class LibVlcEngine(EngineBase):
             }
             tracks = tuple(
                 TrackInfo(
-                    id=tid,
-                    kind=kinds[ttype],
-                    title=names.get(tid),
-                    codec=codec,
+                    id=t.id,
+                    kind=kinds[t.type],
+                    title=names.get(t.id),
+                    language=t.language,
+                    codec=t.codec,
                     selected=(
-                        kinds[ttype] is TrackKind.VIDEO
-                        or (kinds[ttype] is TrackKind.AUDIO and tid == audio_sel)
-                        or (kinds[ttype] is TrackKind.SUBTITLE and tid == spu_sel)
+                        kinds[t.type] is TrackKind.VIDEO
+                        or (kinds[t.type] is TrackKind.AUDIO and t.id == audio_sel)
+                        or (kinds[t.type] is TrackKind.SUBTITLE and t.id == spu_sel)
                     ),
                 )
-                for tid, ttype, codec in raw
-                if ttype in kinds
+                for t in raw
+                if t.type in kinds
             )
+            # The video output may not exist yet (e.g. MPEG-TS/PS, Ogg): fall back to stream info.
+            raw_video = next((t for t in raw if t.type == 1), None)
             width, height = player.video_get_size(0) or (0, 0)
+            if not width and raw_video:
+                width, height = raw_video.width, raw_video.height
             video = next((t for t in tracks if t.kind is TrackKind.VIDEO), None)
             audio = next((t for t in tracks if t.kind is TrackKind.AUDIO), None)
             self._set_media_info(
@@ -382,10 +530,11 @@ class LibVlcEngine(EngineBase):
                     video_codec=video.codec if video else None,
                     width=width or None,
                     height=height or None,
-                    frame_rate=player.get_fps() or None,
+                    frame_rate=player.get_fps() or (raw_video.fps if raw_video else 0.0) or None,
                     audio_codec=audio.codec if audio else None,
                     tracks=tracks,
                 )
             )
+            self._size_retries = 6 if (video is not None and not width) else 0
         except Exception as exc:  # diagnostics must never break playback
             self._log.append(f"4 babarify: media info failed: {exc!r}")

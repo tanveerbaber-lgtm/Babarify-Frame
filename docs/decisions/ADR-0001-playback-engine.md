@@ -1,6 +1,6 @@
 # ADR-0001: Playback engine for the Windows player
 
-- **Status:** Proposed — **conditional recommendation, awaiting owner decision**
+- **Status:** **Accepted (provisional)** — accepted by Tanveer Baber on 2026-10-27. Conditions N2–N5 remain open.
 - **Date:** 2026-10-27
 - **Deciders:** Tanveer Baber (owner). Prepared by Claude (Claude Code) from M1 evidence.
 - **Evidence:** [benchmark report](../milestones/M1/benchmark-report.md),

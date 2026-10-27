@@ -38,10 +38,11 @@ packages = ["src/babarify_frame"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --strict-markers"
+addopts = "-ra --strict-markers -m 'not stress'"
 markers = [
     "integration: needs a real playback engine (skipped when the engine is unavailable)",
     "ui: needs a Qt platform",
+    "stress: long resource-stability runs; run explicitly with -m stress",
 ]
 qt_api = "pyside6"
 
