@@ -1,0 +1,75 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "babarify-frame"
+version = "0.1.0.dev0"
+description = "Babarify Frame: a free, privacy-focused media player. Every Frame, Better."
+readme = "README.md"
+requires-python = ">=3.13"
+authors = [{ name = "Tanveer Baber" }]
+classifiers = ["Private :: Do Not Upload"]
+dependencies = [
+    "PySide6-Essentials>=6.8",
+]
+
+[project.optional-dependencies]
+# Engine bindings. Native engine libraries are NOT installed by pip; see README.
+vlc = ["python-vlc>=3.0.20123"]
+mpv = ["mpv>=1.0.7"]
+dev = [
+    "python-vlc>=3.0.20123",
+    "mpv>=1.0.7",
+    "psutil>=6.0",
+    "pytest>=8.3",
+    "pytest-qt>=4.4",
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "pip-licenses>=5.0",
+    "py-spy>=0.4",
+]
+
+[project.gui-scripts]
+babarify-frame = "babarify_frame.ui.app:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/babarify_frame"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "integration: needs a real playback engine (skipped when the engine is unavailable)",
+    "ui: needs a Qt platform",
+]
+qt_api = "pyside6"
+
+[tool.ruff]
+line-length = 110
+target-version = "py313"
+src = ["src", "tests", "tools"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+mypy_path = "src"
+packages = ["babarify_frame"]
+
+[[tool.mypy.overrides]]
+module = ["vlc", "mpv", "psutil"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Engine prototypes wrap untyped ctypes bindings.
+module = ["babarify_frame.playback.adapters.libvlc", "babarify_frame.playback.adapters.mpv"]
+disallow_any_expr = false
+warn_return_any = false
+disallow_untyped_calls = false
+
+[tool.ruff.lint.per-file-ignores]
+# Report text deliberately uses typographic dashes and the multiplication sign.
+"tools/engine-benchmark/bench.py" = ["RUF001"]

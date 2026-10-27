@@ -18,3 +18,10 @@ desktop.ini
 .DS_Store
 .vscode/
 .idea/
+
+# Local engine binaries and downloads (see docs/milestones/M1/environment-report.md)
+.engines/
+
+# Generated benchmark media and raw results
+tests/fixtures/media/generated/
+tools/engine-benchmark/results/raw/

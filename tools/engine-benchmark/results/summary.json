@@ -1,0 +1,1077 @@
+{
+  "machine": {
+    "date": "2026-10-27T04:02:25",
+    "os": {
+      "Caption": "Microsoft Windows 11 Home",
+      "Version": "10.0.26300",
+      "OSArchitecture": "64-bit"
+    },
+    "cpu": {
+      "Name": "Intel(R) Core(TM) i7-8565U CPU @ 1.80GHz",
+      "NumberOfCores": 4,
+      "NumberOfLogicalProcessors": 8
+    },
+    "ram_gb": 31.7,
+    "gpus": [
+      {
+        "Name": "NVIDIA GeForce MX150",
+        "DriverVersion": "32.0.15.8183",
+        "CurrentHorizontalResolution": null,
+        "CurrentVerticalResolution": null,
+        "CurrentRefreshRate": null
+      },
+      {
+        "Name": "Intel(R) UHD Graphics 620",
+        "DriverVersion": "31.0.101.2145",
+        "CurrentHorizontalResolution": 3840,
+        "CurrentVerticalResolution": 2160,
+        "CurrentRefreshRate": 60
+      }
+    ],
+    "power": {
+      "on_ac": true,
+      "battery_pct": 100
+    },
+    "power_plan": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+    "python": "3.13.15",
+    "packages": {
+      "PySide6": "6.12.0",
+      "python-vlc": "3.0.21203",
+      "mpv": "1.0.8",
+      "psutil": "7.2.2"
+    },
+    "engines": {
+      "libvlc": "3.0.24 Vetinari",
+      "mpv": "v0.41.0-1227-ge471496c5"
+    },
+    "media_ffmpeg": "ffmpeg version 9.0.2-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers"
+  },
+  "trials": 5,
+  "summary": {
+    "perf": {
+      "libvlc": {
+        "h264_1080p30_aac.mp4": {
+          "trials": 5,
+          "failures": [],
+          "init_ms": {
+            "median": 405.40660000260687,
+            "min": 329.22559999860823,
+            "max": 572.0549000034225,
+            "n": 5
+          },
+          "open_to_playing_ms": {
+            "median": 34.870800001954194,
+            "min": 22.533900002599694,
+            "max": 47.045200000866316,
+            "n": 5
+          },
+          "open_to_first_position_ms": {
+            "median": 906.7690999945626,
+            "min": 853.1690000017988,
+            "max": 1009.8428999990574,
+            "n": 5
+          },
+          "open_to_progress_ms": {
+            "median": 851.3136000037775,
+            "min": 608.582100001513,
+            "max": 969.5829999982379,
+            "n": 5
+          },
+          "seek_reported_ms": {
+            "median": 0.11700000322889537,
+            "min": 0.03999999898951501,
+            "max": 0.14859999646432698,
+            "n": 15
+          },
+          "displayed_frames": {
+            "median": 240,
+            "min": 232,
+            "max": 242,
+            "n": 5
+          },
+          "seek_ms": {
+            "median": 386.389399995096,
+            "min": 139.33360000373796,
+            "max": 620.4614000016591,
+            "n": 15
+          },
+          "seek_timeouts": 0,
+          "cpu_pct_one_core": {
+            "median": 8.931090772786394,
+            "min": 2.9168980687282433,
+            "max": 10.499465059259974,
+            "n": 5
+          },
+          "rss_mb_max": {
+            "median": 371.63671875,
+            "min": 359.32421875,
+            "max": 374.1328125,
+            "n": 5
+          },
+          "dropped_frames": {
+            "median": 0,
+            "min": 0,
+            "max": 0,
+            "n": 5
+          },
+          "close_ms": {
+            "median": 159.71469999931287,
+            "min": 151.85989999736194,
+            "max": 176.7293000011705,
+            "n": 5
+          },
+          "hwdec": [
+            "D3D11VA (Intel(R) UHD Graphics 620, vendor 8086(Intel), device 3ea0, revision 0)"
+          ],
+          "video_output": [
+            "direct3d11"
+          ],
+          "media_info": {
+            "video_codec": "h264",
+            "width": 1920,
+            "height": 1080,
+            "fps": 30.0,
+            "audio_codec": "aac"
+          },
+          "rejected_transitions": []
+        },
+        "hevc_2160p30_aac.mkv": {
+          "trials": 5,
+          "failures": [],
+          "init_ms": {
+            "median": 506.151100002171,
+            "min": 401.36949999578064,
+            "max": 592.5237000046764,
+            "n": 5
+          },
+          "open_to_playing_ms": {
+            "median": 52.13319999893429,
+            "min": 33.312699997622985,
+            "max": 68.3772999982466,
+            "n": 5
+          },
+          "open_to_first_position_ms": {
+            "median": 657.0519000015338,
+            "min": 551.1794999983977,
+            "max": 785.3007999947295,
+            "n": 5
+          },
+          "open_to_progress_ms": {
+            "median": 687.014299997827,
+            "min": 580.9723999991547,
+            "max": 816.7365999979666,
+            "n": 5
+          },
+          "seek_reported_ms": {
+            "median": 0.11829999857582152,
+            "min": 0.06350000330712646,
+            "max": 0.29939999512862414,
+            "n": 15
+          },
+          "displayed_frames": {
+            "median": 244,
+            "min": 241,
+            "max": 244,
+            "n": 5
+          },
+          "seek_ms": {
+            "median": 516.7485999991186,
+            "min": 266.1947999949916,
+            "max": 568.0426999970223,
+            "n": 15
+          },
+          "seek_timeouts": 0,
+          "cpu_pct_one_core": {
+            "median": 8.940139080081085,
+            "min": 6.4074557297772285,
+            "max": 11.650442147014228,
+            "n": 5
+          },
+          "rss_mb_max": {
+            "median": 923.921875,
+            "min": 913.65234375,
+            "max": 943.34765625,
+            "n": 5
+          },
+          "dropped_frames": {
+            "median": 0,
+            "min": 0,
+            "max": 0,
+            "n": 5
+          },
+          "close_ms": {
+            "median": 273.2067000033567,
+            "min": 263.7304999952903,
+            "max": 291.06679999677,
+            "n": 5
+          },
+          "hwdec": [
+            "D3D11VA (Intel(R) UHD Graphics 620, vendor 8086(Intel), device 3ea0, revision 0)"
+          ],
+          "video_output": [
+            "direct3d11"
+          ],
+          "media_info": {
+            "video_codec": "hevc",
+            "width": 3840,
+            "height": 2160,
+            "fps": 30.00029945373535,
+            "audio_codec": "aac"
+          },
+          "rejected_transitions": []
+        },
+        "vp9_1080p30_opus.webm": {
+          "trials": 5,
+          "failures": [],
+          "init_ms": {
+            "median": 503.37039999431,
+            "min": 485.98360000323737,
+            "max": 799.1425000000163,
+            "n": 5
+          },
+          "open_to_playing_ms": {
+            "median": 42.6478999943356,
+            "min": 39.97449999587843,
+            "max": 65.82869999692775,
+            "n": 5
+          },
+          "open_to_first_position_ms": {
+            "median": 824.1048999989289,
+            "min": 800.9347999977763,
+            "max": 1043.4086000022944,
+            "n": 5
+          },
+          "open_to_progress_ms": {
+            "median": 584.7680000006221,
+            "min": 564.3502999955672,
+            "max": 804.1363000011188,
+            "n": 5
+          },
+          "seek_reported_ms": {
+            "median": 0.11479999375296757,
+            "min": 0.05919999966863543,
+            "max": 0.23299999884329736,
+            "n": 15
+          },
+          "displayed_frames": {
+            "median": 242,
+            "min": 240,
+            "max": 242,
+            "n": 5
+          },
+          "seek_ms": {
+            "median": 278.5035999986576,
+            "min": 44.500899995910004,
+            "max": 289.98069999943255,
+            "n": 15
+          },
+          "seek_timeouts": 0,
+          "cpu_pct_one_core": {
+            "median": 9.322442632117808,
+            "min": 8.550602909540897,
+            "max": 12.643981884785061,
+            "n": 5
+          },
+          "rss_mb_max": {
+            "median": 198.31640625,
+            "min": 197.91796875,
+            "max": 198.33984375,
+            "n": 5
+          },
+          "dropped_frames": {
+            "median": 0,
+            "min": 0,
+            "max": 0,
+            "n": 5
+          },
+          "close_ms": {
+            "median": 169.4705999980215,
+            "min": 163.3631000004243,
+            "max": 186.68560000514844,
+            "n": 5
+          },
+          "hwdec": [
+            "D3D11VA (Intel(R) UHD Graphics 620, vendor 8086(Intel), device 3ea0, revision 0)"
+          ],
+          "video_output": [
+            "direct3d11"
+          ],
+          "media_info": {
+            "video_codec": "vp9",
+            "width": 1920,
+            "height": 1080,
+            "fps": 30.00029945373535,
+            "audio_codec": "opus"
+          },
+          "rejected_transitions": []
+        },
+        "av1_1080p30_opus.mkv": {
+          "trials": 5,
+          "failures": [],
+          "init_ms": {
+            "median": 493.8442999991821,
+            "min": 379.22509999771137,
+            "max": 596.2629999994533,
+            "n": 5
+          },
+          "open_to_playing_ms": {
+            "median": 1210.1413999989745,
+            "min": 1084.0519999983371,
+            "max": 1468.6593000005814,
+            "n": 5
+          },
+          "open_to_first_position_ms": {
+            "median": 1469.2556999943918,
+            "min": 1349.6645999985049,
+            "max": 1731.3558999958332,
+            "n": 5
+          },
+          "open_to_progress_ms": {
+            "median": 1485.6378999975277,
+            "min": 1368.3067000019946,
+            "max": 1748.5719999967841,
+            "n": 5
+          },
+          "seek_reported_ms": {
+            "median": 0.09829999908106402,
+            "min": 0.06929999653948471,
+            "max": 484.54270000365796,
+            "n": 15
+          },
+          "displayed_frames": {
+            "median": 240,
+            "min": 240,
+            "max": 242,
+            "n": 5
+          },
+          "seek_ms": {
+            "median": 496.8682999970042,
+            "min": 30.310299996926915,
+            "max": 782.2204999974929,
+            "n": 15
+          },
+          "seek_timeouts": 0,
+          "cpu_pct_one_core": {
+            "median": 32.025264895279946,
+            "min": 31.292802333897164,
+            "max": 36.921767193487106,
+            "n": 5
+          },
+          "rss_mb_max": {
+            "median": 271.53125,
+            "min": 271.47265625,
+            "max": 271.9609375,
+            "n": 5
+          },
+          "dropped_frames": {
+            "median": 0,
+            "min": 0,
+            "max": 0,
+            "n": 5
+          },
+          "close_ms": {
+            "median": 162.43939999549184,
+            "min": 158.4625999967102,
+            "max": 173.9804999961052,
+            "n": 5
+          },
+          "hwdec": [
+            "none reported (software decoding or not yet decoding)"
+          ],
+          "video_output": [
+            "direct3d11"
+          ],
+          "media_info": {
+            "video_codec": "av1",
+            "width": 1920,
+            "height": 1080,
+            "fps": 30.00029945373535,
+            "audio_codec": "opus"
+          },
+          "rejected_transitions": []
+        }
+      },
+      "mpv": {
+        "h264_1080p30_aac.mp4": {
+          "trials": 5,
+          "failures": [],
+          "init_ms": {
+            "median": 105.35900000104448,
+            "min": 84.70980000129202,
+            "max": 113.3929999996326,
+            "n": 5
+          },
+          "open_to_playing_ms": {
+            "median": 193.91709999763407,
+            "min": 171.1342999988119,
+            "max": 226.2793000045349,
+            "n": 5
+          },
+          "open_to_first_position_ms": {
+            "median": 731.4527999988059,
+            "min": 581.4882000049693,
+            "max": 810.9570000015083,
+            "n": 5
+          },
+          "open_to_progress_ms": {
+            "median": 679.7936000002665,
+            "min": 526.8634000021848,
+            "max": 751.5782000045874,
+            "n": 5
+          },
+          "seek_reported_ms": {
+            "median": 4.987100001017097,
+            "min": 3.860500000882894,
+            "max": 6.844800001999829,
+            "n": 15
+          },
+          "displayed_frames": null,
+          "seek_ms": {
+            "median": 103.30629999953089,
+            "min": 64.98970000393456,
+            "max": 160.95150000182912,
+            "n": 15
+          },
+          "seek_timeouts": 0,
+          "cpu_pct_one_core": {
+            "median": 7.967053452888568,
+            "min": 6.8032081161559015,
+            "max": 8.743174821261883,
+            "n": 5
+          },
+          "rss_mb_max": {
+            "median": 287.95703125,
+            "min": 287.76171875,
+            "max": 291.07421875,
+            "n": 5
+          },
+          "dropped_frames": {
+            "median": 0,
+            "min": 0,
+            "max": 0,
+            "n": 5
+          },
+          "close_ms": {
+            "median": 111.60860000381945,
+            "min": 86.71400000457652,
+            "max": 128.28109999827575,
+            "n": 5
+          },
+          "hwdec": [
+            "d3d11va"
+          ],
+          "video_output": [
+            "gpu-next"
+          ],
+          "media_info": {
+            "video_codec": "h264",
+            "width": 1920,
+            "height": 1080,
+            "fps": 30.0,
+            "audio_codec": "aac"
+          },
+          "rejected_transitions": []
+        },
+        "hevc_2160p30_aac.mkv": {
+          "trials": 5,
+          "failures": [],
+          "init_ms": {
+            "median": 99.0380000002915,
+            "min": 85.57869999640388,
+            "max": 116.87179999717046,
+            "n": 5
+          },
+          "open_to_playing_ms": {
+            "median": 186.03939999593422,
+            "min": 179.42710000352236,
+            "max": 219.26530000200728,
+            "n": 5
+          },
+          "open_to_first_position_ms": {
+            "median": 674.3360999971628,
+            "min": 624.2800000036368,
+            "max": 798.817599999893,
+            "n": 5
+          },
+          "open_to_progress_ms": {
+            "median": 668.8524999990477,
+            "min": 613.6083000019426,
+            "max": 819.6332000006805,
+            "n": 5
+          },
+          "seek_reported_ms": {
+            "median": 27.99819999927422,
+            "min": 7.690199992794078,
+            "max": 79.27349999954458,
+            "n": 15
+          },
+          "displayed_frames": null,
+          "seek_ms": {
+            "median": 404.1438999993261,
+            "min": 94.81239999877289,
+            "max": 528.964500001166,
+            "n": 15
+          },
+          "seek_timeouts": 0,
+          "cpu_pct_one_core": {
+            "median": 12.435325736137505,
+            "min": 8.14736170674206,
+            "max": 12.436173825068943,
+            "n": 5
+          },
+          "rss_mb_max": {
+            "median": 467.88671875,
+            "min": 467.7890625,
+            "max": 468.14453125,
+            "n": 5
+          },
+          "dropped_frames": {
+            "median": 37,
+            "min": 16,
+            "max": 40,
+            "n": 5
+          },
+          "close_ms": {
+            "median": 298.1926000065869,
+            "min": 265.41269999870565,
+            "max": 318.31460000103107,
+            "n": 5
+          },
+          "hwdec": [
+            "d3d11va"
+          ],
+          "video_output": [
+            "gpu-next"
+          ],
+          "media_info": {
+            "video_codec": "hevc",
+            "width": 3840,
+            "height": 2160,
+            "fps": 30.0,
+            "audio_codec": "aac"
+          },
+          "rejected_transitions": []
+        },
+        "vp9_1080p30_opus.webm": {
+          "trials": 5,
+          "failures": [],
+          "init_ms": {
+            "median": 80.23329999559792,
+            "min": 76.45809999667108,
+            "max": 97.76309999870136,
+            "n": 5
+          },
+          "open_to_playing_ms": {
+            "median": 167.4572999982047,
+            "min": 156.61839999665972,
+            "max": 168.62070000206586,
+            "n": 5
+          },
+          "open_to_first_position_ms": {
+            "median": 628.7072999984957,
+            "min": 553.4249999982421,
+            "max": 669.2127000060282,
+            "n": 5
+          },
+          "open_to_progress_ms": {
+            "median": 600.5906999998842,
+            "min": 526.7321999999695,
+            "max": 624.6369000000414,
+            "n": 5
+          },
+          "seek_reported_ms": {
+            "median": 0.8402999956160784,
+            "min": 0.5388999998103827,
+            "max": 49.47549999633338,
+            "n": 15
+          },
+          "displayed_frames": null,
+          "seek_ms": {
+            "median": 42.642599997634534,
+            "min": 15.045300002384465,
+            "max": 208.16349999950035,
+            "n": 15
+          },
+          "seek_timeouts": 0,
+          "cpu_pct_one_core": {
+            "median": 10.08978994100756,
+            "min": 8.35940035425545,
+            "max": 10.297860829180198,
+            "n": 5
+          },
+          "rss_mb_max": {
+            "median": 267.20703125,
+            "min": 267.11328125,
+            "max": 277.33984375,
+            "n": 5
+          },
+          "dropped_frames": {
+            "median": 0,
+            "min": 0,
+            "max": 7,
+            "n": 5
+          },
+          "close_ms": {
+            "median": 110.32739999791374,
+            "min": 83.12350000051083,
+            "max": 308.94879999686964,
+            "n": 5
+          },
+          "hwdec": [
+            "d3d11va"
+          ],
+          "video_output": [
+            "gpu-next"
+          ],
+          "media_info": {
+            "video_codec": "vp9",
+            "width": 1920,
+            "height": 1080,
+            "fps": 30.0,
+            "audio_codec": "opus"
+          },
+          "rejected_transitions": []
+        },
+        "av1_1080p30_opus.mkv": {
+          "trials": 5,
+          "failures": [],
+          "init_ms": {
+            "median": 77.16680000157794,
+            "min": 76.15010000154143,
+            "max": 85.00780000031227,
+            "n": 5
+          },
+          "open_to_playing_ms": {
+            "median": 162.98249999817926,
+            "min": 136.60310000705067,
+            "max": 189.35809999675257,
+            "n": 5
+          },
+          "open_to_first_position_ms": {
+            "median": 1033.2966000059969,
+            "min": 794.3800000066403,
+            "max": 1178.1819999960135,
+            "n": 5
+          },
+          "open_to_progress_ms": {
+            "median": 987.1469000063371,
+            "min": 762.0603000032133,
+            "max": 1146.1947999996482,
+            "n": 5
+          },
+          "seek_reported_ms": {
+            "median": 3.1178999997791834,
+            "min": 2.6159999979427084,
+            "max": 4.874400001426693,
+            "n": 15
+          },
+          "displayed_frames": null,
+          "seek_ms": {
+            "median": 428.46519999875454,
+            "min": 356.1189000029117,
+            "max": 500.25800000003073,
+            "n": 15
+          },
+          "seek_timeouts": 0,
+          "cpu_pct_one_core": {
+            "median": 31.27412575416845,
+            "min": 30.317700018045084,
+            "max": 35.70863044312387,
+            "n": 5
+          },
+          "rss_mb_max": {
+            "median": 341.86328125,
+            "min": 340.08984375,
+            "max": 342.37109375,
+            "n": 5
+          },
+          "dropped_frames": {
+            "median": 0,
+            "min": 0,
+            "max": 0,
+            "n": 5
+          },
+          "close_ms": {
+            "median": 83.89129999704892,
+            "min": 68.58369999827119,
+            "max": 97.94720000354573,
+            "n": 5
+          },
+          "hwdec": [
+            "no"
+          ],
+          "video_output": [
+            "gpu-next"
+          ],
+          "media_info": {
+            "video_codec": "av1",
+            "width": 1920,
+            "height": 1080,
+            "fps": 30.0,
+            "audio_codec": "opus"
+          },
+          "rejected_transitions": []
+        }
+      }
+    },
+    "tracks": {
+      "libvlc": [
+        {
+          "init_ms": 479.00400000071386,
+          "ok": true,
+          "tracks": [
+            {
+              "kind": "video",
+              "id": 0,
+              "codec": "h264",
+              "language": null,
+              "title": null,
+              "selected": true
+            },
+            {
+              "kind": "audio",
+              "id": 1,
+              "codec": "aac",
+              "language": null,
+              "title": "English tone - [English]",
+              "selected": true
+            },
+            {
+              "kind": "audio",
+              "id": 2,
+              "codec": "ac3",
+              "language": null,
+              "title": "French tone - [French]",
+              "selected": false
+            },
+            {
+              "kind": "subtitle",
+              "id": 3,
+              "codec": "subrip",
+              "language": null,
+              "title": "Track 1 - [English]",
+              "selected": true
+            },
+            {
+              "kind": "subtitle",
+              "id": 4,
+              "codec": "ass",
+              "language": null,
+              "title": "Track 2 - [French]",
+              "selected": false
+            }
+          ],
+          "audio_tracks": 2,
+          "subtitle_tracks": 2,
+          "engine": "libvlc",
+          "scenario": "tracks",
+          "media": null,
+          "wall_s": 2.5690099999992526,
+          "exit_code": 0
+        }
+      ],
+      "mpv": [
+        {
+          "init_ms": 101.26219999801833,
+          "ok": true,
+          "tracks": [
+            {
+              "kind": "video",
+              "id": 1,
+              "codec": "h264",
+              "language": null,
+              "title": null,
+              "selected": true
+            },
+            {
+              "kind": "audio",
+              "id": 1,
+              "codec": "aac",
+              "language": "eng",
+              "title": "English tone",
+              "selected": true
+            },
+            {
+              "kind": "audio",
+              "id": 2,
+              "codec": "ac3",
+              "language": "fra",
+              "title": "French tone",
+              "selected": false
+            },
+            {
+              "kind": "subtitle",
+              "id": 1,
+              "codec": "subrip",
+              "language": "eng",
+              "title": null,
+              "selected": true
+            },
+            {
+              "kind": "subtitle",
+              "id": 2,
+              "codec": "ass",
+              "language": "fra",
+              "title": null,
+              "selected": false
+            }
+          ],
+          "audio_tracks": 2,
+          "subtitle_tracks": 2,
+          "engine": "mpv",
+          "scenario": "tracks",
+          "media": null,
+          "wall_s": 2.820482600000105,
+          "exit_code": 0
+        }
+      ]
+    },
+    "errors": {
+      "libvlc": [
+        {
+          "init_ms": 401.40510000492213,
+          "results": {
+            "not_media.mp4": {
+              "outcome": "error",
+              "ms": 27.732999995350838,
+              "states": [
+                "loading",
+                "playing",
+                "error"
+              ],
+              "error": "media_open_failed: 4 Could not open E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\not_media.mp4: Unknown error"
+            },
+            "truncated.mp4": {
+              "outcome": "error",
+              "ms": 19.900999999663327,
+              "states": [
+                "loading",
+                "playing",
+                "error"
+              ],
+              "error": "media_open_failed: 4 Could not open E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\truncated.mp4: Unknown error"
+            },
+            "recovers_after_errors": true
+          },
+          "ok": true,
+          "engine": "libvlc",
+          "scenario": "errors",
+          "media": null,
+          "wall_s": 1.924758400004066,
+          "exit_code": 0
+        },
+        {
+          "init_ms": 444.39499999862164,
+          "results": {
+            "not_media.mp4": {
+              "outcome": "error",
+              "ms": 32.51089999685064,
+              "states": [
+                "loading",
+                "playing",
+                "error"
+              ],
+              "error": "media_open_failed: 4 Could not open E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\not_media.mp4: Unknown error"
+            },
+            "truncated.mp4": {
+              "outcome": "error",
+              "ms": 25.018200001795776,
+              "states": [
+                "loading",
+                "playing",
+                "error"
+              ],
+              "error": "media_open_failed: 4 Could not open E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\truncated.mp4: Unknown error"
+            },
+            "recovers_after_errors": true
+          },
+          "ok": true,
+          "engine": "libvlc",
+          "scenario": "errors",
+          "media": null,
+          "wall_s": 2.0993812999950023,
+          "exit_code": 0
+        },
+        {
+          "init_ms": 443.9727999997558,
+          "results": {
+            "not_media.mp4": {
+              "outcome": "error",
+              "ms": 28.057999996235594,
+              "states": [
+                "loading",
+                "playing",
+                "error"
+              ],
+              "error": "media_open_failed: 4 Could not open E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\not_media.mp4: Unknown error"
+            },
+            "truncated.mp4": {
+              "outcome": "error",
+              "ms": 24.98889999696985,
+              "states": [
+                "loading",
+                "playing",
+                "error"
+              ],
+              "error": "media_open_failed: 4 Could not open E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\truncated.mp4: Unknown error"
+            },
+            "recovers_after_errors": true
+          },
+          "ok": true,
+          "engine": "libvlc",
+          "scenario": "errors",
+          "media": null,
+          "wall_s": 2.0257945000048494,
+          "exit_code": 0
+        }
+      ],
+      "mpv": [
+        {
+          "init_ms": 109.47599999781232,
+          "results": {
+            "not_media.mp4": {
+              "outcome": "error",
+              "ms": 19.932800001697615,
+              "states": [
+                "loading",
+                "error"
+              ],
+              "error": "media_open_failed: mpv end-file error -17"
+            },
+            "truncated.mp4": {
+              "outcome": "error",
+              "ms": 13.464900002873037,
+              "states": [
+                "loading",
+                "error"
+              ],
+              "error": "media_open_failed: error lavf: avformat_open_input() failed"
+            },
+            "recovers_after_errors": true
+          },
+          "ok": true,
+          "engine": "mpv",
+          "scenario": "errors",
+          "media": null,
+          "wall_s": 2.1987502000047243,
+          "exit_code": 0
+        },
+        {
+          "init_ms": 92.04420000605751,
+          "results": {
+            "not_media.mp4": {
+              "outcome": "error",
+              "ms": 36.6654000026756,
+              "states": [
+                "loading",
+                "error"
+              ],
+              "error": "media_open_failed: mpv end-file error -17"
+            },
+            "truncated.mp4": {
+              "outcome": "error",
+              "ms": 10.468599997693673,
+              "states": [
+                "loading",
+                "error"
+              ],
+              "error": "media_open_failed: error lavf: avformat_open_input() failed"
+            },
+            "recovers_after_errors": true
+          },
+          "ok": true,
+          "engine": "mpv",
+          "scenario": "errors",
+          "media": null,
+          "wall_s": 2.1054253000038443,
+          "exit_code": 0
+        },
+        {
+          "init_ms": 88.07449999585515,
+          "results": {
+            "not_media.mp4": {
+              "outcome": "error",
+              "ms": 56.227400003990624,
+              "states": [
+                "loading",
+                "error"
+              ],
+              "error": "media_open_failed: mpv end-file error -17"
+            },
+            "truncated.mp4": {
+              "outcome": "error",
+              "ms": 16.405700000177603,
+              "states": [
+                "loading",
+                "error"
+              ],
+              "error": "media_open_failed: error lavf: avformat_open_input() failed"
+            },
+            "recovers_after_errors": true
+          },
+          "ok": true,
+          "engine": "mpv",
+          "scenario": "errors",
+          "media": null,
+          "wall_s": 2.168027300001995,
+          "exit_code": 0
+        }
+      ]
+    },
+    "cycles": {
+      "libvlc": [
+        {
+          "init_ms": 447.847899995395,
+          "open_stop_cycles": {
+            "cycles": 15,
+            "failures": 0,
+            "rss_mb_first": 270.33203125,
+            "rss_mb_last": 358.0703125,
+            "threads_first": 15,
+            "threads_last": 14
+          },
+          "engine_create_close_cycles": {
+            "cycles": 5,
+            "rss_mb_first": 330.953125,
+            "rss_mb_last": 334.859375,
+            "threads_first": 11,
+            "threads_last": 11
+          },
+          "ok": true,
+          "engine": "libvlc",
+          "scenario": "cycles",
+          "media": null,
+          "wall_s": 15.613592499998049,
+          "exit_code": 0
+        }
+      ],
+      "mpv": [
+        {
+          "init_ms": 93.70639999542618,
+          "open_stop_cycles": {
+            "cycles": 15,
+            "failures": 0,
+            "rss_mb_first": 240.09765625,
+            "rss_mb_last": 334.2890625,
+            "threads_first": 23,
+            "threads_last": 23
+          },
+          "engine_create_close_cycles": {
+            "cycles": 5,
+            "rss_mb_first": 317.53515625,
+            "rss_mb_last": 315.62109375,
+            "threads_first": 9,
+            "threads_last": 8
+          },
+          "ok": false,
+          "engine": "mpv",
+          "scenario": "cycles",
+          "media": null,
+          "wall_s": 16.22696800000267,
+          "exit_code": 3221225477,
+          "stderr_tail": ""
+        }
+      ]
+    }
+  }
+}
