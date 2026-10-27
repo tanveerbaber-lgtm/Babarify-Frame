@@ -12,7 +12,14 @@ from collections.abc import Mapping
 from urllib.parse import parse_qs, urlsplit
 
 from babarify_frame.core.errors import ErrorCode, PlaybackError
-from babarify_frame.core.models import EngineCapabilities, MediaInfo, PlaybackState, TrackInfo, TrackKind
+from babarify_frame.core.models import (
+    EngineCapabilities,
+    EngineOptions,
+    MediaInfo,
+    PlaybackState,
+    TrackInfo,
+    TrackKind,
+)
 from babarify_frame.playback.contracts import EngineBase
 
 S = PlaybackState
@@ -22,8 +29,15 @@ class MockEngine(EngineBase):
     name = "mock"
     allowed_schemes = frozenset({"mock", "file"})
 
-    def __init__(self, *, auto_complete_loading: bool = True, default_duration_ms: int = 60_000) -> None:
+    def __init__(
+        self,
+        options: EngineOptions | None = None,
+        *,
+        auto_complete_loading: bool = True,
+        default_duration_ms: int = 60_000,
+    ) -> None:
         super().__init__()
+        self.options = options or EngineOptions()
         self.auto_complete_loading = auto_complete_loading
         self.default_duration_ms = default_duration_ms
         self.window_id: int | None = None
@@ -44,7 +58,8 @@ class MockEngine(EngineBase):
         )
 
     def diagnostics(self) -> Mapping[str, str]:
-        return {"engine": "mock", "hwdec": "none"}
+        decoder = "software (simulated)" if self.get_media_info() is not None else "not decoding yet"
+        return {"engine": "mock", "decoder": decoder, "hwdec": "none"}
 
     # ------------------------------------------------------------ hooks
     def _do_initialize(self) -> None:

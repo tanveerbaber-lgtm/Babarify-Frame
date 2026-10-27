@@ -6,6 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from babarify_frame.core.errors import ErrorCode, PlaybackError
+from babarify_frame.core.models import EngineOptions
 from babarify_frame.playback.contracts import PlaybackEngine
 
 
@@ -21,7 +22,7 @@ class EngineProbe:
 class EngineDescriptor:
     name: str
     display_name: str
-    create: Callable[[], PlaybackEngine]
+    create: Callable[[EngineOptions], PlaybackEngine]
     probe: Callable[[], EngineProbe]
 
 
@@ -49,11 +50,11 @@ class EngineFactory:
         except Exception as exc:
             return EngineProbe(name, False, detail=f"{type(exc).__name__}: {exc}")
 
-    def create(self, name: str) -> PlaybackEngine:
+    def create(self, name: str, options: EngineOptions | None = None) -> PlaybackEngine:
         """Create and initialise an engine. Raises ENGINE_UNAVAILABLE if it cannot load."""
         descriptor = self.descriptor(name)
         try:
-            engine = descriptor.create()
+            engine = descriptor.create(options or EngineOptions())
         except PlaybackError:
             raise
         except Exception as exc:
@@ -62,20 +63,20 @@ class EngineFactory:
         return engine
 
 
-def _create_mock() -> PlaybackEngine:
+def _create_mock(options: EngineOptions) -> PlaybackEngine:
     from babarify_frame.playback.adapters.mock import MockEngine
 
-    return MockEngine()
+    return MockEngine(options)
 
 
 def _probe_mock() -> EngineProbe:
     return EngineProbe("mock", True, "1", "simulated engine for tests")
 
 
-def _create_libvlc() -> PlaybackEngine:
+def _create_libvlc(options: EngineOptions) -> PlaybackEngine:
     from babarify_frame.playback.adapters.libvlc import LibVlcEngine
 
-    return LibVlcEngine()
+    return LibVlcEngine(options)
 
 
 def _probe_libvlc() -> EngineProbe:
@@ -84,10 +85,10 @@ def _probe_libvlc() -> EngineProbe:
     return probe()
 
 
-def _create_mpv() -> PlaybackEngine:
+def _create_mpv(options: EngineOptions) -> PlaybackEngine:
     from babarify_frame.playback.adapters.mpv import MpvEngine
 
-    return MpvEngine()
+    return MpvEngine(options)
 
 
 def _probe_mpv() -> EngineProbe:

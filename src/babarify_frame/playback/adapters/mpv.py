@@ -17,7 +17,14 @@ from collections.abc import Mapping
 from typing import Any
 
 from babarify_frame.core.errors import ErrorCode, PlaybackError
-from babarify_frame.core.models import EngineCapabilities, MediaInfo, PlaybackState, TrackInfo, TrackKind
+from babarify_frame.core.models import (
+    EngineCapabilities,
+    EngineOptions,
+    MediaInfo,
+    PlaybackState,
+    TrackInfo,
+    TrackKind,
+)
 from babarify_frame.playback.adapters._engine_paths import add_dll_dir, find_mpv_dir
 from babarify_frame.playback.contracts import EngineBase
 from babarify_frame.playback.factory import EngineProbe
@@ -60,8 +67,11 @@ def probe() -> EngineProbe:
 class MpvEngine(EngineBase):
     name = "mpv"
 
-    def __init__(self, extra_options: Mapping[str, Any] | None = None) -> None:
+    def __init__(
+        self, options: EngineOptions | None = None, extra_options: Mapping[str, Any] | None = None
+    ) -> None:
         super().__init__()
+        self._options = options or EngineOptions()
         self._extra = dict(extra_options or {})
         self._player: Any = None
         self._log: deque[str] = deque(maxlen=300)
@@ -82,7 +92,7 @@ class MpvEngine(EngineBase):
             "input_vo_keyboard": False,
             "keep_open": "yes",
             "idle": "yes",
-            "hwdec": "auto-safe",
+            "hwdec": "auto-safe" if self._options.hardware_decoding else "no",
             "force_window": "no",
             **self._extra,
         }
@@ -108,7 +118,7 @@ class MpvEngine(EngineBase):
             supports_audio_tracks=True,
             supports_subtitle_tracks=True,
             supports_embedding=True,
-            hardware_decoding="requested",
+            hardware_decoding="requested" if self._options.hardware_decoding else "disabled",
             notes=("Host window must be set before the first file is opened.",),
         )
 
@@ -116,9 +126,18 @@ class MpvEngine(EngineBase):
         player = self._player
         if player is None:
             return {"engine": f"mpv {self._version}"}
+        hwdec = str(self._prop("hwdec-current") or "")
+        info = self.get_media_info()
+        if info is None:
+            decoder = "not decoding yet"
+        elif info.video_codec is None:
+            decoder = "no video"
+        else:
+            decoder = f"hardware ({hwdec})" if hwdec not in ("", "no") else "software"
         return {
             "engine": f"mpv {self._version}",
-            "hwdec": str(self._prop("hwdec-current") or "none"),
+            "decoder": decoder,
+            "hwdec": hwdec or "none",
             "video_output": str(self._prop("current-vo") or "unknown"),
             "log_errors": str(sum(1 for line in self._log if line.startswith("error"))),
         }

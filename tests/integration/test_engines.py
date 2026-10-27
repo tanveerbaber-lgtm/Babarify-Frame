@@ -20,8 +20,8 @@ from pytestqt.qtbot import QtBot
 
 from babarify_frame.core.errors import ErrorCode, PlaybackError
 from babarify_frame.core.events import ErrorOccurred, PlaybackEvent, StateChanged
+from babarify_frame.core.models import EngineOptions, TrackKind
 from babarify_frame.core.models import PlaybackState as S
-from babarify_frame.core.models import TrackKind
 from babarify_frame.playback.contracts import PlaybackEngine
 from babarify_frame.playback.factory import default_factory
 
@@ -189,6 +189,7 @@ def test_invalid_media_fails_without_playing_and_engine_recovers(
     assert errors, "an ErrorOccurred event must accompany the ERROR state"
     assert isinstance(errors[0], ErrorOccurred)
     assert errors[0].error.code is ErrorCode.MEDIA_OPEN_FAILED
+    assert errors[0].error.detail[:2] not in ("3 ", "4 "), "engine log level leaked into the message (R14)"
     assert S.PLAYING not in states, f"bad media must not appear to play: {states}"
 
     engine.open_media(str(H264))
@@ -232,3 +233,81 @@ def test_repeated_create_open_close_is_stable(qtbot: QtBot, name: str) -> None:
     finally:
         window.close()
         window.deleteLater()
+
+
+# --------------------------------------------------------------------- M4
+def _edge_media(kind: str) -> list[Any]:
+    if not MANIFEST.exists():
+        return []
+    entries = json.loads(MANIFEST.read_text(encoding="utf-8"))["files"]
+    return [pytest.param(e, id=e["file"]) for e in entries if e.get("set") == "edge" and e["kind"] == kind]
+
+
+@pytest.mark.parametrize("name", _engine_params())
+def test_hardware_decoding_off_reports_software(qtbot: QtBot, name: str) -> None:
+    """M4 regression: libVLC ignored --avcodec-hw at instance level and kept using the GPU."""
+    if not H264.exists():
+        pytest.skip("generated media missing")
+    window = QWidget()
+    window.show()
+    eng = default_factory().create(name, EngineOptions(hardware_decoding=False))
+    try:
+        assert eng.get_capabilities().hardware_decoding == "disabled"
+        eng.set_video_output(int(window.winId()))
+        eng.open_media(str(H264))
+        qtbot.waitUntil(lambda: eng.get_playback_state().position_ms > 800, timeout=TIMEOUT_MS)
+        assert eng.diagnostics()["decoder"] == "software"
+    finally:
+        eng.close()
+        window.close()
+        window.deleteLater()
+
+
+def test_decoder_is_reported_once_decoding(engine: PlaybackEngine, qtbot: QtBot) -> None:
+    engine.open_media(str(H264))
+    wait_true(qtbot, lambda: engine.get_playback_state().position_ms > 800)
+    decoder = engine.diagnostics()["decoder"]
+    assert decoder == "software" or decoder.startswith("hardware ("), decoder
+
+
+@pytest.mark.parametrize("media", _edge_media("damaged"))
+def test_damaged_media_never_hangs_and_engine_recovers(
+    engine: PlaybackEngine, qtbot: QtBot, media: dict[str, Any]
+) -> None:
+    engine.open_media(str(MEDIA / media["file"]))
+    # Either plays through (decoder conceals the damage) or fails cleanly; it must not hang.
+    wait_state(qtbot, engine, S.ENDED, S.ERROR)
+    engine.open_media(str(H264))
+    wait_state(qtbot, engine, S.PLAYING)
+
+
+@pytest.mark.parametrize("media", _edge_media("invalid"))
+def test_invalid_edge_media_fails_cleanly(
+    engine: PlaybackEngine, qtbot: QtBot, media: dict[str, Any]
+) -> None:
+    engine.open_media(str(MEDIA / media["file"]))
+    wait_state(qtbot, engine, S.ERROR)
+
+
+def test_seek_near_end_of_one_hour_file(engine: PlaybackEngine, qtbot: QtBot) -> None:
+    long_file = MEDIA / "e_long_1h_240p.mkv"
+    if not long_file.exists():
+        pytest.skip("generated media missing")
+    engine.open_media(str(long_file))
+    wait_state(qtbot, engine, S.PLAYING)
+    wait_true(qtbot, lambda: (engine.get_playback_state().duration_ms or 0) > 3_590_000)
+    engine.seek(3_540_000)
+    wait_true(qtbot, lambda: engine.get_playback_state().position_ms >= 3_540_000)
+
+
+def test_seek_immediately_after_pause_reports_target(engine: PlaybackEngine, qtbot: QtBot) -> None:
+    """M4 regression (seek storm): a seek issued before the pause took effect was not reported."""
+    engine.open_media(str(H264))
+    wait_true(qtbot, lambda: engine.get_playback_state().position_ms > 1_000)
+    engine.pause()
+    engine.seek(18_000)  # no wait: the pause has not taken effect yet
+    wait_state(qtbot, engine, S.PAUSED)
+    qtbot.wait(500)
+    assert abs(engine.get_playback_state().position_ms - 18_000) < 1_500
+    engine.play()
+    wait_true(qtbot, lambda: engine.get_playback_state().position_ms > 18_300)

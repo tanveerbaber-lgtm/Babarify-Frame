@@ -46,6 +46,7 @@ from babarify_frame.core.models import PlaybackState
 from babarify_frame.playback.controller import PlaybackController
 from babarify_frame.playback.factory import EngineFactory
 from babarify_frame.ui import theme
+from babarify_frame.ui.diagnostics import PlaybackInfoDialog
 from babarify_frame.ui.pages.home import SHORTCUTS, HomePage
 from babarify_frame.ui.pages.player import VOLUME_STEP, PlayerPage
 from babarify_frame.ui.pages.settings import SettingsPage
@@ -71,6 +72,7 @@ class MainWindow(QMainWindow):
         self._store = store or PreferencesStore()
         self._prefs = self._store.load()
         self._was_maximized = False
+        self._info_dialog: PlaybackInfoDialog | None = None
 
         self.setWindowTitle(PRODUCT_NAME)
         self.setWindowIcon(icon)
@@ -179,6 +181,7 @@ class MainWindow(QMainWindow):
         )
         self._action("Exit fullscreen", [K(Qt.Key.Key_Escape)], self.exit_fullscreen)
         shortcuts_action = self._action("&Keyboard shortcuts", [K(Qt.Key.Key_F1)], self._show_shortcuts)
+        self.info_action = self._action("Playback &info…", [K("Ctrl+I")], self.show_playback_info)
         about_action = QAction(f"&About {PRODUCT_NAME}", self)
         about_action.triggered.connect(self._show_about)
         self._playback_actions = (
@@ -208,6 +211,7 @@ class MainWindow(QMainWindow):
             view_menu.addAction(action)
         view_menu.addSeparator()
         view_menu.addAction(self.fullscreen_action)
+        view_menu.addAction(self.info_action)
         help_menu = menus.addMenu("&Help")
         help_menu.addAction(shortcuts_action)
         help_menu.addAction(about_action)
@@ -365,6 +369,15 @@ class MainWindow(QMainWindow):
             self.open_path(urls[0].toLocalFile())
             event.acceptProposedAction()
 
+    def show_playback_info(self) -> PlaybackInfoDialog:
+        if self._info_dialog is None:
+            self._info_dialog = PlaybackInfoDialog(
+                self.player.controller, lambda: self.player.last_error, self
+            )
+        self._info_dialog.show()
+        self._info_dialog.raise_()
+        return self._info_dialog
+
     def _show_shortcuts(self) -> None:
         rows = "".join(
             f"<tr><td><b>{keys}</b>&nbsp;&nbsp;</td><td>{what}</td></tr>" for keys, what in SHORTCUTS
@@ -374,6 +387,7 @@ class MainWindow(QMainWindow):
             "<tr><td><b>F11 / double-click</b>&nbsp;&nbsp;</td><td>Fullscreen</td></tr>"
             "<tr><td><b>Esc</b></td><td>Leave fullscreen</td></tr>"
             "<tr><td><b>Ctrl+1 / 2 / 3</b>&nbsp;&nbsp;</td><td>Home / Now Playing / Settings</td></tr>"
+            "<tr><td><b>Ctrl+I</b></td><td>Playback info</td></tr>"
             "<tr><td><b>F1</b></td><td>This list</td></tr>"
         )
         QMessageBox.information(
@@ -395,6 +409,8 @@ class MainWindow(QMainWindow):
         )
 
     def closeEvent(self, event: QCloseEvent) -> None:
+        if self._info_dialog is not None:
+            self._info_dialog.close()
         self._store.save(self._final_preferences())
         # Rule: the engine must be closed while its host window still exists.
         self.player.shutdown()

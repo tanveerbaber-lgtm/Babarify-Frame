@@ -9,6 +9,7 @@ in M1; a leak of >= 1.3 MB per cycle would exceed it within 50 cycles.
 from __future__ import annotations
 
 import json
+import os
 import time
 from pathlib import Path
 
@@ -27,7 +28,7 @@ MEDIA = ROOT / "tests" / "fixtures" / "media" / "generated"
 MANIFEST = ROOT / "tools" / "engine-benchmark" / "media-manifest.json"
 
 OPEN_CYCLES = 60
-ENGINE_CYCLES = 15
+ENGINE_CYCLES = int(os.environ.get("BABARIFY_ENGINE_CYCLES", "15"))
 WARMUP = 10
 ENGINE_WARMUP = 3
 MAX_RSS_GROWTH_MB = 64

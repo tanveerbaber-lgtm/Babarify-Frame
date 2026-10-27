@@ -23,14 +23,22 @@ from __future__ import annotations
 import ctypes
 import os
 import re
+import threading
 import time
 from collections import deque
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, ClassVar
 
 from babarify_frame.core.errors import ErrorCode, PlaybackError
-from babarify_frame.core.models import EngineCapabilities, MediaInfo, PlaybackState, TrackInfo, TrackKind
+from babarify_frame.core.models import (
+    EngineCapabilities,
+    EngineOptions,
+    MediaInfo,
+    PlaybackState,
+    TrackInfo,
+    TrackKind,
+)
 from babarify_frame.playback.adapters._engine_paths import add_dll_dir, find_vlc_dir
 from babarify_frame.playback.contracts import EngineBase
 from babarify_frame.playback.factory import EngineProbe
@@ -87,6 +95,64 @@ def probe() -> EngineProbe:
     except PlaybackError as exc:
         return EngineProbe("libvlc", False, detail=exc.detail)
     return EngineProbe("libvlc", True, vlc.libvlc_get_version().decode(), str(find_vlc_dir()))
+
+
+class _SharedInstance:
+    """One libVLC instance per process (and argument set), shared by every engine.
+
+    R20: each libvlc_new/libvlc_release cycle leaks ~15 handles and ~0.5 MB inside libVLC 3.0.24,
+    and after ~100 instances in one process libvlc_new itself crashed (access violation). Engines
+    therefore create only their own media player and media from this instance, which lives until
+    the process exits. The single log callback fans lines out to the engines currently registered;
+    if several engines run at the same time their diagnostics can mix (the app runs one).
+    """
+
+    _lock = threading.Lock()
+    _instances: ClassVar[dict[tuple[str, ...], _SharedInstance]] = {}
+
+    def __init__(self, vlc: Any, args: tuple[str, ...]) -> None:
+        self.instance = vlc.Instance(list(args))
+        if self.instance is None:
+            raise PlaybackError(ErrorCode.ENGINE_UNAVAILABLE, "libvlc_new failed (plugins missing?)")
+        self._sinks: list[Callable[[int, str], None]] = []
+        self._sink_lock = threading.Lock()
+        vsnprintf = ctypes.cdll.msvcrt._vsnprintf
+        vsnprintf.argtypes = [ctypes.c_char_p, ctypes.c_size_t, ctypes.c_char_p, ctypes.c_void_p]
+
+        @vlc.CallbackDecorators.LogCb  # type: ignore[untyped-decorator]
+        def on_log(_data: Any, level: int, _ctx: Any, fmt: bytes, va: Any) -> None:
+            try:
+                with self._sink_lock:
+                    sinks = list(self._sinks)
+                if not sinks:
+                    return
+                buf = ctypes.create_string_buffer(1024)
+                vsnprintf(buf, 1023, fmt, va)
+                text = buf.value.decode("utf-8", "replace")
+                for sink in sinks:
+                    sink(level, text)
+            except Exception:  # never let an exception cross into libVLC
+                pass
+
+        self._callback = on_log  # keep a reference: libVLC holds a raw pointer
+        self.instance.log_set(on_log, None)
+
+    @classmethod
+    def get(cls, vlc: Any, args: tuple[str, ...]) -> _SharedInstance:
+        with cls._lock:
+            shared = cls._instances.get(args)
+            if shared is None:
+                shared = cls._instances[args] = cls(vlc, args)
+            return shared
+
+    def add_sink(self, sink: Callable[[int, str], None]) -> None:
+        with self._sink_lock:
+            self._sinks.append(sink)
+
+    def remove_sink(self, sink: Callable[[int, str], None]) -> None:
+        with self._sink_lock:
+            if sink in self._sinks:
+                self._sinks.remove(sink)
 
 
 class _RawVideoTrack(ctypes.Structure):
@@ -152,14 +218,15 @@ class _RawStats(ctypes.Structure):
 class LibVlcEngine(EngineBase):
     name = "libvlc"
 
-    def __init__(self, extra_args: tuple[str, ...] = ()) -> None:
+    def __init__(self, options: EngineOptions | None = None, extra_args: tuple[str, ...] = ()) -> None:
         super().__init__()
+        self._options = options or EngineOptions()
         self._extra_args = extra_args
         self._vlc: Any = None
         self._instance: Any = None
         self._player: Any = None
         self._media: Any = None
-        self._log_cb: Any = None
+        self._shared: _SharedInstance | None = None
         self._log: deque[str] = deque(maxlen=300)
         self._hwdec: str | None = None
         self._vout: str | None = None
@@ -178,11 +245,9 @@ class LibVlcEngine(EngineBase):
     # ------------------------------------------------------------ setup
     def _do_initialize(self) -> None:
         vlc = self._vlc = _load_vlc()
-        args = ["--no-video-title-show", "--avcodec-hw=any", *self._extra_args]
-        self._instance = vlc.Instance(args)
-        if self._instance is None:
-            raise PlaybackError(ErrorCode.ENGINE_UNAVAILABLE, "libvlc_new failed (plugins missing?)")
-        self._install_log_callback()
+        self._shared = _SharedInstance.get(vlc, ("--no-video-title-show", *self._extra_args))
+        self._instance = self._shared.instance
+        self._shared.add_sink(self._on_log_line)
         self._player = self._instance.media_player_new()
         self._version = vlc.libvlc_get_version().decode()
         events = self._player.event_manager()
@@ -201,26 +266,12 @@ class LibVlcEngine(EngineBase):
         ):
             events.event_attach(event_type, handler)
 
-    def _install_log_callback(self) -> None:
-        vsnprintf = ctypes.cdll.msvcrt._vsnprintf
-        vsnprintf.argtypes = [ctypes.c_char_p, ctypes.c_size_t, ctypes.c_char_p, ctypes.c_void_p]
-
-        @self._vlc.CallbackDecorators.LogCb  # type: ignore[untyped-decorator]
-        def on_log(_data: Any, level: int, _ctx: Any, fmt: bytes, args: Any) -> None:
-            try:
-                buf = ctypes.create_string_buffer(1024)
-                vsnprintf(buf, 1023, fmt, args)
-                text = buf.value.decode("utf-8", "replace")
-                self._log.append(f"{level} {text}")
-                if (m := _HW_RE.search(text)) is not None:
-                    self._hwdec = m.group(1)
-                elif (m := _VOUT_RE.search(text)) is not None:
-                    self._vout = m.group(1)
-            except Exception:  # never let an exception cross into libVLC
-                pass
-
-        self._log_cb = on_log  # keep a reference: libVLC holds a raw pointer
-        self._instance.log_set(on_log, None)
+    def _on_log_line(self, level: int, text: str) -> None:
+        self._log.append(f"{level} {text}")
+        if (m := _HW_RE.search(text)) is not None:
+            self._hwdec = m.group(1)
+        elif (m := _VOUT_RE.search(text)) is not None:
+            self._vout = m.group(1)
 
     def get_capabilities(self) -> EngineCapabilities:
         return EngineCapabilities(
@@ -232,13 +283,14 @@ class LibVlcEngine(EngineBase):
             supports_audio_tracks=True,
             supports_subtitle_tracks=True,
             supports_embedding=True,
-            hardware_decoding="requested",
+            hardware_decoding="requested" if self._options.hardware_decoding else "disabled",
             notes=("Hardware decoder in use is read from the libVLC log.",),
         )
 
     def diagnostics(self) -> Mapping[str, str]:
         return {
             "engine": f"libVLC {self._version}",
+            "decoder": self._decoder_status(),
             "hwdec": self._hwdec or "none reported (software decoding or not yet decoding)",
             "video_output": self._vout or "unknown",
             "log_errors": str(sum(1 for line in self._log if line.startswith("4 "))),
@@ -246,6 +298,17 @@ class LibVlcEngine(EngineBase):
 
     def recent_log(self) -> list[str]:
         return list(self._log)
+
+    def _decoder_status(self) -> str:
+        """Report only what libVLC confirmed: hardware needs its log line, software needs decoded frames."""
+        info = self.get_media_info()
+        if info is not None and info.video_codec is None and info.audio_codec is not None:
+            return "no video"
+        if self._hwdec:
+            return f"hardware ({self._hwdec.split(' (')[0]})"
+        if self.playback_stats().get("decoded_video", 0) > 0:
+            return "software"
+        return "not decoding yet"
 
     def playback_stats(self) -> dict[str, int]:
         """Frame counters for the current media (cumulative since open)."""
@@ -282,6 +345,9 @@ class LibVlcEngine(EngineBase):
         self._pending_seek = None
         old = self._media
         self._media = self._instance.media_new_path(uri)
+        # Must be a per-media option: libVLC 3.0.24 silently ignores --avcodec-hw at instance level
+        # (M4 finding: "Off" kept using D3D11VA until this was moved here).
+        self._media.add_option(f":avcodec-hw={'any' if self._options.hardware_decoding else 'none'}")
         self._player.set_media(self._media)
         if old is not None:
             old.release()
@@ -319,9 +385,10 @@ class LibVlcEngine(EngineBase):
             self._restart()
             return
         self._player.set_time(position_ms)
-        if self.state is S.PAUSED:
-            # libVLC sends no TimeChanged while paused, so report the accepted target ourselves.
-            self._set_position(position_ms)
+        # libVLC sends no TimeChanged while paused, including when a pause was requested a moment
+        # earlier and has not taken effect yet (M4 seek-storm finding). Report the accepted target;
+        # while playing, the next TimeChanged supersedes it.
+        self._set_position(position_ms)
 
     def _do_set_volume(self, level: int) -> None:
         self._player.audio_set_volume(level)
@@ -334,20 +401,18 @@ class LibVlcEngine(EngineBase):
 
     def _do_close(self) -> None:
         try:
-            # Detach the Python log callback first: libVLC threads (including the video
-            # window thread) must stop calling into Python while we tear down.
-            if self._instance is not None:
-                self._instance.log_unset()
+            # Stop receiving log lines first; the shared instance itself stays alive (R20).
+            if self._shared is not None:
+                self._shared.remove_sink(self._on_log_line)
             if self._player is not None:
                 self._stop_requested = True
                 self._player.stop()
                 self._player.release()
             if self._media is not None:
                 self._media.release()
-            if self._instance is not None:
-                self._instance.release()
         finally:
             self._player = self._media = self._instance = None
+            self._shared = None
 
     # ------------------------------------------------- libVLC callbacks
     # These run on libVLC threads: update state only, defer player calls.

@@ -63,8 +63,17 @@ class EngineCapabilities:
     supports_audio_tracks: bool = False
     supports_subtitle_tracks: bool = False
     supports_embedding: bool = False  # can render into a host window handle
-    hardware_decoding: str = "unknown"  # "unknown" | "requested" | "unavailable"
+    # What was configured, not what is in use: "requested" | "disabled" | "unavailable" | "unknown".
+    # The decoder actually in use is reported per media by diagnostics()["decoder"].
+    hardware_decoding: str = "unknown"
     notes: tuple[str, ...] = field(default=())
+
+
+@dataclass(frozen=True)
+class EngineOptions:
+    """Engine construction options. Changing them requires creating a new engine."""
+
+    hardware_decoding: bool = True  # allow GPU decoding when the engine and hardware support it
 
 
 @dataclass(frozen=True)

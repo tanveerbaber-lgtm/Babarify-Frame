@@ -1,6 +1,6 @@
-# Babarify Frame — Architecture Overview (M3)
+# Babarify Frame — Architecture Overview (M4)
 
-This describes the code as it exists at the end of Milestone 3. The product-level
+This describes the code as it exists at the end of Milestone 4. The product-level
 architecture and roadmap are in the
 [plan](../../Babarify_Vision_Official_Architecture_and_Milestones.md).
 
@@ -126,6 +126,22 @@ Therefore:
   double-click (fullscreen) and keyboard shortcuts. Shortcuts are window actions, so they
   keep working in fullscreen while the menu bar is hidden.
 - Codec names are normalised to FFmpeg/ffprobe vocabulary by every adapter.
+
+## Engine options and diagnostics (M4)
+
+- `EngineOptions(hardware_decoding=...)` is passed by the factory to the adapter at creation.
+  Changing it means creating a new engine; `PlayerPage.restart_engine()` does that and resumes
+  the current file at the same position and play/pause state.
+- The contract has `diagnostics()` with standard keys (`engine`, `decoder`, `video_output`,
+  `log_errors`), `playback_stats()` (frame counters) and `recent_log()`. `decoder` says
+  `hardware (<api>)` only when the engine confirmed it, `software` once frames are decoded
+  without it, `not decoding yet` or `no video` otherwise.
+- libVLC specifics: the hardware option is a **per-media** option (`:avcodec-hw=`), because
+  libVLC 3.0.24 ignores it at instance level (R18). All libVLC engines in a process share
+  **one libVLC instance** (`_SharedInstance`), because each instance create/release leaks and
+  repeated creation eventually crashed `libvlc_new` (R20). The shared log callback fans out
+  to the engines currently registered.
+- `ui/diagnostics.py` — the Playback info panel (Ctrl+I), built only from the contract.
 
 ## Capability reporting
 

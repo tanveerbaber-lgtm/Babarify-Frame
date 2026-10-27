@@ -2,6 +2,7 @@ import pytest
 
 from babarify_frame.core.errors import ErrorCode, PlaybackError
 from babarify_frame.core.events import PlaybackEvent, StateChanged
+from babarify_frame.core.models import EngineOptions
 from babarify_frame.core.models import PlaybackState as S
 from babarify_frame.playback.adapters.mock import MockEngine
 from babarify_frame.playback.contracts import PlaybackEngine
@@ -32,7 +33,7 @@ def test_create_returns_initialised_engine() -> None:
 
 
 def test_failing_engine_constructor_maps_to_engine_unavailable() -> None:
-    def broken() -> PlaybackEngine:
+    def broken(_options: EngineOptions) -> PlaybackEngine:
         raise OSError("libfoo.dll not found")
 
     factory = EngineFactory()

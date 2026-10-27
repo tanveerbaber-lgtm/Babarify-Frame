@@ -2,9 +2,10 @@
 
 **Every Frame, Better.** A free, privacy-focused media player by Babarify.
 
-> Status: **Milestone 3 — Premium UI Foundation** (awaiting acceptance). The app plays
-> local video and audio files in a branded interface with Home, Now Playing and Settings
-> pages, fullscreen with auto-hiding controls, and saved preferences. See
+> Status: **Milestone 4 — Playback Reliability and Performance** (awaiting acceptance). The app
+> plays local video and audio in a branded interface, reports honestly whether the GPU or the
+> CPU is decoding, offers a Playback info panel (Ctrl+I), and is tested against a 42-file corpus,
+> long sessions, seek storms and shutdown in every state. See
 > [the plan](Babarify_Vision_Official_Architecture_and_Milestones.md) and the milestone
 > reports for [M1](docs/milestones/M1/), [M2](docs/milestones/M2/) and [M3](docs/milestones/M3/).
 
@@ -53,10 +54,11 @@ Open files with **Ctrl+O**, by dragging them onto the window, or as a command-li
 | F, F11, double-click video | Fullscreen (Esc to leave) |
 | Ctrl+1 / 2 / 3 | Home / Now Playing / Settings |
 | Ctrl+O / Ctrl+Q | Open / exit |
+| Ctrl+I | Playback info (decoder, frames, engine log) |
 | F1 | Keyboard shortcuts |
 
 Playback keys act on the Now Playing page. Preferences (volume, window size, seek step,
-fullscreen behaviour) are stored only on this PC in `%APPDATA%\Babarify\Frame\settings.json`
+hardware decoding Automatic/Off, fullscreen behaviour) are stored only on this PC in `%APPDATA%\Babarify\Frame\settings.json`
 (override the folder with `BABARIFY_CONFIG_DIR`).
 
 `--smoke-test [MS]` opens the window (and FILE), then exits after MS milliseconds (used by tests).
@@ -77,6 +79,9 @@ set `BABARIFY_TEST_MPV=1` (see M1 finding S1). Resource stress tests run separat
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -m stress -s
 ```
+
+The test corpus and the regression catalog are documented in
+[docs/testing/](docs/testing/).
 
 ## Engine benchmark
 

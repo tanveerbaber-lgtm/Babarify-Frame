@@ -328,8 +328,246 @@ CORPUS: dict[str, dict[str, object]] = {
 }
 
 
+# M4 edge-case corpus: unusual but valid media ("valid"), damaged media that must not hang
+# or crash the player ("damaged"), and path edge cases. Each recipe is a list of ffmpeg
+# argument lists run in order; "{src}" and "{out}" are replaced with real paths.
+_E720 = VIDEO.format(w=1280, h=720, fps=30)
+EDGE: dict[str, dict[str, object]] = {
+    "e_vfr_h264_720p.mkv": {
+        "steps": [
+            [
+                "-f",
+                "lavfi",
+                "-i",
+                VIDEO.format(w=1280, h=720, fps=60),
+                "-t",
+                "8",
+                "-vf",
+                r"select='lt(mod(n\,10)\,6)'",
+                "-fps_mode",
+                "vfr",
+                *_X264.split(),
+                "{out}",
+            ]
+        ],
+        "kind": "valid",
+        "expect": {"video": "h264", "width": 1280, "height": 720},
+        "why": "variable frame rate (frames dropped in an irregular pattern, original timestamps kept)",
+    },
+    "e_interlaced_mpeg2_1080i.ts": {
+        "steps": [
+            [
+                "-f",
+                "lavfi",
+                "-i",
+                VIDEO.format(w=1920, h=1080, fps=25),
+                "-t",
+                "6",
+                "-c:v",
+                "mpeg2video",
+                "-vf",
+                "setfield=tff",
+                "-flags",
+                "+ilme+ildct",
+                "-field_order",
+                "tt",
+                "-b:v",
+                "8M",
+                "-f",
+                "mpegts",
+                "{out}",
+            ]
+        ],
+        "kind": "valid",
+        "expect": {"video": "mpeg2video", "width": 1920, "height": 1080},
+        "why": "interlaced (top field first) broadcast-style MPEG-2 in MPEG-TS",
+    },
+    "e_rotated_90_h264.mp4": {
+        "steps": [
+            ["-f", "lavfi", "-i", VIDEO.format(w=640, h=360, fps=25), "-t", "6", *_X264.split(), "{src}"],
+            ["-display_rotation", "90", "-i", "{src}", "-c", "copy", "{out}"],
+        ],
+        "kind": "valid",
+        "expect": {"video": "h264", "width": 640, "height": 360},
+        "why": "display-matrix rotation of 90 degrees stored as metadata (coded size 640x360)",
+    },
+    "e_hevc10_2160p.mkv": {
+        "steps": [
+            [
+                "-f",
+                "lavfi",
+                "-i",
+                VIDEO.format(w=3840, h=2160, fps=30),
+                "-t",
+                "8",
+                "-c:v",
+                "libx265",
+                "-preset",
+                "ultrafast",
+                "-crf",
+                "30",
+                "-pix_fmt",
+                "yuv420p10le",
+                "-x265-params",
+                "log-level=error",
+                "{out}",
+            ]
+        ],
+        "kind": "valid",
+        "expect": {"video": "hevc", "width": 3840, "height": 2160, "bit_depth": 10},
+        "why": "4K HEVC Main 10",
+    },
+    "e_h264_720p120.mp4": {
+        "steps": [
+            ["-f", "lavfi", "-i", VIDEO.format(w=1280, h=720, fps=120), "-t", "6", *_X264.split(), "{out}"]
+        ],
+        "kind": "valid",
+        "expect": {"video": "h264", "width": 1280, "height": 720, "fps": 120},
+        "why": "high frame rate (120 fps)",
+    },
+    "e_long_1h_240p.mkv": {
+        "steps": [
+            [
+                "-f",
+                "lavfi",
+                "-i",
+                VIDEO.format(w=320, h=240, fps=10),
+                "-f",
+                "lavfi",
+                "-i",
+                TONE.format(f=440),
+                "-t",
+                "3600",
+                "-c:v",
+                "libx264",
+                "-preset",
+                "ultrafast",
+                "-crf",
+                "40",
+                "-g",
+                "100",
+                "-pix_fmt",
+                "yuv420p",
+                "-c:a",
+                "aac",
+                "-b:a",
+                "32k",
+                "{out}",
+            ]
+        ],
+        "kind": "valid",
+        "expect": {"video": "h264", "width": 320, "height": 240, "duration_s": 3600},
+        "why": "one-hour duration (long seeks, h:mm:ss display)",
+    },
+    "e_mkv_no_cues.mkv": {
+        "steps": [["-f", "lavfi", "-i", _E720, "-t", "10", *_X264.split(), "-live", "1", "{out}"]],
+        "kind": "valid",
+        "expect": {"video": "h264", "width": 1280, "height": 720},
+        "why": "Matroska written in live mode: no seek index (cues)",
+    },
+    "e_fragmented.mp4": {
+        "steps": [
+            [
+                "-f",
+                "lavfi",
+                "-i",
+                _E720,
+                "-f",
+                "lavfi",
+                "-i",
+                TONE.format(f=440),
+                "-t",
+                "8",
+                *_X264.split(),
+                "-c:a",
+                "aac",
+                "-movflags",
+                "frag_keyframe+empty_moov",
+                "{out}",
+            ]
+        ],
+        "kind": "valid",
+        "expect": {"video": "h264", "width": 1280, "height": 720, "audio": "aac"},
+        "why": "fragmented MP4 (empty moov, moof fragments)",
+    },
+    "e_audio_mono_8k.wav": {
+        "steps": [
+            [
+                "-f",
+                "lavfi",
+                "-i",
+                "sine=frequency=440:sample_rate=8000,volume=-60dB",
+                "-t",
+                "8",
+                "-ac",
+                "1",
+                "-c:a",
+                "pcm_s16le",
+                "{out}",
+            ]
+        ],
+        "kind": "valid",
+        "expect": {"audio": "pcm_s16le", "channels": 1},
+        "why": "mono, 8 kHz telephone-quality PCM",
+    },
+    "e_audio_71_flac.mka": {
+        "steps": [
+            [
+                "-f",
+                "lavfi",
+                "-i",
+                TONE.format(f=440),
+                "-t",
+                "8",
+                "-af",
+                "aformat=channel_layouts=7.1",
+                "-c:a",
+                "flac",
+                "{out}",
+            ]
+        ],
+        "kind": "valid",
+        "expect": {"audio": "flac", "channels": 8},
+        "why": "7.1 surround FLAC in Matroska audio",
+    },
+    "e_audio_96k_24bit.flac": {
+        "steps": [
+            [
+                "-f",
+                "lavfi",
+                "-i",
+                "sine=frequency=440:sample_rate=96000,volume=-60dB",
+                "-t",
+                "8",
+                "-ac",
+                "2",
+                "-sample_fmt",
+                "s32",
+                "-bits_per_raw_sample",
+                "24",
+                "-c:a",
+                "flac",
+                "{out}",
+            ]
+        ],
+        "kind": "valid",
+        "expect": {"audio": "flac", "channels": 2},
+        "why": "high-resolution 96 kHz / 24-bit FLAC",
+    },
+}
+
+# Copies of a valid clip under awkward names (Unicode, spaces, '#', '%', misleading extension).
+PATH_EDGE = {
+    "e_ユニコード 名前 — test.mp4": "c_h264_aac_odd_854x480.mp4",
+    "e_spaces #hash 100% (x).mp4": "c_h264_aac_odd_854x480.mp4",
+    "e_mp4_named.avi": "c_h264_aac_odd_854x480.mp4",
+}
+
+
 def run(cmd: list[str]) -> None:
-    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+    proc = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, errors="replace")
+    if proc.returncode != 0:
+        sys.exit(f"ffmpeg failed ({proc.returncode}): {' '.join(cmd[3:])}\n{proc.stderr[-1500:]}")
 
 
 def sha256(path: Path) -> str:
@@ -375,6 +613,98 @@ def main() -> int:
                 "command": " ".join(Path(c).name if c == ffmpeg else c for c in cmd),
                 "bytes": target.stat().st_size,
                 "sha256": sha256(target),
+            }
+        )
+
+    for name, spec in EDGE.items():
+        target = OUT / name
+        temp = OUT / f"_{Path(name).stem}_src.mp4"
+        commands = []
+        for step in spec["steps"]:  # type: ignore[attr-defined]
+            argv = [str(target) if a == "{out}" else str(temp) if a == "{src}" else a for a in step]
+            commands.append([ffmpeg, "-hide_banner", "-y", *argv])
+        if args.force or not target.exists():
+            print(f"generating {name} ...", flush=True)
+            for cmd in commands:
+                run(cmd)
+            temp.unlink(missing_ok=True)
+        entries.append(
+            {
+                "file": name,
+                "kind": spec["kind"],
+                "set": "edge",
+                "expect": spec["expect"],
+                "description": spec["why"],
+                "command": " && ".join(
+                    " ".join(Path(c).name if c == ffmpeg else c for c in cmd) for cmd in commands
+                ),
+                "bytes": target.stat().st_size,
+                "sha256": sha256(target),
+            }
+        )
+    for name, source in PATH_EDGE.items():
+        shutil.copyfile(OUT / source, OUT / name)
+        entries.append(
+            {
+                "file": name,
+                "kind": "valid",
+                "set": "edge",
+                "expect": next(e["expect"] for e in entries if e["file"] == source),
+                "description": f"copy of {source} under an awkward file name",
+                "bytes": (OUT / name).stat().st_size,
+                "sha256": sha256(OUT / name),
+            }
+        )
+    # Damaged: an MPEG-TS with 64 KiB overwritten (deterministic pattern) at 40 % of the file.
+    corrupt = OUT / "e_corrupt_midstream.ts"
+    if args.force or not corrupt.exists():
+        source_ts = OUT / "_corrupt_source.ts"
+        run(
+            [
+                ffmpeg,
+                "-hide_banner",
+                "-y",
+                "-f",
+                "lavfi",
+                "-i",
+                _E720,
+                "-f",
+                "lavfi",
+                "-i",
+                TONE.format(f=440),
+                "-t",
+                "10",
+                *_X264.split(),
+                "-c:a",
+                "aac",
+                "-f",
+                "mpegts",
+                str(source_ts),
+            ]
+        )
+        data = bytearray(source_ts.read_bytes())
+        start = int(len(data) * 0.4)
+        data[start : start + 65536] = bytes((i * 151 + 17) % 256 for i in range(65536))
+        corrupt.write_bytes(bytes(data))
+        source_ts.unlink()
+    (OUT / "e_empty.mp4").write_bytes(b"")
+    for name, kind, why in [
+        (
+            "e_corrupt_midstream.ts",
+            "damaged",
+            "64 KiB of the stream overwritten at 40 %; must not hang or crash",
+        ),
+        ("e_empty.mp4", "invalid", "zero-byte file"),
+    ]:
+        entries.append(
+            {
+                "file": name,
+                "kind": kind,
+                "set": "edge",
+                "expect": {"opens": False} if kind == "invalid" else {"survives": True},
+                "description": why,
+                "bytes": (OUT / name).stat().st_size,
+                "sha256": sha256(OUT / name),
             }
         )
 

@@ -15,6 +15,9 @@ rendering into a real Qt window.
 | `bench.py` | Runs all trials (engine order alternates), records machine info, writes `results/` |
 | `results/summary.md`, `summary.json` | Committed evidence for the M1 benchmark report |
 | `results/raw/` | Every trial result (git-ignored) |
+| `hw_decode_check.py` | M4: decoder reported and CPU per engine × hardware setting × media → `results/hw_decode_check.json` |
+| `engine_build_info.py` | Build/version information reported by both engines |
+| `mpv_vo_check.py` | mpv dropped frames by video output (M1 follow-up) |
 
 ## Scenarios
 

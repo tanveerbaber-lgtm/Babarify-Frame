@@ -335,6 +335,225 @@
       "sha256": "b366f8a550e6364463702630a5c6a0fb478a96e2a6987cbd957f0c98f2fcb5bb"
     },
     {
+      "file": "e_vfr_h264_720p.mkv",
+      "kind": "valid",
+      "set": "edge",
+      "expect": {
+        "video": "h264",
+        "width": 1280,
+        "height": 720
+      },
+      "description": "variable frame rate (frames dropped in an irregular pattern, original timestamps kept)",
+      "command": "ffmpeg.EXE -hide_banner -y -f lavfi -i testsrc2=size=1280x720:rate=60 -t 8 -vf select='lt(mod(n\\,10)\\,6)' -fps_mode vfr -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\e_vfr_h264_720p.mkv",
+      "bytes": 1906730,
+      "sha256": "bb73a6f394ecd34370fd297b3853ee9a00bbc7eb6a7eb94a22ba2aa29b2dc56c"
+    },
+    {
+      "file": "e_interlaced_mpeg2_1080i.ts",
+      "kind": "valid",
+      "set": "edge",
+      "expect": {
+        "video": "mpeg2video",
+        "width": 1920,
+        "height": 1080
+      },
+      "description": "interlaced (top field first) broadcast-style MPEG-2 in MPEG-TS",
+      "command": "ffmpeg.EXE -hide_banner -y -f lavfi -i testsrc2=size=1920x1080:rate=25 -t 6 -c:v mpeg2video -vf setfield=tff -flags +ilme+ildct -field_order tt -b:v 8M -f mpegts E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\e_interlaced_mpeg2_1080i.ts",
+      "bytes": 6228064,
+      "sha256": "9a81b55f7a56321ff4a04e56abae6f2c899fb0b2b66b485f7ad35a258d2dca1c"
+    },
+    {
+      "file": "e_rotated_90_h264.mp4",
+      "kind": "valid",
+      "set": "edge",
+      "expect": {
+        "video": "h264",
+        "width": 640,
+        "height": 360
+      },
+      "description": "display-matrix rotation of 90 degrees stored as metadata (coded size 640x360)",
+      "command": "ffmpeg.EXE -hide_banner -y -f lavfi -i testsrc2=size=640x360:rate=25 -t 6 -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\_e_rotated_90_h264_src.mp4 && ffmpeg.EXE -hide_banner -y -display_rotation 90 -i E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\_e_rotated_90_h264_src.mp4 -c copy E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\e_rotated_90_h264.mp4",
+      "bytes": 399740,
+      "sha256": "15272f20d8fa01dfdb53ac38eec2dc0bdc7b3d691c8c8981a66a6eaa6c7b5812"
+    },
+    {
+      "file": "e_hevc10_2160p.mkv",
+      "kind": "valid",
+      "set": "edge",
+      "expect": {
+        "video": "hevc",
+        "width": 3840,
+        "height": 2160,
+        "bit_depth": 10
+      },
+      "description": "4K HEVC Main 10",
+      "command": "ffmpeg.EXE -hide_banner -y -f lavfi -i testsrc2=size=3840x2160:rate=30 -t 8 -c:v libx265 -preset ultrafast -crf 30 -pix_fmt yuv420p10le -x265-params log-level=error E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\e_hevc10_2160p.mkv",
+      "bytes": 10017035,
+      "sha256": "40e887c01c16e0686a30af2c689fbde24298688f5173152f3283a85561c32823"
+    },
+    {
+      "file": "e_h264_720p120.mp4",
+      "kind": "valid",
+      "set": "edge",
+      "expect": {
+        "video": "h264",
+        "width": 1280,
+        "height": 720,
+        "fps": 120
+      },
+      "description": "high frame rate (120 fps)",
+      "command": "ffmpeg.EXE -hide_banner -y -f lavfi -i testsrc2=size=1280x720:rate=120 -t 6 -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\e_h264_720p120.mp4",
+      "bytes": 2538928,
+      "sha256": "fadd9317cf8516d19531aac19126c3d8eb846a82d4506fc8d6bb9647d3254ec3"
+    },
+    {
+      "file": "e_long_1h_240p.mkv",
+      "kind": "valid",
+      "set": "edge",
+      "expect": {
+        "video": "h264",
+        "width": 320,
+        "height": 240,
+        "duration_s": 3600
+      },
+      "description": "one-hour duration (long seeks, h:mm:ss display)",
+      "command": "ffmpeg.EXE -hide_banner -y -f lavfi -i testsrc2=size=320x240:rate=10 -f lavfi -i sine=frequency=440:sample_rate=48000,volume=-60dB -t 3600 -c:v libx264 -preset ultrafast -crf 40 -g 100 -pix_fmt yuv420p -c:a aac -b:a 32k E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\e_long_1h_240p.mkv",
+      "bytes": 59956734,
+      "sha256": "cc247d68b73d43a4db18ccf3e4d170b2fbd9aff534ce0223b28dbef3c145f4a6"
+    },
+    {
+      "file": "e_mkv_no_cues.mkv",
+      "kind": "valid",
+      "set": "edge",
+      "expect": {
+        "video": "h264",
+        "width": 1280,
+        "height": 720
+      },
+      "description": "Matroska written in live mode: no seek index (cues)",
+      "command": "ffmpeg.EXE -hide_banner -y -f lavfi -i testsrc2=size=1280x720:rate=30 -t 10 -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p -live 1 E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\e_mkv_no_cues.mkv",
+      "bytes": 2437705,
+      "sha256": "86f5df9e28f9a79cc1b2dfac3831aaa009b46ef1c5160ce984089d97c60b1171"
+    },
+    {
+      "file": "e_fragmented.mp4",
+      "kind": "valid",
+      "set": "edge",
+      "expect": {
+        "video": "h264",
+        "width": 1280,
+        "height": 720,
+        "audio": "aac"
+      },
+      "description": "fragmented MP4 (empty moov, moof fragments)",
+      "command": "ffmpeg.EXE -hide_banner -y -f lavfi -i testsrc2=size=1280x720:rate=30 -f lavfi -i sine=frequency=440:sample_rate=48000,volume=-60dB -t 8 -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p -c:a aac -movflags frag_keyframe+empty_moov E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\e_fragmented.mp4",
+      "bytes": 1968710,
+      "sha256": "adc13ef8010f983b7e700e62cb8eb7216b3c9f45c62eb794838b37e08f6621b7"
+    },
+    {
+      "file": "e_audio_mono_8k.wav",
+      "kind": "valid",
+      "set": "edge",
+      "expect": {
+        "audio": "pcm_s16le",
+        "channels": 1
+      },
+      "description": "mono, 8 kHz telephone-quality PCM",
+      "command": "ffmpeg.EXE -hide_banner -y -f lavfi -i sine=frequency=440:sample_rate=8000,volume=-60dB -t 8 -ac 1 -c:a pcm_s16le E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\e_audio_mono_8k.wav",
+      "bytes": 128078,
+      "sha256": "c8d5eaaad2322f30c8e2453e1022f074f622c6f08285987c237435f77fd1b474"
+    },
+    {
+      "file": "e_audio_71_flac.mka",
+      "kind": "valid",
+      "set": "edge",
+      "expect": {
+        "audio": "flac",
+        "channels": 8
+      },
+      "description": "7.1 surround FLAC in Matroska audio",
+      "command": "ffmpeg.EXE -hide_banner -y -f lavfi -i sine=frequency=440:sample_rate=48000,volume=-60dB -t 8 -af aformat=channel_layouts=7.1 -c:a flac E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\e_audio_71_flac.mka",
+      "bytes": 133374,
+      "sha256": "1c00895ad996c2e043b34453ff4bed46dd43feaa4ef1dc5f1ddc666b67abfffb"
+    },
+    {
+      "file": "e_audio_96k_24bit.flac",
+      "kind": "valid",
+      "set": "edge",
+      "expect": {
+        "audio": "flac",
+        "channels": 2
+      },
+      "description": "high-resolution 96 kHz / 24-bit FLAC",
+      "command": "ffmpeg.EXE -hide_banner -y -f lavfi -i sine=frequency=440:sample_rate=96000,volume=-60dB -t 8 -ac 2 -sample_fmt s32 -bits_per_raw_sample 24 -c:a flac E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\e_audio_96k_24bit.flac",
+      "bytes": 245878,
+      "sha256": "f95bab546d07cd1405f81140d92271356fefda51990097a754566571bbc0db7b"
+    },
+    {
+      "file": "e_\u30e6\u30cb\u30b3\u30fc\u30c9 \u540d\u524d \u2014 test.mp4",
+      "kind": "valid",
+      "set": "edge",
+      "expect": {
+        "video": "h264",
+        "width": 854,
+        "height": 480,
+        "audio": "aac"
+      },
+      "description": "copy of c_h264_aac_odd_854x480.mp4 under an awkward file name",
+      "bytes": 828090,
+      "sha256": "42494d75885935843433086994d8c99e352163ec590136f626dc59f9418ef5de"
+    },
+    {
+      "file": "e_spaces #hash 100% (x).mp4",
+      "kind": "valid",
+      "set": "edge",
+      "expect": {
+        "video": "h264",
+        "width": 854,
+        "height": 480,
+        "audio": "aac"
+      },
+      "description": "copy of c_h264_aac_odd_854x480.mp4 under an awkward file name",
+      "bytes": 828090,
+      "sha256": "42494d75885935843433086994d8c99e352163ec590136f626dc59f9418ef5de"
+    },
+    {
+      "file": "e_mp4_named.avi",
+      "kind": "valid",
+      "set": "edge",
+      "expect": {
+        "video": "h264",
+        "width": 854,
+        "height": 480,
+        "audio": "aac"
+      },
+      "description": "copy of c_h264_aac_odd_854x480.mp4 under an awkward file name",
+      "bytes": 828090,
+      "sha256": "42494d75885935843433086994d8c99e352163ec590136f626dc59f9418ef5de"
+    },
+    {
+      "file": "e_corrupt_midstream.ts",
+      "kind": "damaged",
+      "set": "edge",
+      "expect": {
+        "survives": true
+      },
+      "description": "64 KiB of the stream overwritten at 40 %; must not hang or crash",
+      "bytes": 2584812,
+      "sha256": "1565cf8122240b5d0c8066125d2a08ff31d4b5b1d13e32f237057c6e4820f3be"
+    },
+    {
+      "file": "e_empty.mp4",
+      "kind": "invalid",
+      "set": "edge",
+      "expect": {
+        "opens": false
+      },
+      "description": "zero-byte file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
       "file": "truncated.mp4",
       "kind": "invalid",
       "expect": {

@@ -74,9 +74,20 @@ class PlaybackEngine(ABC):
     @abstractmethod
     def subscribe(self, listener: Listener) -> Callable[[], None]: ...
     @abstractmethod
-    def diagnostics(self) -> Mapping[str, str]: ...
+    def diagnostics(self) -> Mapping[str, str]:
+        """Human-readable diagnostics. Standard keys: "engine", "decoder" ("hardware (<api>)",
+        "software", "not decoding yet" or "no video"), "video_output", "log_errors"."""
+
     @abstractmethod
     def close(self) -> None: ...
+
+    def playback_stats(self) -> Mapping[str, int]:
+        """Frame counters for the current media (e.g. "displayed", "dropped"); empty if unknown."""
+        return {}
+
+    def recent_log(self) -> list[str]:
+        """Most recent engine log lines, oldest first; empty if the engine has no log."""
+        return []
 
 
 def normalize_local_uri(uri: str, allowed_schemes: frozenset[str]) -> str:

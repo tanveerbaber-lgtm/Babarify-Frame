@@ -11,6 +11,7 @@ from babarify_frame.core.events import (
 )
 from babarify_frame.core.models import (
     EngineCapabilities,
+    EngineOptions,
     MediaInfo,
     PlaybackState,
     PlaybackStatus,
@@ -21,6 +22,7 @@ from babarify_frame.core.models import (
 __all__ = [
     "EndReached",
     "EngineCapabilities",
+    "EngineOptions",
     "ErrorCode",
     "ErrorOccurred",
     "MediaInfo",

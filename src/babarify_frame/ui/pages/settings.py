@@ -53,7 +53,22 @@ class SettingsPage(QWidget):
             self.seek_step.addItem(f"{step} seconds", step)
         self.seek_step.setAccessibleName("Seek step")
         self.remember_volume = QCheckBox("Remember volume and mute between sessions")
-        playback = self._card("Playback", [("Seek step (← →)", self.seek_step), ("", self.remember_volume)])
+        self.hardware_decoding = QComboBox()
+        self.hardware_decoding.addItem("Automatic (recommended)", True)
+        self.hardware_decoding.addItem("Off (software only)", False)
+        self.hardware_decoding.setAccessibleName("Hardware decoding")
+        self.hardware_decoding.setToolTip(
+            "Automatic uses the graphics card when it supports the format. Changing this restarts "
+            "playback at the same position."
+        )
+        playback = self._card(
+            "Playback",
+            [
+                ("Seek step (← →)", self.seek_step),
+                ("Hardware decoding", self.hardware_decoding),
+                ("", self.remember_volume),
+            ],
+        )
 
         self.hide_delay = QSpinBox()
         self.hide_delay.setRange(1, 10)
@@ -94,6 +109,7 @@ class SettingsPage(QWidget):
         self.set_preferences(prefs)
         self.seek_step.currentIndexChanged.connect(self._changed)
         self.remember_volume.toggled.connect(self._changed)
+        self.hardware_decoding.currentIndexChanged.connect(self._changed)
         self.hide_delay.valueChanged.connect(self._changed)
         self.start_fullscreen.toggled.connect(self._changed)
 
@@ -127,6 +143,7 @@ class SettingsPage(QWidget):
         self._prefs = prefs
         self.seek_step.setCurrentIndex(max(0, SEEK_STEPS_S.index(prefs.seek_step_s)))
         self.remember_volume.setChecked(prefs.remember_volume)
+        self.hardware_decoding.setCurrentIndex(0 if prefs.hardware_decoding else 1)
         self.hide_delay.setValue(round(prefs.controls_hide_delay_ms / 1000))
         self.start_fullscreen.setChecked(prefs.start_fullscreen)
         self._loading = False
@@ -138,6 +155,7 @@ class SettingsPage(QWidget):
             self._prefs,
             seek_step_s=int(self.seek_step.currentData()),
             remember_volume=self.remember_volume.isChecked(),
+            hardware_decoding=bool(self.hardware_decoding.currentData()),
             controls_hide_delay_ms=self.hide_delay.value() * 1000,
             start_fullscreen=self.start_fullscreen.isChecked(),
         ).normalized()

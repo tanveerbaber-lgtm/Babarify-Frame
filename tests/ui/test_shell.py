@@ -18,6 +18,7 @@ from pytestqt.qtbot import QtBot
 from babarify_frame import PRODUCT_NAME, TAGLINE
 from babarify_frame.configuration.preferences import Preferences, PreferencesStore, WindowGeometry
 from babarify_frame.core.errors import USER_MESSAGES, ErrorCode
+from babarify_frame.core.models import EngineOptions
 from babarify_frame.core.models import PlaybackState as S
 from babarify_frame.playback.adapters.mock import MockEngine
 from babarify_frame.playback.contracts import PlaybackEngine
@@ -41,7 +42,7 @@ def mock_factory() -> EngineFactory:
 
 
 def broken_factory() -> EngineFactory:
-    def fail() -> PlaybackEngine:
+    def fail(_options: EngineOptions) -> PlaybackEngine:
         raise OSError("libvlc.dll not found")
 
     factory = EngineFactory()
@@ -452,3 +453,55 @@ def test_real_app_plays_file_and_exits_cleanly(tmp_path: Path) -> None:
     proc = _run_app([str(media), "--smoke-test", "3000"], tmp_path)
     assert proc.returncode == 0, proc.stderr[-2000:]
     assert "exited cleanly with code 0" in proc.stderr
+
+
+# --------------------------------------------------------------------- M4
+def test_hardware_setting_restarts_engine_and_resumes(window: MainWindow, qtbot: QtBot) -> None:
+    window.open_path("mock://clip?duration=60000")
+    window.player.seek_to(25_000)
+    first = engine_of(window)
+    assert first.options.hardware_decoding is True
+    window.show_page(window.settings)
+    window.settings.hardware_decoding.setCurrentIndex(1)  # Off
+    qtbot.waitUntil(
+        lambda: window.player.engine_is_ready and window.controller.engine is not first, timeout=5000
+    )
+    second = engine_of(window)
+    assert first.state is S.CLOSED
+    assert second.options.hardware_decoding is False
+    assert window.controller.capabilities().engine_name == "mock"
+    qtbot.waitUntil(lambda: status(window).state is S.PLAYING and status(window).position_ms == 25_000)
+    assert status(window).uri == "mock://clip?duration=60000"
+    assert window.current_page() is window.settings  # the change did not navigate away
+
+
+def test_hardware_setting_is_persisted(window: MainWindow, store: PreferencesStore) -> None:
+    window.settings.hardware_decoding.setCurrentIndex(1)
+    assert store.load().hardware_decoding is False
+
+
+def test_playback_info_panel(window: MainWindow, qtbot: QtBot) -> None:
+    window.open_path("mock://clip?duration=60000")
+    dialog = window.show_playback_info()
+    qtbot.waitUntil(dialog.isVisible)
+    rows, _log = dialog.snapshot()
+    assert rows["Engine"] == "mock"
+    assert rows["State"] == "playing"
+    assert rows["Video"].startswith("h264")
+    assert rows["Decoder"] == "software (simulated)"
+    assert rows["Hardware decoding setting"] == "unavailable"
+    dialog.copy_to_clipboard()
+    from PySide6.QtGui import QGuiApplication
+
+    text = QGuiApplication.clipboard().text()
+    assert "Decoder" in text and "Recent engine log:" in text
+    window.open_path("mock://broken?fail=open")
+    qtbot.waitUntil(lambda: dialog.snapshot()[0]["Last error"].startswith("media_open_failed"))
+    dialog.close()
+
+
+def test_playback_info_without_engine(qtbot: QtBot, store: PreferencesStore) -> None:
+    win = make_window(qtbot, store, start=False)
+    rows, log = win.show_playback_info().snapshot()
+    assert rows == {"Engine": "not running"} and log == []
+    win.close()

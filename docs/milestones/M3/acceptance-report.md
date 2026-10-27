@@ -4,7 +4,7 @@
 (i7-8565U, Intel UHD 620, Windows 11, 3840×2160 at 250 % scaling) ·
 **Prepared by:** Claude (Claude Code) · **Decision owner:** Tanveer Baber
 
-## Proposed decision: **CONDITIONAL**
+## Decision: **CONDITIONAL** — accepted by the owner on 2026-10-27
 
 All M3 deliverables are implemented, and four of the five acceptance criteria pass with
 evidence. One criterion is conditional: the UI stays responsive during playback and

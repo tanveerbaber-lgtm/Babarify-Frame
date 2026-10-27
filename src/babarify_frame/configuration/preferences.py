@@ -44,6 +44,7 @@ class Preferences:
     seek_step_s: int = 10  # one of SEEK_STEPS_S
     controls_hide_delay_ms: int = 3000  # fullscreen auto-hide, 1000..10000 (whole seconds in the UI)
     start_fullscreen: bool = False
+    hardware_decoding: bool = True  # Automatic: use the GPU when the engine confirms support
     window: WindowGeometry | None = field(default=None)
 
     @classmethod

@@ -34,7 +34,7 @@ def main() -> int:
     window.show()
     for vo in ("gpu-next", "gpu"):
         for run in range(runs):
-            engine = MpvEngine({"vo": vo})
+            engine = MpvEngine(extra_options={"vo": vo})
             engine.initialize()
             engine.set_video_output(int(window.winId()))
             engine.open_media(str(MEDIA))

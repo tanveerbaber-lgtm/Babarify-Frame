@@ -25,7 +25,7 @@ from PySide6.QtWidgets import (
 from babarify_frame.configuration.preferences import Preferences
 from babarify_frame.core.errors import PlaybackError
 from babarify_frame.core.events import ErrorOccurred, MediaInfoChanged, StateChanged
-from babarify_frame.core.models import MediaInfo, PlaybackState
+from babarify_frame.core.models import EngineOptions, MediaInfo, PlaybackState
 from babarify_frame.playback.contracts import PlaybackEngine
 from babarify_frame.playback.controller import PlaybackController
 from babarify_frame.playback.factory import EngineFactory
@@ -69,6 +69,9 @@ class PlayerPage(QWidget):
         self._engine_bridge.delivered.connect(self._on_engine_created)
         self._engine_thread: threading.Thread | None = None
         self._pending_open: str | None = None
+        self._resume: tuple[str, int, bool] | None = None  # (uri, position, playing) across restarts
+        self._resume_position: int | None = None
+        self.last_error = ""  # most recent playback error, for the Playback info panel
         self._media_name = ""
         self._state = S.UNINITIALIZED
         self._duration_ms: int | None = None
@@ -167,9 +170,11 @@ class PlayerPage(QWidget):
         """Create the engine on a worker thread; the UI stays responsive while the DLL loads."""
         self._controller.set_video_output(int(self.video.winId()))
 
+        options = EngineOptions(hardware_decoding=self._prefs.hardware_decoding)
+
         def work() -> None:
             try:
-                self._engine_bridge.post(self._factory.create(self._engine_name))
+                self._engine_bridge.post(self._factory.create(self._engine_name, options))
             except PlaybackError as exc:
                 self._engine_bridge.post(exc)
 
@@ -198,12 +203,30 @@ class PlayerPage(QWidget):
         self._apply_state(S.READY)
         self._position_timer.start()
         self.engine_ready.emit(True)
-        if self._pending_open:
+        if self._resume is not None:
+            uri, position, playing = self._resume
+            self._resume_position = position
+            self._resume = None
+            self.open_path(uri, autoplay=playing)
+        elif self._pending_open:
             path, self._pending_open = self._pending_open, None
             self.open_path(path)
 
     # --------------------------------------------------------- commands
-    def open_path(self, path: str) -> None:
+    def restart_engine(self) -> None:
+        """Recreate the engine (e.g. after changing hardware decoding) and resume the current file."""
+        status = self._controller.status() if self.engine_is_ready else None
+        if status is not None and status.uri and self.has_media and self._state is not S.ERROR:
+            self._resume = (status.uri, status.position_ms, status.state in (S.PLAYING, S.BUFFERING))
+        self._position_timer.stop()
+        self._controller.shutdown()  # the video surface stays alive: close-before-window holds
+        if self._engine_thread is not None:
+            self._engine_thread.join(timeout=10)
+        self._apply_state(S.UNINITIALIZED)
+        self._show_message("info", "Restarting playback engine…", "")
+        self.start_engine()  # actions update through state_changed; engine_ready(False) means failure
+
+    def open_path(self, path: str, *, autoplay: bool = True) -> None:
         if not self.engine_is_ready:
             self._pending_open = path  # opened once the engine is ready
             return
@@ -219,7 +242,7 @@ class PlayerPage(QWidget):
         self.title_changed.emit(self._media_name)
         self._stage.setCurrentWidget(self.video)
         try:
-            self._controller.open(path)
+            self._controller.open(path, autoplay=autoplay)
         except PlaybackError as exc:
             self._show_error(exc)
 
@@ -271,7 +294,10 @@ class PlayerPage(QWidget):
         return self.controls.volume.value(), self._prefs.muted
 
     def set_preferences(self, prefs: Preferences) -> None:
+        restart = prefs.hardware_decoding != self._prefs.hardware_decoding and self.engine_is_ready
         self._prefs = prefs
+        if restart:
+            self.restart_engine()
 
     def _run(self, command: Callable[[], object]) -> None:
         """Run a controller command; report refused commands instead of raising into Qt."""
@@ -357,6 +383,10 @@ class PlayerPage(QWidget):
                 if info is not None and info.video_codec:
                     self._video_announced = True
                     self.video_started.emit()
+        if self._resume_position is not None and state in (S.PLAYING, S.PAUSED):
+            position, self._resume_position = self._resume_position, None
+            if position > 0:
+                self._run(lambda: self._controller.seek(position))
         if state is S.READY and self._media_name:
             self._show_message("info", self._media_name, "Stopped. Press Space to play again.")
             self.controls.set_position(0, self._duration_ms)
@@ -383,12 +413,13 @@ class PlayerPage(QWidget):
         parts = [diag.get("engine", "")]
         if info and info.video_codec:
             parts.append(f"{info.video_codec} {info.width}x{info.height}")
-            parts.append(f"decoder: {diag.get('hwdec', 'unknown').split(' (')[0]}")
+            parts.append(f"decoder: {diag.get('decoder', 'unknown')}")
         if info and info.audio_codec:
             parts.append(info.audio_codec)
         self.status_changed.emit(" · ".join(p for p in parts if p))
 
     def _show_error(self, error: PlaybackError) -> None:
+        self.last_error = f"{error.code.value}: {error.detail}" if error.detail else error.code.value
         detail = f"{self._media_name}\n{error.detail}" if self._media_name else error.detail
         self._show_message("error", error.user_message, detail)
         self.status_changed.emit(error.user_message)

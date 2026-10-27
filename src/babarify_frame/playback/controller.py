@@ -12,7 +12,13 @@ from collections.abc import Callable
 
 from babarify_frame.core.errors import ErrorCode, PlaybackError
 from babarify_frame.core.events import PlaybackEvent
-from babarify_frame.core.models import EngineCapabilities, MediaInfo, PlaybackState, PlaybackStatus
+from babarify_frame.core.models import (
+    EngineCapabilities,
+    EngineOptions,
+    MediaInfo,
+    PlaybackState,
+    PlaybackStatus,
+)
 from babarify_frame.playback.contracts import PlaybackEngine
 from babarify_frame.playback.factory import EngineFactory
 
@@ -37,9 +43,9 @@ class PlaybackController:
     def engine_name(self) -> str | None:
         return self._engine.name if self._engine else None
 
-    def start(self, engine_name: str) -> None:
+    def start(self, engine_name: str, options: EngineOptions | None = None) -> None:
         """Create (or switch to) an engine. The previous engine is closed first."""
-        self.attach(self._factory.create(engine_name))
+        self.attach(self._factory.create(engine_name, options))
 
     def attach(self, engine: PlaybackEngine) -> None:
         """Adopt an already-initialised engine (e.g. created on a worker thread)."""
