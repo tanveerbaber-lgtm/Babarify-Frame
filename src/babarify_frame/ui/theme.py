@@ -71,6 +71,7 @@ QLabel#title {{ font-size: {FONT_TITLE}pt; font-weight: 600; }}
 QLabel#subtitle {{ font-size: {FONT_SUBTITLE}pt; font-weight: 600; }}
 QLabel#muted {{ color: {TEXT_MUTED}; }}
 QLabel#caption {{ color: {TEXT_MUTED}; font-size: {FONT_CAPTION}pt; }}
+QLabel#warning {{ color: {AMBER}; }}
 QLabel#tagline {{ color: {TEXT_MUTED}; font-size: {FONT_SUBTITLE}pt; }}
 QLabel#errorIcon {{ color: {RED}; }}
 QLabel#time {{ color: {TEXT_MUTED}; font-family: {MONO_STACK}; font-size: {FONT_CAPTION}pt; }}

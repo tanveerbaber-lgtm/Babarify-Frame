@@ -5,15 +5,16 @@ Pages:
 * Now Playing — ``PlayerPage``; owns the playback controller.
 * Settings — persisted UI preferences.
 
-Keyboard model: playback shortcuts (Space, arrows, M, S, F) are active only while the Now
-Playing page is shown, so they never fight with form controls elsewhere. Ctrl+O, Ctrl+Q,
-Ctrl+1/2/3, F1 and Esc work everywhere.
+Keyboard model: playback shortcuts (Space, arrows, M, S, F, and the M5 track keys V, B, G,
+H, J, K) are active only while the Now Playing page is shown, so they never fight with form
+controls elsewhere. Ctrl+O, Ctrl+Q, Ctrl+1/2/3, F1 and Esc work everywhere.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import replace
+from pathlib import Path
 
 from PySide6.QtCore import QRect, QSize, Qt
 from PySide6.QtGui import (
@@ -42,7 +43,7 @@ from PySide6.QtWidgets import (
 
 from babarify_frame import PRODUCT_NAME, TAGLINE, __version__
 from babarify_frame.configuration.preferences import Preferences, PreferencesStore, WindowGeometry
-from babarify_frame.core.models import PlaybackState
+from babarify_frame.core.models import SUBTITLE_EXTENSIONS, PlaybackState
 from babarify_frame.playback.controller import PlaybackController
 from babarify_frame.playback.factory import EngineFactory
 from babarify_frame.ui import theme
@@ -50,6 +51,7 @@ from babarify_frame.ui.diagnostics import PlaybackInfoDialog
 from babarify_frame.ui.pages.home import SHORTCUTS, HomePage
 from babarify_frame.ui.pages.player import VOLUME_STEP, PlayerPage
 from babarify_frame.ui.pages.settings import SettingsPage
+from babarify_frame.ui.subtitles import SUBTITLE_FILTER
 from babarify_frame.ui.widgets import glyph_icon
 
 MEDIA_FILTER = (
@@ -182,6 +184,33 @@ class MainWindow(QMainWindow):
         self._action("Exit fullscreen", [K(Qt.Key.Key_Escape)], self.exit_fullscreen)
         shortcuts_action = self._action("&Keyboard shortcuts", [K(Qt.Key.Key_F1)], self._show_shortcuts)
         self.info_action = self._action("Playback &info…", [K("Ctrl+I")], self.show_playback_info)
+        # Audio and subtitles (M5)
+        self.load_subtitle_action = self._action(
+            "Load &subtitle file…", [K("Ctrl+Shift+O")], self.choose_subtitle_file
+        )
+        self.next_subtitle_action = self._action("Next su&btitle track", [K(Qt.Key.Key_V)], p.cycle_subtitles)
+        self.next_audio_action = self._action("Next &audio track", [K(Qt.Key.Key_B)], p.cycle_audio)
+        self.subtitle_earlier_action = self._action(
+            "Subtitles 50 ms earlier", [K(Qt.Key.Key_G)], lambda: p.step_subtitle_delay(-1)
+        )
+        self.subtitle_later_action = self._action(
+            "Subtitles 50 ms later", [K(Qt.Key.Key_H)], lambda: p.step_subtitle_delay(1)
+        )
+        self.audio_earlier_action = self._action(
+            "Audio 50 ms earlier", [K(Qt.Key.Key_J)], lambda: p.step_audio_delay(-1)
+        )
+        self.audio_later_action = self._action(
+            "Audio 50 ms later", [K(Qt.Key.Key_K)], lambda: p.step_audio_delay(1)
+        )
+        self.sync_action = self._action("Sync and &delay…", [K("Ctrl+D")], p.show_sync_dialog)
+        self._track_actions = (
+            self.next_subtitle_action,
+            self.next_audio_action,
+            self.subtitle_earlier_action,
+            self.subtitle_later_action,
+            self.audio_earlier_action,
+            self.audio_later_action,
+        )
         about_action = QAction(f"&About {PRODUCT_NAME}", self)
         about_action.triggered.connect(self._show_about)
         self._playback_actions = (
@@ -198,6 +227,7 @@ class MainWindow(QMainWindow):
         menus = self.menuBar()
         file_menu = menus.addMenu("&File")
         file_menu.addAction(self.open_action)
+        file_menu.addAction(self.load_subtitle_action)
         file_menu.addSeparator()
         file_menu.addAction(quit_action)
         play_menu = menus.addMenu("&Playback")
@@ -206,6 +236,14 @@ class MainWindow(QMainWindow):
         play_menu.addSeparator()
         for action in (self.volume_up_action, self.volume_down_action, self.mute_action):
             play_menu.addAction(action)
+        tracks_menu = menus.addMenu("&Audio && Subtitles")
+        tracks_menu.addAction(self.next_audio_action)
+        tracks_menu.addAction(self.next_subtitle_action)
+        tracks_menu.addAction(self.load_subtitle_action)
+        tracks_menu.addSeparator()
+        for action in self._track_actions[2:]:
+            tracks_menu.addAction(action)
+        tracks_menu.addAction(self.sync_action)
         view_menu = menus.addMenu("&View")
         for action in (self.home_action, self.player_action, self.settings_action):
             view_menu.addAction(action)
@@ -219,6 +257,7 @@ class MainWindow(QMainWindow):
     def _connect_pages(self) -> None:
         self.home.open_requested.connect(self.choose_file)
         self.player.open_requested.connect(self.choose_file)
+        self.player.subtitle_file_requested.connect(self.choose_subtitle_file)
         self.player.fullscreen_requested.connect(self.toggle_fullscreen)
         self.player.status_changed.connect(self.statusBar().showMessage)
         self.player.title_changed.connect(self._set_media_title)
@@ -268,6 +307,10 @@ class MainWindow(QMainWindow):
         for action in (self.volume_up_action, self.volume_down_action, self.mute_action):
             action.setEnabled(on_player and ready)
         self.fullscreen_action.setEnabled(on_player)
+        self.load_subtitle_action.setEnabled(p.can_load_subtitles)
+        for action in self._track_actions:
+            action.setEnabled(on_player and p.can_change_tracks)
+        self.sync_action.setEnabled(p.has_media and p.state is not PlaybackState.ERROR)
 
     # ---------------------------------------------------------- commands
     def choose_file(self) -> None:
@@ -280,6 +323,16 @@ class MainWindow(QMainWindow):
     def open_path(self, path: str) -> None:
         self.show_page(self.player)
         self.player.open_path(path)
+
+    def choose_subtitle_file(self) -> None:
+        """Explicit user action: the file is read locally by the engine, never uploaded."""
+        if not self.player.can_load_subtitles:
+            return
+        status = self.player.controller.status()
+        start = str(Path(status.uri).parent) if status.uri and "://" not in status.uri else ""
+        path, _ = QFileDialog.getOpenFileName(self, "Load subtitle file", start, SUBTITLE_FILTER)
+        if path:
+            self.player.load_subtitle_file(path)
 
     def _set_media_title(self, name: str) -> None:
         self.setWindowTitle(f"{name} — {PRODUCT_NAME}" if name else PRODUCT_NAME)
@@ -366,7 +419,13 @@ class MainWindow(QMainWindow):
         self.home.set_drag_active(False)
         urls = event.mimeData().urls()
         if urls and urls[0].isLocalFile():
-            self.open_path(urls[0].toLocalFile())
+            path = urls[0].toLocalFile()
+            # A subtitle dropped onto a playing video is added to it; anything else is opened.
+            if Path(path).suffix.lower() in SUBTITLE_EXTENSIONS and self.player.can_load_subtitles:
+                self.show_page(self.player)
+                self.player.load_subtitle_file(path)
+            else:
+                self.open_path(path)
             event.acceptProposedAction()
 
     def show_playback_info(self) -> PlaybackInfoDialog:
@@ -388,6 +447,11 @@ class MainWindow(QMainWindow):
             "<tr><td><b>Esc</b></td><td>Leave fullscreen</td></tr>"
             "<tr><td><b>Ctrl+1 / 2 / 3</b>&nbsp;&nbsp;</td><td>Home / Now Playing / Settings</td></tr>"
             "<tr><td><b>Ctrl+I</b></td><td>Playback info</td></tr>"
+            "<tr><td><b>V / B</b></td><td>Next subtitle / audio track</td></tr>"
+            "<tr><td><b>G / H</b></td><td>Subtitles 50 ms earlier / later</td></tr>"
+            "<tr><td><b>J / K</b></td><td>Audio 50 ms earlier / later</td></tr>"
+            "<tr><td><b>Ctrl+D</b></td><td>Sync and delay</td></tr>"
+            "<tr><td><b>Ctrl+Shift+O</b>&nbsp;&nbsp;</td><td>Load subtitle file</td></tr>"
             "<tr><td><b>F1</b></td><td>This list</td></tr>"
         )
         QMessageBox.information(

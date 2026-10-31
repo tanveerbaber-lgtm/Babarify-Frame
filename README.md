@@ -55,10 +55,16 @@ Open files with **Ctrl+O**, by dragging them onto the window, or as a command-li
 | Ctrl+1 / 2 / 3 | Home / Now Playing / Settings |
 | Ctrl+O / Ctrl+Q | Open / exit |
 | Ctrl+I | Playback info (decoder, frames, engine log) |
+| V / B | Next subtitle track / next audio track |
+| G / H | Subtitles 50 ms earlier / later |
+| J / K | Audio 50 ms earlier / later |
+| Ctrl+D | Sync and delay dialog |
+| Ctrl+Shift+O | Load a subtitle file (or drop one onto a playing video) |
 | F1 | Keyboard shortcuts |
 
-Playback keys act on the Now Playing page. Preferences (volume, window size, seek step,
-hardware decoding Automatic/Off, fullscreen behaviour) are stored only on this PC in `%APPDATA%\Babarify\Frame\settings.json`
+Playback keys act on the Now Playing page. The subtitles button in the control bar lists audio
+and subtitle tracks. Preferences (volume, window size, seek step, hardware decoding
+Automatic/Off, fullscreen behaviour, subtitle look and preferred languages) are stored only on this PC in `%APPDATA%\Babarify\Frame\settings.json`
 (override the folder with `BABARIFY_CONFIG_DIR`).
 
 `--smoke-test [MS]` opens the window (and FILE), then exits after MS milliseconds (used by tests).

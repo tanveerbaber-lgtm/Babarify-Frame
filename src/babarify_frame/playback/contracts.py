@@ -28,14 +28,25 @@ from babarify_frame.core.events import (
     EndReached,
     ErrorOccurred,
     MediaInfoChanged,
+    Notice,
     PlaybackEvent,
     PositionChanged,
     StateChanged,
 )
-from babarify_frame.core.models import EngineCapabilities, MediaInfo, PlaybackState, PlaybackStatus
+from babarify_frame.core.models import (
+    SUBTITLE_EXTENSIONS,
+    EngineCapabilities,
+    MediaInfo,
+    PlaybackState,
+    PlaybackStatus,
+    SubtitleStyle,
+    TrackKind,
+)
 from babarify_frame.playback.lifecycle import can_transition, command_allowed
 
 log = logging.getLogger(__name__)
+
+MAX_SUBTITLE_BYTES = 20 * 1024 * 1024
 
 Listener = Callable[[PlaybackEvent], None]
 
@@ -89,6 +100,25 @@ class PlaybackEngine(ABC):
         """Most recent engine log lines, oldest first; empty if the engine has no log."""
         return []
 
+    # Audio and subtitles (M5) ------------------------------------------
+    @abstractmethod
+    def select_audio_track(self, track_id: int) -> None: ...
+    @abstractmethod
+    def select_subtitle_track(self, track_id: int | None) -> None:
+        """Select a subtitle track by id, or None for no subtitles."""
+
+    @abstractmethod
+    def add_subtitle_file(self, path: str) -> None:
+        """Load a local subtitle file and select it. Failure to read it is reported with a Notice."""
+
+    @abstractmethod
+    def set_audio_delay(self, delay_ms: int) -> None: ...
+    @abstractmethod
+    def set_subtitle_delay(self, delay_ms: int) -> None: ...
+    @abstractmethod
+    def set_subtitle_style(self, style: SubtitleStyle) -> None:
+        """Only for engines whose capabilities report subtitle_style == "live"."""
+
 
 def normalize_local_uri(uri: str, allowed_schemes: frozenset[str]) -> str:
     """Validate a media URI and return a canonical form.
@@ -139,6 +169,8 @@ class EngineBase(PlaybackEngine):
         self._volume = 100
         self._muted = False
         self._rate = 1.0
+        self._audio_delay_ms = 0
+        self._subtitle_delay_ms = 0
         self._media_info: MediaInfo | None = None
         self.rejected_transitions: list[tuple[PlaybackState, PlaybackState]] = []
         self._worker: ThreadPoolExecutor | None = None
@@ -169,6 +201,25 @@ class EngineBase(PlaybackEngine):
     def _do_set_video_output(self, window_id: int | None) -> None:
         raise PlaybackError(ErrorCode.UNSUPPORTED, f"{self.name} cannot render into a host window")
 
+    # Optional hooks: engines that lack a feature report it as unsupported.
+    def _do_select_audio(self, track_id: int) -> None:
+        raise PlaybackError(ErrorCode.UNSUPPORTED, "audio track selection is not supported")
+
+    def _do_select_subtitle(self, track_id: int | None) -> None:
+        raise PlaybackError(ErrorCode.UNSUPPORTED, "subtitle selection is not supported")
+
+    def _do_add_subtitle(self, path: str) -> None:
+        raise PlaybackError(ErrorCode.UNSUPPORTED, "external subtitles are not supported")
+
+    def _do_set_audio_delay(self, delay_ms: int) -> None:
+        raise PlaybackError(ErrorCode.UNSUPPORTED, "audio delay is not supported")
+
+    def _do_set_subtitle_delay(self, delay_ms: int) -> None:
+        raise PlaybackError(ErrorCode.UNSUPPORTED, "subtitle delay is not supported")
+
+    def _do_set_subtitle_style(self, style: SubtitleStyle) -> None:
+        raise PlaybackError(ErrorCode.UNSUPPORTED, "subtitle style cannot change during playback")
+
     # ------------------------------------------------------- public API
     def initialize(self) -> None:
         with self._lock:
@@ -197,6 +248,8 @@ class EngineBase(PlaybackEngine):
             self._position_ms = 0
             self._duration_ms = None
             self._media_info = None
+            self._audio_delay_ms = 0  # delays belong to a file
+            self._subtitle_delay_ms = 0
         self._transition(PlaybackState.LOADING)
         self._do_open(canonical, autoplay)
 
@@ -277,7 +330,67 @@ class EngineBase(PlaybackEngine):
                 muted=self._muted,
                 rate=self._rate,
                 uri=self._uri,
+                audio_delay_ms=self._audio_delay_ms,
+                subtitle_delay_ms=self._subtitle_delay_ms,
             )
+
+    # Audio and subtitles (M5) ------------------------------------------
+    def _track_ids(self, kind: TrackKind) -> set[int]:
+        info = self.get_media_info()
+        return {t.id for t in info.tracks_of(kind)} if info else set()
+
+    def select_audio_track(self, track_id: int) -> None:
+        self._require("select_track")
+        if track_id not in self._track_ids(TrackKind.AUDIO):
+            raise PlaybackError(ErrorCode.INVALID_ARGUMENT, f"no audio track with id {track_id}")
+        self._do_select_audio(track_id)
+
+    def select_subtitle_track(self, track_id: int | None) -> None:
+        self._require("select_track")
+        if track_id is not None and track_id not in self._track_ids(TrackKind.SUBTITLE):
+            raise PlaybackError(ErrorCode.INVALID_ARGUMENT, f"no subtitle track with id {track_id}")
+        self._do_select_subtitle(track_id)
+
+    def add_subtitle_file(self, path: str) -> None:
+        self._require("select_track")
+        if not self.get_capabilities().supports_external_subtitles:
+            raise PlaybackError(ErrorCode.UNSUPPORTED, "external subtitles are not supported")
+        if not isinstance(path, str) or not path.strip() or any(ord(c) < 32 for c in path):
+            raise PlaybackError(ErrorCode.INVALID_ARGUMENT, "subtitle path must be a plain file path")
+        file = Path(path).expanduser().resolve()
+        if not file.is_file():
+            raise PlaybackError(ErrorCode.MEDIA_NOT_FOUND, str(file))
+        if file.suffix.lower() not in SUBTITLE_EXTENSIONS:
+            raise PlaybackError(
+                ErrorCode.UNSUPPORTED, f"subtitle format '{file.suffix or file.name}' is not supported"
+            )
+        if file.stat().st_size > MAX_SUBTITLE_BYTES:
+            raise PlaybackError(ErrorCode.INVALID_ARGUMENT, "subtitle file is too large (over 20 MB)")
+        self._do_add_subtitle(str(file))
+
+    def _check_delay(self, delay_ms: int) -> int:
+        limit = self.get_capabilities().max_delay_ms
+        if isinstance(delay_ms, bool) or not isinstance(delay_ms, int) or abs(delay_ms) > limit:
+            raise PlaybackError(ErrorCode.INVALID_ARGUMENT, f"delay must be an integer within +/-{limit} ms")
+        return delay_ms
+
+    def set_audio_delay(self, delay_ms: int) -> None:
+        self._require("set_delay")
+        self._do_set_audio_delay(self._check_delay(delay_ms))
+        with self._lock:
+            self._audio_delay_ms = delay_ms
+
+    def set_subtitle_delay(self, delay_ms: int) -> None:
+        self._require("set_delay")
+        self._do_set_subtitle_delay(self._check_delay(delay_ms))
+        with self._lock:
+            self._subtitle_delay_ms = delay_ms
+
+    def set_subtitle_style(self, style: SubtitleStyle) -> None:
+        self._require("set_subtitle_style")
+        if self.get_capabilities().subtitle_style != "live":
+            raise PlaybackError(ErrorCode.UNSUPPORTED, "this engine applies subtitle style only when created")
+        self._do_set_subtitle_style(style.normalized())
 
     @property
     def state(self) -> PlaybackState:
@@ -405,6 +518,10 @@ class EngineBase(PlaybackEngine):
     def _fail(self, error: PlaybackError) -> None:
         if self._transition(PlaybackState.ERROR):
             self._emit(ErrorOccurred(error))
+
+    def _notice(self, code: ErrorCode, message: str) -> None:
+        """Report a non-fatal problem; the playback state does not change."""
+        self._emit(Notice(code, message))
 
     def _emit(self, event: PlaybackEvent) -> None:
         with self._lock:

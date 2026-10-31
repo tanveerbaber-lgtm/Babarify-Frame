@@ -9,6 +9,8 @@ Existing local files are also accepted and get ``default_duration_ms``.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import replace
+from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 from babarify_frame.core.errors import ErrorCode, PlaybackError
@@ -17,6 +19,7 @@ from babarify_frame.core.models import (
     EngineOptions,
     MediaInfo,
     PlaybackState,
+    SubtitleStyle,
     TrackInfo,
     TrackKind,
 )
@@ -38,6 +41,7 @@ class MockEngine(EngineBase):
     ) -> None:
         super().__init__()
         self.options = options or EngineOptions()
+        self.subtitle_style = self.options.subtitle_style
         self.auto_complete_loading = auto_complete_loading
         self.default_duration_ms = default_duration_ms
         self.window_id: int | None = None
@@ -53,6 +57,8 @@ class MockEngine(EngineBase):
             supports_audio_tracks=True,
             supports_subtitle_tracks=True,
             supports_embedding=True,
+            supports_external_subtitles=True,
+            subtitle_style="live",
             hardware_decoding="unavailable",
             notes=("Simulated engine: no real decoding.",),
         )
@@ -86,8 +92,10 @@ class MockEngine(EngineBase):
             audio_codec="aac",
             tracks=(
                 TrackInfo(1, TrackKind.VIDEO, codec="h264", selected=True),
-                TrackInfo(2, TrackKind.AUDIO, language="eng", codec="aac", selected=True),
-                TrackInfo(3, TrackKind.SUBTITLE, language="eng", codec="subrip"),
+                TrackInfo(2, TrackKind.AUDIO, title="English", language="eng", codec="aac", selected=True),
+                TrackInfo(3, TrackKind.AUDIO, title="French", language="fra", codec="ac3"),
+                TrackInfo(4, TrackKind.SUBTITLE, title="English", language="eng", codec="subrip"),
+                TrackInfo(5, TrackKind.SUBTITLE, title="French", language="fra", codec="ass"),
             ),
         )
         if self.auto_complete_loading:
@@ -130,6 +138,45 @@ class MockEngine(EngineBase):
     def _do_close(self) -> None:
         self.calls.append("close")
         self.closed_resources = True
+
+    # ---------------------------------------------- audio and subtitles
+    def _reselect(self, kind: TrackKind, track_id: int | None) -> None:
+        info = self.get_media_info()
+        if info is None:
+            return
+        tracks = tuple(replace(t, selected=(t.id == track_id)) if t.kind is kind else t for t in info.tracks)
+        self._set_media_info(replace(info, tracks=tracks))
+
+    def _do_select_audio(self, track_id: int) -> None:
+        self.calls.append(f"audio:{track_id}")
+        self._reselect(TrackKind.AUDIO, track_id)
+
+    def _do_select_subtitle(self, track_id: int | None) -> None:
+        self.calls.append(f"subtitle:{track_id}")
+        self._reselect(TrackKind.SUBTITLE, track_id)
+
+    def _do_add_subtitle(self, path: str) -> None:
+        self.calls.append(f"add_subtitle:{path}")
+        info = self.get_media_info()
+        if info is None:
+            return
+        if "broken" in Path(path).name:
+            self._notice(ErrorCode.MEDIA_OPEN_FAILED, f"could not read subtitle file {Path(path).name}")
+            return
+        new_id = max(t.id for t in info.tracks) + 1
+        added = TrackInfo(new_id, TrackKind.SUBTITLE, title=Path(path).name, codec="subrip")
+        self._set_media_info(replace(info, tracks=(*info.tracks, added)))
+        self._reselect(TrackKind.SUBTITLE, new_id)
+
+    def _do_set_audio_delay(self, delay_ms: int) -> None:
+        self.calls.append(f"audio_delay:{delay_ms}")
+
+    def _do_set_subtitle_delay(self, delay_ms: int) -> None:
+        self.calls.append(f"subtitle_delay:{delay_ms}")
+
+    def _do_set_subtitle_style(self, style: SubtitleStyle) -> None:
+        self.calls.append(f"style:{style.text_color}:{style.size_pct}")
+        self.subtitle_style = style
 
     # ---------------------------------------------- simulation controls
     def complete_loading(self) -> None:

@@ -1,4 +1,4 @@
-# Babarify Frame — Architecture Overview (M4)
+# Babarify Frame — Architecture Overview (M5)
 
 This describes the code as it exists at the end of Milestone 4. The product-level
 architecture and roadmap are in the
@@ -142,6 +142,32 @@ Therefore:
   repeated creation eventually crashed `libvlc_new` (R20). The shared log callback fans out
   to the engines currently registered.
 - `ui/diagnostics.py` — the Playback info panel (Ctrl+I), built only from the contract.
+
+## Audio and subtitles (M5)
+
+- Contract: `select_audio_track`, `select_subtitle_track` (`None` = off), `add_subtitle_file`,
+  `set_audio_delay`, `set_subtitle_delay` (integer ms, **positive = later**, limit
+  `max_delay_ms`), `set_subtitle_style`. `EngineBase` validates everything (track ids against
+  the current `MediaInfo`, subtitle path: control characters, existence, extension allow-list
+  `SUBTITLE_EXTENSIONS`, 20 MB limit) before calling the adapter's optional `_do_*` hook; a hook
+  an engine lacks reports `UNSUPPORTED`. Delays reset when a file is opened and appear in
+  `PlaybackStatus`.
+- Non-fatal problems (an unreadable subtitle file) are a `Notice` event: playback keeps its
+  state and the UI shows the message in the status bar.
+- `SubtitleStyle` (font, size %, colour, background opacity, named position) is part of
+  `EngineOptions`. Capabilities say how it applies: `subtitle_style="live"` (mpv, mock) or
+  `"restart"` (libVLC: style is an instance option; `PlayerPage` restarts the engine and
+  restores position, play state, selected tracks and delays). Style affects plain-text
+  subtitles only; ASS/SSA keep their own styling.
+- libVLC specifics (measured in the M5 spike): a newly selected subtitle track or a new
+  subtitle delay needs a re-seek to the current time, or lines already read ahead are lost;
+  `add_slave` reports success even for unreadable files, so the adapter confirms a new track
+  appeared within 2.5 s and otherwise emits a `Notice`; one shared instance exists **per
+  style** (style arguments are part of the shared-instance key).
+- `ui/subtitles.py` — track labels, the tracks menu (rebuilt each time it opens) and the
+  non-modal Sync dialog. Track preferences (preferred audio/subtitle language, show subtitles
+  automatically) are applied once per file, when tracks are known.
+- Dual subtitles are not offered (`supports_dual_subtitles=False` on all engines).
 
 ## Capability reporting
 

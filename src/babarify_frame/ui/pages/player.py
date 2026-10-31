@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import threading
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 
 from PySide6.QtCore import QPoint, QSize, Qt, QTimer, Signal
@@ -16,22 +17,30 @@ from PySide6.QtGui import QCursor
 from PySide6.QtWidgets import (
     QFrame,
     QLabel,
+    QMenu,
     QPushButton,
     QStackedWidget,
     QVBoxLayout,
     QWidget,
 )
 
-from babarify_frame.configuration.preferences import Preferences
-from babarify_frame.core.errors import PlaybackError
-from babarify_frame.core.events import ErrorOccurred, MediaInfoChanged, StateChanged
-from babarify_frame.core.models import EngineOptions, MediaInfo, PlaybackState
+from babarify_frame.configuration.preferences import Preferences, language_matches
+from babarify_frame.core.errors import ErrorCode, PlaybackError
+from babarify_frame.core.events import ErrorOccurred, MediaInfoChanged, Notice, StateChanged
+from babarify_frame.core.models import EngineOptions, MediaInfo, PlaybackState, TrackInfo, TrackKind
 from babarify_frame.playback.contracts import PlaybackEngine
 from babarify_frame.playback.controller import PlaybackController
 from babarify_frame.playback.factory import EngineFactory
 from babarify_frame.ui import theme
 from babarify_frame.ui.bridge import UiBridge
 from babarify_frame.ui.controls import ControlBar
+from babarify_frame.ui.subtitles import (
+    DELAY_STEP_MS,
+    SyncDialog,
+    build_tracks_menu,
+    format_delay,
+    track_label,
+)
 from babarify_frame.ui.widgets import VideoSurface, glyph_icon
 
 S = PlaybackState
@@ -41,6 +50,18 @@ CURSOR_POLL_MS = 200
 VOLUME_STEP = 5
 HAS_MEDIA = frozenset({S.LOADING, S.PLAYING, S.PAUSED, S.BUFFERING, S.ENDED})
 SEEKABLE = frozenset({S.PLAYING, S.PAUSED, S.BUFFERING, S.ENDED})
+TRACK_STATES = frozenset({S.PLAYING, S.PAUSED, S.BUFFERING, S.ENDED})  # engines accept track changes
+
+
+@dataclass(frozen=True)
+class _TrackResume:
+    """Audio/subtitle choices carried across an engine restart (e.g. a subtitle style change)."""
+
+    audio_id: int | None
+    subtitle_id: int | None
+    external_subtitle: str | None  # re-loaded when the selected subtitle came from a file
+    subtitle_delay_ms: int
+    audio_delay_ms: int
 
 
 class PlayerPage(QWidget):
@@ -50,6 +71,7 @@ class PlayerPage(QWidget):
     engine_ready = Signal(bool)
     video_started = Signal()  # first frame of a video (not audio-only) after open
     open_requested = Signal()
+    subtitle_file_requested = Signal()  # the window shows the file dialog
     fullscreen_requested = Signal()
 
     def __init__(
@@ -71,6 +93,11 @@ class PlayerPage(QWidget):
         self._pending_open: str | None = None
         self._resume: tuple[str, int, bool] | None = None  # (uri, position, playing) across restarts
         self._resume_position: int | None = None
+        self._resume_tracks: _TrackResume | None = None
+        self._tracks_applied = False  # preferences/resume applied to this file's tracks
+        self._embedded_subtitle_ids: set[int] = set()
+        self._external_subtitles: list[str] = []
+        self._sync_dialog: SyncDialog | None = None
         self.last_error = ""  # most recent playback error, for the Playback info panel
         self._media_name = ""
         self._state = S.UNINITIALIZED
@@ -144,6 +171,7 @@ class PlayerPage(QWidget):
         c.mute_clicked.connect(self.toggle_mute)
         c.rate_selected.connect(self.set_rate)
         c.fullscreen_clicked.connect(self.fullscreen_requested)
+        c.tracks_menu_opening.connect(self._fill_tracks_menu)
 
     # ----------------------------------------------------------- engine
     @property
@@ -170,7 +198,9 @@ class PlayerPage(QWidget):
         """Create the engine on a worker thread; the UI stays responsive while the DLL loads."""
         self._controller.set_video_output(int(self.video.winId()))
 
-        options = EngineOptions(hardware_decoding=self._prefs.hardware_decoding)
+        options = EngineOptions(
+            hardware_decoding=self._prefs.hardware_decoding, subtitle_style=self._prefs.subtitle_style
+        )
 
         def work() -> None:
             try:
@@ -218,6 +248,7 @@ class PlayerPage(QWidget):
         status = self._controller.status() if self.engine_is_ready else None
         if status is not None and status.uri and self.has_media and self._state is not S.ERROR:
             self._resume = (status.uri, status.position_ms, status.state in (S.PLAYING, S.BUFFERING))
+            self._resume_tracks = self._current_tracks(status.subtitle_delay_ms, status.audio_delay_ms)
         self._position_timer.stop()
         self._controller.shutdown()  # the video surface stays alive: close-before-window holds
         if self._engine_thread is not None:
@@ -231,6 +262,11 @@ class PlayerPage(QWidget):
             self._pending_open = path  # opened once the engine is ready
             return
         self._media_name = Path(path).name if "://" not in path else path
+        self._tracks_applied = False
+        self._embedded_subtitle_ids = set()
+        self._external_subtitles = []
+        if self._sync_dialog is not None:
+            self._sync_dialog.set_delays(0, 0)  # delays belong to a file
         self._duration_ms = None
         self._is_audio_only = False
         self._video_announced = False
@@ -294,10 +330,181 @@ class PlayerPage(QWidget):
         return self.controls.volume.value(), self._prefs.muted
 
     def set_preferences(self, prefs: Preferences) -> None:
-        restart = prefs.hardware_decoding != self._prefs.hardware_decoding and self.engine_is_ready
+        style_changed = prefs.subtitle_style != self._prefs.subtitle_style
+        restart = self.engine_is_ready and (
+            prefs.hardware_decoding != self._prefs.hardware_decoding
+            or (style_changed and self._controller.capabilities().subtitle_style == "restart")
+        )
         self._prefs = prefs
         if restart:
             self.restart_engine()
+        elif (
+            style_changed
+            and self.engine_is_ready
+            and self._state in HAS_MEDIA
+            and self._controller.capabilities().subtitle_style == "live"
+        ):
+            self._run(lambda: self._controller.set_subtitle_style(prefs.subtitle_style))
+
+    # -------------------------------------------------- audio and subtitles
+    @property
+    def can_change_tracks(self) -> bool:
+        return self.engine_is_ready and self._state in TRACK_STATES
+
+    @property
+    def can_load_subtitles(self) -> bool:
+        return self.can_change_tracks and self._controller.capabilities().supports_external_subtitles
+
+    def _tracks(self, kind: TrackKind) -> list[TrackInfo]:
+        info = self._controller.media_info() if self.engine_is_ready else None
+        return list(info.tracks_of(kind)) if info else []
+
+    def select_audio(self, track_id: int) -> None:
+        if self.can_change_tracks:
+            self._run(lambda: self._controller.select_audio_track(track_id))
+
+    def select_subtitle(self, track_id: int | None) -> None:
+        if self.can_change_tracks:
+            self._run(lambda: self._controller.select_subtitle_track(track_id))
+
+    def load_subtitle_file(self, path: str) -> None:
+        """Add a local subtitle file to the playing media. Failures are reported, never raised."""
+        if not self.can_load_subtitles:
+            self.status_changed.emit("Open a video before loading subtitles")
+            return
+        name = Path(path).name
+        # Before the call: an engine may report an unreadable file (Notice) before it returns.
+        self.status_changed.emit(f"Loading subtitles from {name}…")
+        try:
+            self._controller.add_subtitle_file(path)
+        except PlaybackError as exc:
+            reason = name if exc.code is ErrorCode.MEDIA_NOT_FOUND or not exc.detail else exc.detail
+            self.status_changed.emit(f"{exc.user_message.rstrip('.')}: {reason}")
+            return
+        self._external_subtitles.append(path)
+
+    def cycle_subtitles(self) -> None:
+        """Off → each track in order → Off."""
+        tracks = self._tracks(TrackKind.SUBTITLE)
+        if not self.can_change_tracks or not tracks:
+            self.status_changed.emit("No subtitle tracks")
+            return
+        ids: list[int | None] = [None, *(t.id for t in tracks)]
+        current = next((t.id for t in tracks if t.selected), None)
+        target = ids[(ids.index(current) + 1) % len(ids)]
+        self.select_subtitle(target)
+        label = next((track_label(t, i) for i, t in enumerate(tracks, 1) if t.id == target), "Off")
+        self.status_changed.emit(f"Subtitles: {label}")
+
+    def cycle_audio(self) -> None:
+        tracks = self._tracks(TrackKind.AUDIO)
+        if not self.can_change_tracks or len(tracks) < 2:
+            self.status_changed.emit("Only one audio track" if tracks else "No audio tracks")
+            return
+        current = next((i for i, t in enumerate(tracks) if t.selected), -1)
+        index = (current + 1) % len(tracks)
+        self.select_audio(tracks[index].id)
+        self.status_changed.emit(f"Audio: {track_label(tracks[index], index + 1)}")
+
+    def set_subtitle_delay(self, delay_ms: int) -> None:
+        self._set_delay(delay_ms, subtitle=True)
+
+    def set_audio_delay(self, delay_ms: int) -> None:
+        self._set_delay(delay_ms, subtitle=False)
+
+    def step_subtitle_delay(self, steps: int) -> None:
+        if self.engine_is_ready:
+            self.set_subtitle_delay(self._controller.status().subtitle_delay_ms + steps * DELAY_STEP_MS)
+
+    def step_audio_delay(self, steps: int) -> None:
+        if self.engine_is_ready:
+            self.set_audio_delay(self._controller.status().audio_delay_ms + steps * DELAY_STEP_MS)
+
+    def _set_delay(self, delay_ms: int, *, subtitle: bool) -> None:
+        if not self.engine_is_ready or self._state not in HAS_MEDIA:
+            return
+        limit = self._controller.capabilities().max_delay_ms
+        value = max(-limit, min(limit, int(delay_ms)))
+        if subtitle:
+            self._run(lambda: self._controller.set_subtitle_delay(value))
+        else:
+            self._run(lambda: self._controller.set_audio_delay(value))
+        status = self._controller.status()
+        if self._sync_dialog is not None:
+            self._sync_dialog.set_delays(status.subtitle_delay_ms, status.audio_delay_ms)
+        current = status.subtitle_delay_ms if subtitle else status.audio_delay_ms
+        what = "Subtitle delay" if subtitle else "Audio delay"
+        self.status_changed.emit(f"{what}: {format_delay(current)}")
+
+    def show_sync_dialog(self) -> SyncDialog:
+        if self._sync_dialog is None:
+            limit = self._controller.capabilities().max_delay_ms if self.engine_is_ready else 60_000
+            self._sync_dialog = SyncDialog(self, limit)
+            self._sync_dialog.subtitle_delay_changed.connect(self.set_subtitle_delay)
+            self._sync_dialog.audio_delay_changed.connect(self.set_audio_delay)
+        if self.engine_is_ready:
+            status = self._controller.status()
+            self._sync_dialog.set_delays(status.subtitle_delay_ms, status.audio_delay_ms)
+        self._sync_dialog.set_enabled_rows(self.engine_is_ready and self._state in HAS_MEDIA)
+        self._sync_dialog.show()
+        self._sync_dialog.raise_()
+        return self._sync_dialog
+
+    def _fill_tracks_menu(self, menu: QMenu) -> None:
+        build_tracks_menu(
+            menu,
+            self._controller.media_info() if self.can_change_tracks else None,
+            can_load_file=self.can_load_subtitles,
+            on_audio=self.select_audio,
+            on_subtitle=self.select_subtitle,
+            on_load_file=self.subtitle_file_requested.emit,
+            on_sync=self.show_sync_dialog,
+        )
+
+    def _current_tracks(self, subtitle_delay_ms: int, audio_delay_ms: int) -> _TrackResume:
+        audio = next((t.id for t in self._tracks(TrackKind.AUDIO) if t.selected), None)
+        sub = next((t.id for t in self._tracks(TrackKind.SUBTITLE) if t.selected), None)
+        external = None
+        if sub is not None and sub not in self._embedded_subtitle_ids and self._external_subtitles:
+            external, sub = self._external_subtitles[-1], None
+        return _TrackResume(audio, sub, external, subtitle_delay_ms, audio_delay_ms)
+
+    def _maybe_apply_tracks(self) -> None:
+        """Once per file, when tracks are known and the engine accepts changes: restore the
+        choices from before a restart, or apply the language preferences."""
+        if self._tracks_applied or not self.can_change_tracks:
+            return
+        info = self._controller.media_info()
+        if info is None or not info.tracks:
+            return
+        self._tracks_applied = True
+        audio = list(info.tracks_of(TrackKind.AUDIO))
+        subs = list(info.tracks_of(TrackKind.SUBTITLE))
+        self._embedded_subtitle_ids = {t.id for t in subs}
+        resume, self._resume_tracks = self._resume_tracks, None
+        if resume is not None:
+            if resume.audio_id is not None and any(t.id == resume.audio_id for t in audio):
+                self.select_audio(resume.audio_id)
+            if resume.external_subtitle:
+                self.load_subtitle_file(resume.external_subtitle)
+            elif resume.subtitle_id is None or any(t.id == resume.subtitle_id for t in subs):
+                self.select_subtitle(resume.subtitle_id)
+            if resume.subtitle_delay_ms:
+                self._run(lambda: self._controller.set_subtitle_delay(resume.subtitle_delay_ms))
+            if resume.audio_delay_ms:
+                self._run(lambda: self._controller.set_audio_delay(resume.audio_delay_ms))
+            return
+        prefs = self._prefs
+        wanted_audio = next(
+            (t for t in audio if language_matches(prefs.preferred_audio_language, t.language)), None
+        )
+        if wanted_audio is not None and not wanted_audio.selected:
+            self.select_audio(wanted_audio.id)
+        if prefs.subtitles_auto and subs and not any(t.selected for t in subs):
+            preferred = next(
+                (t for t in subs if language_matches(prefs.preferred_subtitle_language, t.language)), None
+            )
+            self.select_subtitle((preferred or subs[0]).id)
 
     def _run(self, command: Callable[[], object]) -> None:
         """Run a controller command; report refused commands instead of raising into Qt."""
@@ -358,6 +565,9 @@ class PlayerPage(QWidget):
             self._apply_media_info(event.info)
         elif isinstance(event, ErrorOccurred):
             self._show_error(event.error)
+        elif isinstance(event, Notice):
+            # Non-fatal (e.g. an unreadable subtitle file): playback continues.
+            self.status_changed.emit(event.message[:1].upper() + event.message[1:])
 
     def _apply_state(self, state: PlaybackState) -> None:
         self._state = state
@@ -387,6 +597,8 @@ class PlayerPage(QWidget):
             position, self._resume_position = self._resume_position, None
             if position > 0:
                 self._run(lambda: self._controller.seek(position))
+        if state in TRACK_STATES:
+            self._maybe_apply_tracks()
         if state is S.READY and self._media_name:
             self._show_message("info", self._media_name, "Stopped. Press Space to play again.")
             self.controls.set_position(0, self._duration_ms)
@@ -403,7 +615,7 @@ class PlayerPage(QWidget):
             self._message_action.hide()
         elif self._state in (S.PLAYING, S.PAUSED, S.BUFFERING, S.LOADING):
             self._stage.setCurrentWidget(self.video)
-        self._apply_state(self._state)
+        self._apply_state(self._state)  # also applies track preferences once tracks are known
 
     def _show_engine_status(self) -> None:
         if not self.engine_is_ready:
@@ -457,6 +669,8 @@ class PlayerPage(QWidget):
     def shutdown(self) -> None:
         """Close the engine. Must run while the window (and the video surface) still exists."""
         self._closing = True
+        if self._sync_dialog is not None:
+            self._sync_dialog.close()
         self._position_timer.stop()
         self._cursor_timer.stop()
         self._controller.shutdown()

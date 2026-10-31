@@ -20,11 +20,61 @@ from dataclasses import asdict, dataclass, field, fields, replace
 from pathlib import Path
 from typing import Any
 
+from babarify_frame.core.models import SubtitleStyle
+
 log = logging.getLogger(__name__)
 
 SCHEMA_VERSION = 1
 SEEK_STEPS_S = (5, 10, 15, 30, 60)
 PLAYBACK_RATES = (0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0)
+# Track languages offered in Settings: ISO 639-2 codes as engines report them. "" = no preference.
+LANGUAGES = {
+    "": "No preference",
+    "ara": "Arabic",
+    "chi": "Chinese",
+    "dut": "Dutch",
+    "eng": "English",
+    "fre": "French",
+    "ger": "German",
+    "hin": "Hindi",
+    "ita": "Italian",
+    "jpn": "Japanese",
+    "kor": "Korean",
+    "pol": "Polish",
+    "por": "Portuguese",
+    "rus": "Russian",
+    "spa": "Spanish",
+    "swe": "Swedish",
+    "tur": "Turkish",
+    "urd": "Urdu",
+}
+# Containers use either the bibliographic or the terminology ISO 639-2 code (fre/fra, ger/deu ...).
+LANGUAGE_ALIASES = {
+    "chi": {"zho", "zh"},
+    "dut": {"nld", "nl"},
+    "fre": {"fra", "fr"},
+    "ger": {"deu", "de"},
+    "eng": {"en"},
+    "spa": {"es"},
+    "ita": {"it"},
+    "jpn": {"ja"},
+    "kor": {"ko"},
+    "por": {"pt"},
+    "rus": {"ru"},
+    "ara": {"ar"},
+    "hin": {"hi"},
+    "pol": {"pl"},
+    "swe": {"sv"},
+    "tur": {"tr"},
+    "urd": {"ur"},
+}
+
+
+def language_matches(preferred: str, track_language: str | None) -> bool:
+    if not preferred or not track_language:
+        return False
+    lang = track_language.strip().lower()
+    return lang == preferred or lang in LANGUAGE_ALIASES.get(preferred, set())
 
 
 @dataclass(frozen=True)
@@ -45,6 +95,11 @@ class Preferences:
     controls_hide_delay_ms: int = 3000  # fullscreen auto-hide, 1000..10000 (whole seconds in the UI)
     start_fullscreen: bool = False
     hardware_decoding: bool = True  # Automatic: use the GPU when the engine confirms support
+    # Audio and subtitles (M5)
+    subtitles_auto: bool = False  # select a subtitle track when a file opens without one
+    preferred_audio_language: str = ""  # a LANGUAGES key
+    preferred_subtitle_language: str = ""
+    subtitle_style: SubtitleStyle = field(default_factory=SubtitleStyle)
     window: WindowGeometry | None = field(default=None)
 
     @classmethod
@@ -55,7 +110,7 @@ class Preferences:
         default = cls()
         values: dict[str, Any] = {}
         for f in fields(cls):
-            if f.name not in data or f.name == "window":
+            if f.name not in data or f.name in ("window", "subtitle_style"):
                 continue
             raw = data[f.name]
             current = getattr(default, f.name)
@@ -69,8 +124,11 @@ class Preferences:
                 and math.isfinite(raw)
             ):
                 values[f.name] = int(raw)
+            elif isinstance(current, str) and isinstance(raw, str):
+                values[f.name] = raw
         prefs = replace(default, **values)
-        return replace(prefs, window=_geometry(data.get("window"))).normalized()
+        style = SubtitleStyle.from_dict(data.get("subtitle_style"))
+        return replace(prefs, window=_geometry(data.get("window")), subtitle_style=style).normalized()
 
     def normalized(self) -> Preferences:
         return replace(
@@ -78,12 +136,20 @@ class Preferences:
             volume=max(0, min(100, self.volume)),
             seek_step_s=self.seek_step_s if self.seek_step_s in SEEK_STEPS_S else 10,
             controls_hide_delay_ms=max(1000, min(10_000, self.controls_hide_delay_ms)),
+            preferred_audio_language=_language(self.preferred_audio_language),
+            preferred_subtitle_language=_language(self.preferred_subtitle_language),
+            subtitle_style=self.subtitle_style.normalized(),
         )
 
     def to_dict(self) -> dict[str, Any]:
         data = asdict(self)
+        data["subtitle_style"] = self.subtitle_style.to_dict()
         data["schema"] = SCHEMA_VERSION
         return data
+
+
+def _language(code: str) -> str:
+    return code if code in LANGUAGES else ""
 
 
 def _geometry(raw: Any) -> WindowGeometry | None:

@@ -76,3 +76,5 @@ disallow_untyped_calls = false
 "tools/engine-benchmark/bench.py" = ["RUF001"]
 # Qt stylesheet rules read best one per line.
 "src/babarify_frame/ui/theme.py" = ["E501"]
+# Generated-media recipes contain literal subtitle/cue text.
+"tools/engine-benchmark/make_media.py" = ["E501"]

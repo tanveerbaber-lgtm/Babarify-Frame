@@ -30,6 +30,9 @@ COMMAND_STATES: dict[str, frozenset[S]] = {
     "set_volume": _ACTIVE,
     "set_muted": _ACTIVE,
     "set_playback_rate": _ACTIVE,
+    "select_track": frozenset({S.PLAYING, S.PAUSED, S.BUFFERING, S.ENDED}),
+    "set_delay": frozenset({S.LOADING, S.PLAYING, S.PAUSED, S.BUFFERING, S.ENDED}),
+    "set_subtitle_style": _ACTIVE,
 }
 
 

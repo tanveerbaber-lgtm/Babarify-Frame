@@ -833,8 +833,8 @@ Use the following checklist as the project status source of truth. Mark a milest
 - [x] M1 — Feasibility and Architecture — **CONDITIONAL**, accepted by the owner 2026-10-27 ([report](docs/milestones/M1/acceptance-report.md))
 - [x] M2 — Real Playback Prototype — **PASS**, accepted by the owner 2026-10-27 ([report](docs/milestones/M2/acceptance-report.md))
 - [x] M3 — Premium UI Foundation — **CONDITIONAL**, accepted by the owner 2026-10-27 ([report](docs/milestones/M3/acceptance-report.md))
-- [ ] M4 — Playback Reliability and Performance
-- [ ] M5 — Audio and Subtitle Studio
+- [x] M4 — Playback Reliability and Performance — **PASS**, accepted by the owner 2026-10-27 ([report](docs/milestones/M4/acceptance-report.md))
+- [x] M5 — Audio and Subtitle Studio — **CONDITIONAL**, accepted by the owner 2026-10-31 ([report](docs/milestones/M5/acceptance-report.md))
 - [ ] M6 — Media Library and Personal History
 - [ ] M7 — Picture and Audio Enhancement
 - [ ] M8 — Advanced Media and Network Features
@@ -850,8 +850,8 @@ Use the following checklist as the project status source of truth. Mark a milest
 ### Current status
 
 **Project planning baseline:** Defined in this document.  
-**Implementation status:** M1 accepted as CONDITIONAL, M2 as PASS, M3 as CONDITIONAL (2026-10-27). Playback engine: libVLC, provisional ([ADR-0001](docs/decisions/ADR-0001-playback-engine.md)).  
-**Next action:** Owner review of M4 — Playback Reliability and Performance ([report](docs/milestones/M4/acceptance-report.md)); proposed PASS.
+**Implementation status:** M1 accepted as CONDITIONAL, M2 as PASS, M3 as CONDITIONAL, M4 as PASS (2026-10-27), M5 as CONDITIONAL (2026-10-31). Playback engine: libVLC, provisional ([ADR-0001](docs/decisions/ADR-0001-playback-engine.md)).  
+**Next action:** M6 — Media Library and Personal History. Open from M5: committed subtitle render check (`tools/subtitle_render_check.py`).
 
 ---
 

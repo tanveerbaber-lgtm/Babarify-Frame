@@ -204,8 +204,8 @@ def test_media_info_tracks(engine: MockEngine) -> None:
     engine.open_media("mock://clip")
     info = engine.get_media_info()
     assert info is not None
-    assert len(info.tracks_of(TrackKind.AUDIO)) == 1
-    assert len(info.tracks_of(TrackKind.SUBTITLE)) == 1
+    assert len(info.tracks_of(TrackKind.AUDIO)) == 2
+    assert len(info.tracks_of(TrackKind.SUBTITLE)) == 2
 
 
 def test_capabilities(engine: MockEngine) -> None:

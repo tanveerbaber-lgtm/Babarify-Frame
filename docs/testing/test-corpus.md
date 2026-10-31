@@ -63,3 +63,17 @@ and the engine must play the next file; **invalid** must fail with a clear error
 | `e_empty.mp4` | edge | invalid | — | zero-byte file | `e3b0c44298fc…` |
 | `truncated.mp4` | failure | invalid | — | first half of an MP4 with its moov index at the end | `8456b9b7abbe…` |
 | `not_media.mp4` | failure | invalid | — | plain text with a .mp4 extension | `435dd7507088…` |
+| `s_black_tracks_720p.mkv` | subtitles | valid | h264 · 1280×720 | black video, 2 audio (eng/fra) + 2 embedded SRT (eng/fra) tracks, no default flags | `fd3e0d9d3348…` |
+| `s_black_720p.mp4` | subtitles | valid | h264 · 1280×720 · aac | black video, no subtitles (external subtitle tests) | `1ac7cc6821d7…` |
+| `s_sidecar_720p.mp4` | subtitles | valid | h264 · 1280×720 | black video with a same-name .srt next to it (auto-load test) | `3d8e2818d4a5…` |
+| `s_ext.srt` | subtitles | subtitle | — | external subtitle file | `9efe10d55cc0…` |
+| `s_ext_fra.srt` | subtitles | subtitle | — | external subtitle file | `400811d852c5…` |
+| `s_ext.vtt` | subtitles | subtitle | — | external subtitle file | `a907ac58560d…` |
+| `s_ext.ass` | subtitles | subtitle | — | external subtitle file | `d792231b73d9…` |
+| `s_ext.sub` | subtitles | subtitle | — | external subtitle file | `f2d7e94790ea…` |
+| `s_sidecar_720p.srt` | subtitles | subtitle | — | external subtitle file | `e6a3f99bad73…` |
+| `s_ext_unknown_ext.xyz` | subtitles | subtitle | — | external subtitle file | `7ce7171a910f…` |
+| `s_ext_cp1252.srt` | subtitles | subtitle | — | external subtitle file | `a41818727b1b…` |
+| `s_ext_utf8_bom.srt` | subtitles | subtitle | — | external subtitle file | `78063d6f3e4f…` |
+| `s_broken.srt` | subtitles | subtitle | — | external subtitle file | `8d79931f0a96…` |
+| `s_empty.srt` | subtitles | subtitle | — | external subtitle file | `e3b0c44298fc…` |

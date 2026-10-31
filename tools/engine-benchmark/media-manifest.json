@@ -554,6 +554,172 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
+      "file": "s_black_tracks_720p.mkv",
+      "kind": "valid",
+      "set": "subtitles",
+      "expect": {
+        "video": "h264",
+        "width": 1280,
+        "height": 720,
+        "audio_tracks": 2,
+        "subtitle_tracks": 2
+      },
+      "description": "black video, 2 audio (eng/fra) + 2 embedded SRT (eng/fra) tracks, no default flags",
+      "command": "ffmpeg.EXE -hide_banner -y -f lavfi -i color=black:size=1280x720:rate=25 -f lavfi -i sine=frequency=440:sample_rate=48000,volume=-60dB -f lavfi -i sine=frequency=880:sample_rate=48000,volume=-60dB -i E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\s_ext.srt -i E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\s_ext_fra.srt -t 20 -map 0:v -map 1:a -map 2:a -map 3:s -map 4:s -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p -c:a aac -c:s srt -metadata:s:a:0 language=eng -metadata:s:a:0 title=English tone -metadata:s:a:1 language=fra -metadata:s:a:1 title=French tone -metadata:s:s:0 language=eng -metadata:s:s:1 language=fra -disposition:s:0 0 -disposition:s:1 0 E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\s_black_tracks_720p.mkv",
+      "bytes": 93979,
+      "sha256": "fd3e0d9d33483c8b6c64a1dbe9326b7b04e651e62f6f9ccd9cb811f2f5ca02e5"
+    },
+    {
+      "file": "s_black_720p.mp4",
+      "kind": "valid",
+      "set": "subtitles",
+      "expect": {
+        "video": "h264",
+        "width": 1280,
+        "height": 720,
+        "audio": "aac"
+      },
+      "description": "black video, no subtitles (external subtitle tests)",
+      "command": "ffmpeg.EXE -hide_banner -y -f lavfi -i color=black:size=1280x720:rate=25 -f lavfi -i sine=frequency=440:sample_rate=48000,volume=-60dB -t 20 -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p -c:a aac E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\s_black_720p.mp4",
+      "bytes": 65918,
+      "sha256": "1ac7cc6821d76034cf02220f9daa460cd03503b01330fef72ebacbd359f54c0c"
+    },
+    {
+      "file": "s_sidecar_720p.mp4",
+      "kind": "valid",
+      "set": "subtitles",
+      "expect": {
+        "video": "h264",
+        "width": 1280,
+        "height": 720
+      },
+      "description": "black video with a same-name .srt next to it (auto-load test)",
+      "command": "ffmpeg.EXE -hide_banner -y -f lavfi -i color=black:size=1280x720:rate=25 -t 10 -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p E:\\Babarify Vision\\tests\\fixtures\\media\\generated\\s_sidecar_720p.mp4",
+      "bytes": 14305,
+      "sha256": "3d8e2818d4a567b0eb007cc57b362245e341d15b3aae9b9446fbba5d57798b38"
+    },
+    {
+      "file": "s_ext.srt",
+      "kind": "subtitle",
+      "set": "subtitles",
+      "expect": {
+        "subtitle": "valid"
+      },
+      "description": "external subtitle file",
+      "bytes": 88,
+      "sha256": "9efe10d55cc094151f4b122485aec4750a670563f19bf12c1b41f6684d13e5ad"
+    },
+    {
+      "file": "s_ext_fra.srt",
+      "kind": "subtitle",
+      "set": "subtitles",
+      "expect": {
+        "subtitle": "valid"
+      },
+      "description": "external subtitle file",
+      "bytes": 83,
+      "sha256": "400811d852c5cf365d082211296abd5e377308210d5ced72e5181ef74831a8b9"
+    },
+    {
+      "file": "s_ext.vtt",
+      "kind": "subtitle",
+      "set": "subtitles",
+      "expect": {
+        "subtitle": "valid"
+      },
+      "description": "external subtitle file",
+      "bytes": 92,
+      "sha256": "a907ac58560d1dc6ed02f2659da08f96c40dbeb1e84983ef1038734812b46ad2"
+    },
+    {
+      "file": "s_ext.ass",
+      "kind": "subtitle",
+      "set": "subtitles",
+      "expect": {
+        "subtitle": "valid"
+      },
+      "description": "external subtitle file",
+      "bytes": 380,
+      "sha256": "d792231b73d91a6b5a092aa6272598a31fcc4314b756cdbac984be20d0646292"
+    },
+    {
+      "file": "s_ext.sub",
+      "kind": "subtitle",
+      "set": "subtitles",
+      "expect": {
+        "subtitle": "valid"
+      },
+      "description": "external subtitle file",
+      "bytes": 42,
+      "sha256": "f2d7e94790eae009a484bd0b1cf4cfadda7e8329d2571e71effacd9658b0baa6"
+    },
+    {
+      "file": "s_sidecar_720p.srt",
+      "kind": "subtitle",
+      "set": "subtitles",
+      "expect": {
+        "subtitle": "valid"
+      },
+      "description": "external subtitle file",
+      "bytes": 45,
+      "sha256": "e6a3f99bad7393e0efe1266b2ff0c392f9677ac8184f31a2b1fbe3222ef6885a"
+    },
+    {
+      "file": "s_ext_unknown_ext.xyz",
+      "kind": "subtitle",
+      "set": "subtitles",
+      "expect": {
+        "subtitle": "unsupported-extension"
+      },
+      "description": "external subtitle file",
+      "bytes": 43,
+      "sha256": "7ce7171a910f88ec2f19154244e9c275b89dbf151456fddc688837ac02b40362"
+    },
+    {
+      "file": "s_ext_cp1252.srt",
+      "kind": "subtitle",
+      "set": "subtitles",
+      "expect": {
+        "subtitle": "valid"
+      },
+      "description": "external subtitle file",
+      "bytes": 53,
+      "sha256": "a41818727b1b706f8d6a6335f3b0a17b953e3e91bdc63187bd03f27290487d01"
+    },
+    {
+      "file": "s_ext_utf8_bom.srt",
+      "kind": "subtitle",
+      "set": "subtitles",
+      "expect": {
+        "subtitle": "valid"
+      },
+      "description": "external subtitle file",
+      "bytes": 46,
+      "sha256": "78063d6f3e4f583429aaa34acb09cbf8e0a90151482b894151d4aa1c9c5a9c5e"
+    },
+    {
+      "file": "s_broken.srt",
+      "kind": "subtitle",
+      "set": "subtitles",
+      "expect": {
+        "subtitle": "unreadable"
+      },
+      "description": "external subtitle file",
+      "bytes": 40,
+      "sha256": "8d79931f0a961dbe6e21796c2e3da83d6643f2fb4eaa5823dd927c9c538f545f"
+    },
+    {
+      "file": "s_empty.srt",
+      "kind": "subtitle",
+      "set": "subtitles",
+      "expect": {
+        "subtitle": "unreadable"
+      },
+      "description": "external subtitle file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
       "file": "truncated.mp4",
       "kind": "invalid",
       "expect": {

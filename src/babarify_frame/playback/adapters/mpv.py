@@ -12,8 +12,10 @@ Findings encoded here (see docs/milestones/M1/benchmark-report.md):
 
 from __future__ import annotations
 
+import contextlib
 from collections import deque
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any
 
 from babarify_frame.core.errors import ErrorCode, PlaybackError
@@ -22,6 +24,8 @@ from babarify_frame.core.models import (
     EngineOptions,
     MediaInfo,
     PlaybackState,
+    SubtitlePosition,
+    SubtitleStyle,
     TrackInfo,
     TrackKind,
 )
@@ -34,6 +38,14 @@ _END_FILE = 7
 _FILE_LOADED = 8
 _END_REASON_ERROR = 4
 _KINDS = {"video": TrackKind.VIDEO, "audio": TrackKind.AUDIO, "sub": TrackKind.SUBTITLE}
+# Named subtitle positions -> mpv sub-pos (percent of window height; 100 = bottom).
+_SUB_POS = {
+    SubtitlePosition.BOTTOM: 100,
+    SubtitlePosition.SLIGHTLY_RAISED: 95,
+    SubtitlePosition.RAISED: 85,
+    SubtitlePosition.HIGH: 70,
+}
+_MPV_DEFAULT_SUB_FONT_SIZE = 55
 
 
 def _load_mpv() -> Any:
@@ -107,6 +119,7 @@ class MpvEngine(EngineBase):
             ("eof-reached", self._on_eof),
         ):
             self._player.observe_property(name, handler)
+        self._apply_style(self._options.subtitle_style)
 
     def get_capabilities(self) -> EngineCapabilities:
         return EngineCapabilities(
@@ -118,8 +131,15 @@ class MpvEngine(EngineBase):
             supports_audio_tracks=True,
             supports_subtitle_tracks=True,
             supports_embedding=True,
+            supports_external_subtitles=True,
+            supports_dual_subtitles=False,  # mpv can (secondary-sid); not offered until verified
+            subtitle_style="live",
+            max_delay_ms=60_000,
             hardware_decoding="requested" if self._options.hardware_decoding else "disabled",
-            notes=("Host window must be set before the first file is opened.",),
+            notes=(
+                "Host window must be set before the first file is opened.",
+                "Subtitle style applies to plain-text subtitles; ASS/SSA keep their own styling.",
+            ),
         )
 
     def diagnostics(self) -> Mapping[str, str]:
@@ -197,6 +217,47 @@ class MpvEngine(EngineBase):
 
     def _do_set_rate(self, rate: float) -> None:
         self._player.speed = rate
+
+    # ---------------------------------------------- audio and subtitles
+    def _do_select_audio(self, track_id: int) -> None:
+        self._player["aid"] = track_id
+        self._defer(self._collect_media_info)
+
+    def _do_select_subtitle(self, track_id: int | None) -> None:
+        self._player["sid"] = "no" if track_id is None else track_id
+        self._defer(self._collect_media_info)
+
+    def _do_add_subtitle(self, path: str) -> None:
+        try:
+            self._player.command("sub-add", path, "select")
+        except SystemError as exc:  # python-mpv raises this when the command fails
+            self._notice(ErrorCode.MEDIA_OPEN_FAILED, f"could not read subtitle file {Path(path).name}")
+            self._log.append(f"error babarify: sub-add failed: {exc!r}")
+            return
+        self._defer(self._collect_media_info)
+
+    def _do_set_audio_delay(self, delay_ms: int) -> None:
+        self._player["audio-delay"] = delay_ms / 1000.0
+
+    def _do_set_subtitle_delay(self, delay_ms: int) -> None:
+        self._player["sub-delay"] = delay_ms / 1000.0
+
+    def _do_set_subtitle_style(self, style: SubtitleStyle) -> None:
+        self._apply_style(style)
+
+    def _apply_style(self, style: SubtitleStyle) -> None:
+        style = style.normalized()
+        player = self._player
+        player["sub-font-size"] = round(_MPV_DEFAULT_SUB_FONT_SIZE * style.size_pct / 100)
+        player["sub-color"] = style.text_color
+        alpha = round(style.background_opacity * 255 / 100)
+        player["sub-back-color"] = f"#{alpha:02X}000000"
+        # mpv >= 0.38; older builds draw sub-back-color only with an opaque box
+        with contextlib.suppress(AttributeError, RuntimeError, TypeError):
+            player["sub-border-style"] = "background-box" if alpha else "outline-and-shadow"
+        player["sub-pos"] = _SUB_POS[style.position]
+        if style.font_family:
+            player["sub-font"] = style.font_family
 
     def _do_close(self) -> None:
         try:

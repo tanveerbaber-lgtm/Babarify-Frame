@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from babarify_frame.core.errors import PlaybackError
+from babarify_frame.core.errors import ErrorCode, PlaybackError
 from babarify_frame.core.models import MediaInfo, PlaybackState
 
 
@@ -38,4 +38,13 @@ class EndReached:
     uri: str
 
 
-PlaybackEvent = StateChanged | PositionChanged | MediaInfoChanged | ErrorOccurred | EndReached
+@dataclass(frozen=True)
+class Notice:
+    """A non-fatal problem the user should hear about (playback continues), e.g. an unreadable
+    subtitle file."""
+
+    code: ErrorCode
+    message: str
+
+
+PlaybackEvent = StateChanged | PositionChanged | MediaInfoChanged | ErrorOccurred | EndReached | Notice

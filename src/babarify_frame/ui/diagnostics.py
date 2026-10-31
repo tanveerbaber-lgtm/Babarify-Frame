@@ -165,4 +165,6 @@ class PlaybackInfoDialog(QDialog):
         rows, log = self.snapshot()
         QGuiApplication.clipboard().setText(as_text(rows, log))
         self.copy_button.setText("Copied")
-        QTimer.singleShot(1500, lambda: self.copy_button.setText("Copy to clipboard"))
+        # Context object: Qt drops the timer if the dialog (and button) is deleted first (R22).
+        button = self.copy_button
+        QTimer.singleShot(1500, button, lambda: button.setText("Copy to clipboard"))

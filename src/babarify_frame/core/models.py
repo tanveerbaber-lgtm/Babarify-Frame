@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+import re
+from dataclasses import dataclass, field, replace
 from enum import Enum
+from typing import Any
 
 
 class PlaybackState(Enum):
@@ -63,10 +65,77 @@ class EngineCapabilities:
     supports_audio_tracks: bool = False
     supports_subtitle_tracks: bool = False
     supports_embedding: bool = False  # can render into a host window handle
+    supports_external_subtitles: bool = False
+    supports_dual_subtitles: bool = False  # two subtitle tracks at once; no current engine offers it
+    # How a subtitle style change takes effect: "live", "restart" (new engine) or "unsupported".
+    subtitle_style: str = "unsupported"
+    max_delay_ms: int = 60_000  # |audio/subtitle delay| limit
     # What was configured, not what is in use: "requested" | "disabled" | "unavailable" | "unknown".
     # The decoder actually in use is reported per media by diagnostics()["decoder"].
     hardware_decoding: str = "unknown"
     notes: tuple[str, ...] = field(default=())
+
+
+class SubtitlePosition(Enum):
+    BOTTOM = "bottom"
+    SLIGHTLY_RAISED = "slightly_raised"
+    RAISED = "raised"
+    HIGH = "high"
+
+
+SUBTITLE_EXTENSIONS = frozenset({".srt", ".ass", ".ssa", ".vtt", ".sub", ".smi", ".sami", ".txt", ".idx"})
+_COLOR = re.compile(r"^#[0-9A-Fa-f]{6}$")
+
+
+@dataclass(frozen=True)
+class SubtitleStyle:
+    """Look of plain-text subtitles (SRT, WebVTT, MicroDVD...). ASS/SSA keep their own styling."""
+
+    font_family: str = ""  # "" = engine default
+    size_pct: int = 100  # 50..200 % of the engine's normal size
+    text_color: str = "#FFFFFF"
+    background_opacity: int = 0  # 0..100 %
+    position: SubtitlePosition = SubtitlePosition.BOTTOM
+
+    def normalized(self) -> SubtitleStyle:
+        return replace(
+            self,
+            font_family=self.font_family.strip()[:100],
+            size_pct=max(50, min(200, self.size_pct)),
+            text_color=self.text_color.upper() if _COLOR.match(self.text_color) else "#FFFFFF",
+            background_opacity=max(0, min(100, self.background_opacity)),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "font_family": self.font_family,
+            "size_pct": self.size_pct,
+            "text_color": self.text_color,
+            "background_opacity": self.background_opacity,
+            "position": self.position.value,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Any) -> SubtitleStyle:
+        """Build from untrusted data; invalid fields fall back to defaults."""
+        if not isinstance(data, dict):
+            return cls()
+        d = cls()
+        font = data.get("font_family", d.font_family)
+        size = data.get("size_pct", d.size_pct)
+        color = data.get("text_color", d.text_color)
+        opacity = data.get("background_opacity", d.background_opacity)
+        try:
+            position = SubtitlePosition(data.get("position", d.position.value))
+        except ValueError:
+            position = d.position
+        return cls(
+            font_family=font if isinstance(font, str) else d.font_family,
+            size_pct=size if isinstance(size, int) and not isinstance(size, bool) else d.size_pct,
+            text_color=color if isinstance(color, str) else d.text_color,
+            background_opacity=opacity if isinstance(opacity, int) and not isinstance(opacity, bool) else 0,
+            position=position,
+        ).normalized()
 
 
 @dataclass(frozen=True)
@@ -74,6 +143,7 @@ class EngineOptions:
     """Engine construction options. Changing them requires creating a new engine."""
 
     hardware_decoding: bool = True  # allow GPU decoding when the engine and hardware support it
+    subtitle_style: SubtitleStyle = field(default_factory=SubtitleStyle)
 
 
 @dataclass(frozen=True)
@@ -85,3 +155,5 @@ class PlaybackStatus:
     muted: bool = False
     rate: float = 1.0
     uri: str | None = None
+    audio_delay_ms: int = 0  # positive = audio later
+    subtitle_delay_ms: int = 0  # positive = subtitles later

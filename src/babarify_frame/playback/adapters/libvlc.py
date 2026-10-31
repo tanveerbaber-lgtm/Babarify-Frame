@@ -28,6 +28,7 @@ import time
 from collections import deque
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, ClassVar
 
 from babarify_frame.core.errors import ErrorCode, PlaybackError
@@ -36,6 +37,8 @@ from babarify_frame.core.models import (
     EngineOptions,
     MediaInfo,
     PlaybackState,
+    SubtitlePosition,
+    SubtitleStyle,
     TrackInfo,
     TrackKind,
 )
@@ -95,6 +98,33 @@ def probe() -> EngineProbe:
     except PlaybackError as exc:
         return EngineProbe("libvlc", False, detail=exc.detail)
     return EngineProbe("libvlc", True, vlc.libvlc_get_version().decode(), str(find_vlc_dir()))
+
+
+# Named subtitle positions -> libVLC --sub-margin (pixels up from the bottom; measured in M5).
+_SUB_MARGIN = {
+    SubtitlePosition.BOTTOM: 0,
+    SubtitlePosition.SLIGHTLY_RAISED: 60,
+    SubtitlePosition.RAISED: 150,
+    SubtitlePosition.HIGH: 300,
+}
+EXTERNAL_SUBTITLE_TIMEOUT_S = 2.5
+
+
+def subtitle_style_args(style: SubtitleStyle) -> tuple[str, ...]:
+    """libVLC 3 applies text-subtitle styling only as instance options (M5 spike: media options are
+    ignored), so each distinct style needs its own shared instance."""
+    style = style.normalized()
+    args = [
+        # freetype-rel-fontsize: font height = video height / value; 16 is "normal".
+        f"--freetype-rel-fontsize={max(4, min(40, round(16 * 100 / style.size_pct)))}",
+        f"--freetype-color={int(style.text_color[1:], 16)}",
+        f"--freetype-background-opacity={round(style.background_opacity * 255 / 100)}",
+        "--freetype-background-color=0",
+        f"--sub-margin={_SUB_MARGIN[style.position]}",
+    ]
+    if style.font_family:
+        args.append(f"--freetype-font={style.font_family}")
+    return tuple(args)
 
 
 class _SharedInstance:
@@ -245,7 +275,8 @@ class LibVlcEngine(EngineBase):
     # ------------------------------------------------------------ setup
     def _do_initialize(self) -> None:
         vlc = self._vlc = _load_vlc()
-        self._shared = _SharedInstance.get(vlc, ("--no-video-title-show", *self._extra_args))
+        style_args = subtitle_style_args(self._options.subtitle_style)
+        self._shared = _SharedInstance.get(vlc, ("--no-video-title-show", *style_args, *self._extra_args))
         self._instance = self._shared.instance
         self._shared.add_sink(self._on_log_line)
         self._player = self._instance.media_player_new()
@@ -283,8 +314,15 @@ class LibVlcEngine(EngineBase):
             supports_audio_tracks=True,
             supports_subtitle_tracks=True,
             supports_embedding=True,
+            supports_external_subtitles=True,
+            supports_dual_subtitles=False,  # libVLC 3 renders one subtitle track at a time
+            subtitle_style="restart",  # style is an instance option: a new engine applies it
+            max_delay_ms=60_000,
             hardware_decoding="requested" if self._options.hardware_decoding else "disabled",
-            notes=("Hardware decoder in use is read from the libVLC log.",),
+            notes=(
+                "Hardware decoder in use is read from the libVLC log.",
+                "Subtitle style applies to plain-text subtitles; ASS/SSA keep their own styling.",
+            ),
         )
 
     def diagnostics(self) -> Mapping[str, str]:
@@ -389,6 +427,55 @@ class LibVlcEngine(EngineBase):
         # earlier and has not taken effect yet (M4 seek-storm finding). Report the accepted target;
         # while playing, the next TimeChanged supersedes it.
         self._set_position(position_ms)
+
+    # ---------------------------------------------- audio and subtitles
+    def _refetch(self) -> None:
+        """Re-seek to the current position so the demuxer re-reads data it already dropped
+        (M5 spike: without it a newly selected subtitle track or a new delay misses lines
+        that were read ahead)."""
+        if self.state in (S.PLAYING, S.PAUSED, S.BUFFERING):
+            self._player.set_time(self._player.get_time())
+
+    def _do_select_audio(self, track_id: int) -> None:
+        self._player.audio_set_track(track_id)
+        self._defer(self._collect_media_info)
+
+    def _do_select_subtitle(self, track_id: int | None) -> None:
+        self._player.video_set_spu(-1 if track_id is None else track_id)
+        if track_id is not None:
+            self._refetch()
+        self._defer(self._collect_media_info)
+
+    def _do_add_subtitle(self, path: str) -> None:
+        before = {tid for tid, _ in (self._player.video_get_spu_description() or [])}
+        uri = Path(path).as_uri()
+        if self._player.add_slave(self._vlc.MediaSlaveType.subtitle, uri, True) != 0:
+            self._notice(ErrorCode.MEDIA_OPEN_FAILED, f"could not load subtitle file {Path(path).name}")
+            return
+        self._defer(self._confirm_subtitle, path, before)
+
+    def _confirm_subtitle(self, path: str, before: set[int]) -> None:
+        """libVLC reports success even for unreadable files (M5 spike): confirm a track appeared."""
+        deadline = time.monotonic() + EXTERNAL_SUBTITLE_TIMEOUT_S
+        while time.monotonic() < deadline and self._player is not None:
+            now = {tid for tid, _ in (self._player.video_get_spu_description() or [])}
+            added = sorted(now - before - {-1})
+            if added:
+                if self._player.video_get_spu() not in added:
+                    self._player.video_set_spu(added[0])
+                self._refetch()
+                self._collect_media_info()
+                return
+            time.sleep(0.1)
+        if self._player is not None:
+            self._notice(ErrorCode.MEDIA_OPEN_FAILED, f"could not read subtitle file {Path(path).name}")
+
+    def _do_set_audio_delay(self, delay_ms: int) -> None:
+        self._player.audio_set_delay(delay_ms * 1000)
+
+    def _do_set_subtitle_delay(self, delay_ms: int) -> None:
+        self._player.video_set_spu_delay(delay_ms * 1000)
+        self._refetch()  # subtitles already queued would otherwise keep their old timing
 
     def _do_set_volume(self, level: int) -> None:
         self._player.audio_set_volume(level)
@@ -581,6 +668,16 @@ class LibVlcEngine(EngineBase):
                 for t in raw
                 if t.type in kinds
             )
+            # Tracks added at runtime (external subtitle files) exist only on the player.
+            known = {t.id for t in tracks}
+            for kind, descriptions, current in (
+                (TrackKind.AUDIO, player.audio_get_track_description() or [], audio_sel),
+                (TrackKind.SUBTITLE, player.video_get_spu_description() or [], spu_sel),
+            ):
+                for tid, desc in descriptions:
+                    if tid >= 0 and tid not in known:
+                        title = (desc or b"").decode("utf-8", "replace")
+                        tracks = (*tracks, TrackInfo(tid, kind, title=title, selected=tid == current))
             # The video output may not exist yet (e.g. MPEG-TS/PS, Ogg): fall back to stream info.
             raw_video = next((t for t in raw if t.type == 1), None)
             width, height = player.video_get_size(0) or (0, 0)

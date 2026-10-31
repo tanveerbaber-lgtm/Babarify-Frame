@@ -4,7 +4,7 @@
 **Machine:** i7-8565U, Intel UHD 620 (display), NVIDIA MX150 (idle), Windows 11, 3840×2160 @ 250 % ·
 **Prepared by:** Claude (Claude Code) · **Decision owner:** Tanveer Baber
 
-## Proposed decision: **PASS**
+## Decision: **PASS** — accepted by the owner on 2026-10-27
 
 All M4 deliverables are implemented and all five acceptance criteria have recorded
 evidence. The new tests found four real defects; all four are fixed and guarded by

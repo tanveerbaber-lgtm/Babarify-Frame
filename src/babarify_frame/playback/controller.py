@@ -18,6 +18,7 @@ from babarify_frame.core.models import (
     MediaInfo,
     PlaybackState,
     PlaybackStatus,
+    SubtitleStyle,
 )
 from babarify_frame.playback.contracts import PlaybackEngine
 from babarify_frame.playback.factory import EngineFactory
@@ -93,6 +94,24 @@ class PlaybackController:
 
     def set_playback_rate(self, rate: float) -> None:
         self.engine.set_playback_rate(rate)
+
+    def select_audio_track(self, track_id: int) -> None:
+        self.engine.select_audio_track(track_id)
+
+    def select_subtitle_track(self, track_id: int | None) -> None:
+        self.engine.select_subtitle_track(track_id)
+
+    def add_subtitle_file(self, path: str) -> None:
+        self.engine.add_subtitle_file(path)
+
+    def set_audio_delay(self, delay_ms: int) -> None:
+        self.engine.set_audio_delay(delay_ms)
+
+    def set_subtitle_delay(self, delay_ms: int) -> None:
+        self.engine.set_subtitle_delay(delay_ms)
+
+    def set_subtitle_style(self, style: SubtitleStyle) -> None:
+        self.engine.set_subtitle_style(style)
 
     # Queries ---------------------------------------------------------
     def status(self) -> PlaybackStatus:

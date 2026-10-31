@@ -34,6 +34,7 @@ _FALLBACK = {
     "mute": QStyle.StandardPixmap.SP_MediaVolumeMuted,
     "fullscreen": QStyle.StandardPixmap.SP_TitleBarMaxButton,
     "exit_fullscreen": QStyle.StandardPixmap.SP_TitleBarNormalButton,
+    "subtitles": QStyle.StandardPixmap.SP_FileDialogDetailedView,
 }
 
 
@@ -55,6 +56,7 @@ class ControlBar(QFrame):
     mute_clicked = Signal()
     rate_selected = Signal(float)
     fullscreen_clicked = Signal()
+    tracks_menu_opening = Signal(QMenu)  # fill the menu from the current tracks
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -105,6 +107,18 @@ class ControlBar(QFrame):
             self._speed_group.addAction(action)
             self._speed_actions[rate] = action
         self.speed_button.setMenu(self._speed_menu)
+        self.tracks_button = QToolButton()
+        self.tracks_button.setObjectName("tracksButton")
+        self.tracks_button.setIcon(icon(self, "subtitles"))
+        self.tracks_button.setIconSize(QSize(16, 16))
+        self.tracks_button.setFixedSize(32, 32)
+        self.tracks_button.setAccessibleName("Audio and subtitles")
+        self.tracks_button.setToolTip("Audio and subtitles (V cycles subtitles, B cycles audio)")
+        self.tracks_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        self.tracks_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.tracks_menu = QMenu(self.tracks_button)
+        self.tracks_menu.aboutToShow.connect(lambda: self.tracks_menu_opening.emit(self.tracks_menu))
+        self.tracks_button.setMenu(self.tracks_menu)
         self.mute_button = self._button("volume", "Mute", "Mute (M)", self.mute_clicked)
         self.volume = QSlider(Qt.Orientation.Horizontal)
         self.volume.setRange(0, 100)
@@ -121,7 +135,13 @@ class ControlBar(QFrame):
             row.addWidget(widget)
         row.addSpacing(theme.S)
         row.addWidget(self.title_label, stretch=1)
-        for trailing in (self.speed_button, self.mute_button, self.volume, self.fullscreen_button):
+        for trailing in (
+            self.tracks_button,
+            self.speed_button,
+            self.mute_button,
+            self.volume,
+            self.fullscreen_button,
+        ):
             row.addWidget(trailing)
         outer.addLayout(row)
         self._title = ""
@@ -156,6 +176,7 @@ class ControlBar(QFrame):
         for widget in (self.seek, self.back_button, self.forward_button):
             widget.setEnabled(seek)
         self.speed_button.setEnabled(play)
+        self.tracks_button.setEnabled(play)
 
     def set_position(self, position_ms: int, duration_ms: int | None) -> None:
         if duration_ms is not None and self.seek.maximum() != duration_ms:

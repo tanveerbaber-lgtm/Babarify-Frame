@@ -564,6 +564,46 @@ PATH_EDGE = {
 }
 
 
+# M5 subtitle fixtures. Black video makes rendered text measurable from screen pixels.
+# Cues: "FIRST LINE" 1-9 s, "SECOND LINE" 11-19 s (track 2 says "PREMIERE"/"DEUXIEME").
+_BLACK = "color=black:size=1280x720:rate=25"
+SUB_TEXT = {
+    "s_ext.srt": "1\n00:00:01,000 --> 00:00:09,000\nFIRST LINE\n\n2\n00:00:11,000 --> 00:00:19,000\nSECOND LINE\n",
+    "s_ext_fra.srt": "1\n00:00:01,000 --> 00:00:09,000\nPREMIERE\n\n2\n00:00:11,000 --> 00:00:19,000\nDEUXIEME\n",
+    "s_ext.vtt": "WEBVTT\n\n00:00:01.000 --> 00:00:09.000\nFIRST LINE\n\n00:00:11.000 --> 00:00:19.000\nSECOND LINE\n",
+    "s_ext.ass": (
+        "[Script Info]\nScriptType: v4.00+\nPlayResX: 1280\nPlayResY: 720\n\n[V4+ Styles]\n"
+        "Format: Name, Fontname, Fontsize, PrimaryColour, OutlineColour, BorderStyle, Outline, Alignment\n"
+        "Style: Default,Arial,48,&H0022C55E,&H00000000,1,2,2\n\n[Events]\n"
+        "Format: Layer, Start, End, Style, Text\n"
+        "Dialogue: 0,0:00:01.00,0:00:09.00,Default,FIRST LINE\n"
+        "Dialogue: 0,0:00:11.00,0:00:19.00,Default,SECOND LINE\n"
+    ),
+    "s_ext.sub": "{25}{225}FIRST LINE\n{275}{475}SECOND LINE\n",
+    "s_sidecar_720p.srt": "1\n00:00:01,000 --> 00:00:09,000\nSIDECAR LINE\n",
+    "s_ext_unknown_ext.xyz": "1\n00:00:01,000 --> 00:00:09,000\nFIRST LINE\n",
+}
+SUB_BYTES = {
+    "s_ext_cp1252.srt": b"1\r\n00:00:01,000 --> 00:00:09,000\r\nCAF\xc9 R\xc9SUM\xc9 NA\xcfVE\r\n",
+    "s_ext_utf8_bom.srt": b"\xef\xbb\xbf1\n00:00:01,000 --> 00:00:09,000\nFIRST LINE\n",
+    "s_broken.srt": b"this is not\na subtitle file\n\x00\x01\x02 garbage\n",
+    "s_empty.srt": b"",
+}
+SUB_EXPECT = {
+    "s_ext.srt": "valid",
+    "s_ext_fra.srt": "valid",
+    "s_ext.vtt": "valid",
+    "s_ext.ass": "valid",
+    "s_ext.sub": "valid",
+    "s_sidecar_720p.srt": "valid",
+    "s_ext_unknown_ext.xyz": "unsupported-extension",
+    "s_ext_cp1252.srt": "valid",
+    "s_ext_utf8_bom.srt": "valid",
+    "s_broken.srt": "unreadable",
+    "s_empty.srt": "unreadable",
+}
+
+
 def run(cmd: list[str]) -> None:
     proc = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, errors="replace")
     if proc.returncode != 0:
@@ -705,6 +745,124 @@ def main() -> int:
                 "description": why,
                 "bytes": (OUT / name).stat().st_size,
                 "sha256": sha256(OUT / name),
+            }
+        )
+
+    # M5 subtitle fixtures: text files first (they are muxed into the MKV below).
+    for name, text in SUB_TEXT.items():
+        (OUT / name).write_text(text, encoding="utf-8", newline="\n")
+    for name, data in SUB_BYTES.items():
+        (OUT / name).write_bytes(data)
+    sub_videos = {
+        "s_black_tracks_720p.mkv": (
+            [
+                "-f",
+                "lavfi",
+                "-i",
+                _BLACK,
+                "-f",
+                "lavfi",
+                "-i",
+                TONE.format(f=440),
+                "-f",
+                "lavfi",
+                "-i",
+                TONE.format(f=880),
+                "-i",
+                str(OUT / "s_ext.srt"),
+                "-i",
+                str(OUT / "s_ext_fra.srt"),
+                "-t",
+                "20",
+                "-map",
+                "0:v",
+                "-map",
+                "1:a",
+                "-map",
+                "2:a",
+                "-map",
+                "3:s",
+                "-map",
+                "4:s",
+                *_X264.split(),
+                "-c:a",
+                "aac",
+                "-c:s",
+                "srt",
+                "-metadata:s:a:0",
+                "language=eng",
+                "-metadata:s:a:0",
+                "title=English tone",
+                "-metadata:s:a:1",
+                "language=fra",
+                "-metadata:s:a:1",
+                "title=French tone",
+                "-metadata:s:s:0",
+                "language=eng",
+                "-metadata:s:s:1",
+                "language=fra",
+                "-disposition:s:0",
+                "0",
+                "-disposition:s:1",
+                "0",
+            ],
+            {"video": "h264", "width": 1280, "height": 720, "audio_tracks": 2, "subtitle_tracks": 2},
+            "black video, 2 audio (eng/fra) + 2 embedded SRT (eng/fra) tracks, no default flags",
+        ),
+        "s_black_720p.mp4": (
+            [
+                "-f",
+                "lavfi",
+                "-i",
+                _BLACK,
+                "-f",
+                "lavfi",
+                "-i",
+                TONE.format(f=440),
+                "-t",
+                "20",
+                *_X264.split(),
+                "-c:a",
+                "aac",
+            ],
+            {"video": "h264", "width": 1280, "height": 720, "audio": "aac"},
+            "black video, no subtitles (external subtitle tests)",
+        ),
+        "s_sidecar_720p.mp4": (
+            ["-f", "lavfi", "-i", _BLACK, "-t", "10", *_X264.split()],
+            {"video": "h264", "width": 1280, "height": 720},
+            "black video with a same-name .srt next to it (auto-load test)",
+        ),
+    }
+    for name, (argv, expect, why) in sub_videos.items():
+        target = OUT / name
+        cmd = [ffmpeg, "-hide_banner", "-y", *argv, str(target)]
+        if args.force or not target.exists():
+            print(f"generating {name} ...", flush=True)
+            run(cmd)
+        entries.append(
+            {
+                "file": name,
+                "kind": "valid",
+                "set": "subtitles",
+                "expect": expect,
+                "description": why,
+                "command": " ".join(Path(c).name if c == ffmpeg else c for c in cmd),
+                "bytes": target.stat().st_size,
+                "sha256": sha256(target),
+            }
+        )
+    for name, expectation in SUB_EXPECT.items():
+        path = OUT / name
+        entries.append(
+            {
+                "file": name,
+                "kind": "subtitle",
+                "set": "subtitles",
+                "expect": {"subtitle": expectation},
+                "description": "external subtitle file",
+                "bytes": path.stat().st_size,
+                "sha256": sha256(path),
             }
         )
 
