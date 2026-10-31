@@ -13,7 +13,10 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
 from babarify_frame import BRAND, PRODUCT_NAME, __version__
+from babarify_frame.library.database import LibraryDatabase, default_database_path
+from babarify_frame.library.service import LibraryService, default_thumbnail_dir
 from babarify_frame.playback.factory import EngineFactory, default_factory
+from babarify_frame.playback.media_probe import MediaProbe
 from babarify_frame.ui.main_window import MainWindow
 from babarify_frame.ui.theme import STYLESHEET
 
@@ -35,6 +38,18 @@ def _set_windows_app_id() -> None:
         import ctypes
 
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_USER_MODEL_ID)
+
+
+def _libvlc_probe() -> MediaProbe:
+    from babarify_frame.playback.adapters.libvlc_probe import LibVlcProbe
+
+    return LibVlcProbe()
+
+
+def create_library() -> LibraryService:
+    """The local library database plus a background worker; thumbnails use libVLC when present."""
+    path = default_database_path()
+    return LibraryService(LibraryDatabase(path), _libvlc_probe, default_thumbnail_dir(path))
 
 
 def parse_args(argv: Sequence[str] | None, engines: Sequence[str]) -> argparse.Namespace:
@@ -72,7 +87,7 @@ def main(argv: Sequence[str] | None = None, factory: EngineFactory | None = None
     icon = load_icon()
     app.setWindowIcon(icon)
 
-    window = MainWindow(factory, icon, engine_name=args.engine)
+    window = MainWindow(factory, icon, engine_name=args.engine, library=create_library())
     window.show()
     window.start_engine()
     if args.file:

@@ -38,6 +38,7 @@ packages = ["src/babarify_frame"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["tests"]  # shared test doubles (tests/fakes.py)
 addopts = "-ra --strict-markers -m 'not stress'"
 markers = [
     "integration: needs a real playback engine (skipped when the engine is unavailable)",

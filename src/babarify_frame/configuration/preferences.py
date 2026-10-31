@@ -27,6 +27,7 @@ log = logging.getLogger(__name__)
 SCHEMA_VERSION = 1
 SEEK_STEPS_S = (5, 10, 15, 30, 60)
 PLAYBACK_RATES = (0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0)
+LIBRARY_SORTS = ("name", "date_added", "recently_played", "duration", "size")
 # Track languages offered in Settings: ISO 639-2 codes as engines report them. "" = no preference.
 LANGUAGES = {
     "": "No preference",
@@ -100,6 +101,10 @@ class Preferences:
     preferred_audio_language: str = ""  # a LANGUAGES key
     preferred_subtitle_language: str = ""
     subtitle_style: SubtitleStyle = field(default_factory=SubtitleStyle)
+    # Library and history (M6)
+    remember_history: bool = True  # local only; Settings → Privacy can clear it
+    resume_playback: bool = True
+    library_sort: str = "name"  # a SortOrder value
     window: WindowGeometry | None = field(default=None)
 
     @classmethod
@@ -138,6 +143,7 @@ class Preferences:
             controls_hide_delay_ms=max(1000, min(10_000, self.controls_hide_delay_ms)),
             preferred_audio_language=_language(self.preferred_audio_language),
             preferred_subtitle_language=_language(self.preferred_subtitle_language),
+            library_sort=self.library_sort if self.library_sort in LIBRARY_SORTS else "name",
             subtitle_style=self.subtitle_style.normalized(),
         )
 

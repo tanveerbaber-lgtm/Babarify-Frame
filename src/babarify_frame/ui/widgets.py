@@ -28,6 +28,7 @@ GLYPHS = {
     "music": "",
     "drop": "",  # Download / drop target
     "subtitles": "",  # ClosedCaption
+    "library": "",  # Library
 }
 
 

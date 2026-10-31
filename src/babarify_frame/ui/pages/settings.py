@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QSpinBox,
     QVBoxLayout,
     QWidget,
@@ -65,8 +66,15 @@ def _label(text: str, name: str) -> QLabel:
 
 class SettingsPage(QWidget):
     preferences_changed = Signal(object)  # Preferences
+    clear_history_requested = Signal()
 
-    def __init__(self, prefs: Preferences, settings_path: Path, parent: QWidget | None = None) -> None:
+    def __init__(
+        self,
+        prefs: Preferences,
+        settings_path: Path,
+        parent: QWidget | None = None,
+        library_path: Path | None = None,
+    ) -> None:
         super().__init__(parent)
         self.setObjectName("page")
         self._prefs = prefs
@@ -166,17 +174,27 @@ class SettingsPage(QWidget):
             )
         )
 
-        privacy = self._card("Privacy", [])
+        self.remember_history = QCheckBox("Remember recently played files and where I stopped")
+        self.resume_playback = QCheckBox("Resume files where I left off")
+        self.clear_history_button = QPushButton("Clear history…")
+        self.clear_history_button.setAccessibleName("Clear playback history")
+        self.clear_history_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.clear_history_button.clicked.connect(self.clear_history_requested)
+        privacy = self._card(
+            "Privacy",
+            [("", self.remember_history), ("", self.resume_playback), ("", self.clear_history_button)],
+        )
         privacy_box = privacy.layout()
         assert isinstance(privacy_box, QVBoxLayout)
         privacy_box.addWidget(
             _label(
                 "Babarify Frame plays files locally. It has no account, no ads and no telemetry. "
-                "These settings are stored only on this PC:",
+                "Settings, history, the library and its thumbnails are stored only on this PC:",
                 "muted",
             )
         )
-        path_label = _label(str(settings_path), "caption")
+        locations = [str(settings_path)] + ([str(library_path)] if library_path is not None else [])
+        path_label = _label("\n".join(locations), "caption")
         path_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         privacy_box.addWidget(path_label)
 
@@ -200,6 +218,8 @@ class SettingsPage(QWidget):
         self.hide_delay.valueChanged.connect(self._changed)
         self.start_fullscreen.toggled.connect(self._changed)
         self.subtitles_auto.toggled.connect(self._changed)
+        self.remember_history.toggled.connect(self._changed)
+        self.resume_playback.toggled.connect(self._changed)
         for combo in (
             self.audio_language,
             self.subtitle_language,
@@ -252,6 +272,9 @@ class SettingsPage(QWidget):
         self.hide_delay.setValue(round(prefs.controls_hide_delay_ms / 1000))
         self.start_fullscreen.setChecked(prefs.start_fullscreen)
         self.subtitles_auto.setChecked(prefs.subtitles_auto)
+        self.remember_history.setChecked(prefs.remember_history)
+        self.resume_playback.setChecked(prefs.resume_playback)
+        self.resume_playback.setEnabled(prefs.remember_history)
         _select(self.audio_language, prefs.preferred_audio_language, prefs.preferred_audio_language)
         _select(self.subtitle_language, prefs.preferred_subtitle_language, prefs.preferred_subtitle_language)
         style = prefs.subtitle_style
@@ -278,6 +301,8 @@ class SettingsPage(QWidget):
             controls_hide_delay_ms=self.hide_delay.value() * 1000,
             start_fullscreen=self.start_fullscreen.isChecked(),
             subtitles_auto=self.subtitles_auto.isChecked(),
+            remember_history=self.remember_history.isChecked(),
+            resume_playback=self.resume_playback.isChecked(),
             preferred_audio_language=str(self.audio_language.currentData()),
             preferred_subtitle_language=str(self.subtitle_language.currentData()),
             subtitle_style=SubtitleStyle(
@@ -289,6 +314,7 @@ class SettingsPage(QWidget):
             ),
         ).normalized()
         self.font_warning.setVisible(self.subtitle_font.currentText().endswith("(not installed)"))
+        self.resume_playback.setEnabled(self.remember_history.isChecked())
         self.preferences_changed.emit(self._prefs)
 
     def _reset(self) -> None:

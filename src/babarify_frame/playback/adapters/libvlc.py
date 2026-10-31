@@ -224,6 +224,34 @@ class _Track:
     fps: float = 0.0
 
 
+def read_media_tracks(vlc: Any, media: Any) -> list[_Track]:
+    """Tracks of a parsed or playing media. python-vlc's ``tracks_get`` dereferences NULL union
+    members (M6 spike), so the libVLC 3 structs are read directly."""
+    dll = vlc.dll
+    get, release = dll.libvlc_media_tracks_get, dll.libvlc_media_tracks_release
+    get.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.POINTER(ctypes.POINTER(_RawTrack)))]
+    get.restype = ctypes.c_uint
+    release.argtypes = [ctypes.c_void_p, ctypes.c_uint]
+    array = ctypes.POINTER(ctypes.POINTER(_RawTrack))()
+    count = get(media._as_parameter_, ctypes.byref(array))
+    try:
+        out = []
+        for i in range(count):
+            t = array[i].contents
+            fourcc = t.codec.to_bytes(4, "little").decode("latin-1")
+            lang = t.language.decode("utf-8", "replace") if t.language else None
+            track = _Track(t.id, t.type, _FOURCC_NAMES.get(fourcc, fourcc.strip()), lang)
+            if t.type == 1 and t.details:  # video
+                v = ctypes.cast(t.details, ctypes.POINTER(_RawVideoTrack)).contents
+                fps = v.frame_rate_num / v.frame_rate_den if v.frame_rate_den else 0.0
+                track = _Track(track.id, track.type, track.codec, lang, v.width, v.height, fps)
+            out.append(track)
+        return out
+    finally:
+        if count:
+            release(array, count)
+
+
 class _RawStats(ctypes.Structure):
     # libvlc_media_stats_t (libVLC 3.x)
     _fields_ = [
@@ -614,30 +642,7 @@ class LibVlcEngine(EngineBase):
         return errors[-1][2:] if errors else "libVLC reported an error"  # strip the log-level prefix
 
     def _read_tracks(self) -> list[_Track]:
-        dll = self._vlc.dll
-        get, release = dll.libvlc_media_tracks_get, dll.libvlc_media_tracks_release
-        get.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.POINTER(ctypes.POINTER(_RawTrack)))]
-        get.restype = ctypes.c_uint
-        release.argtypes = [ctypes.c_void_p, ctypes.c_uint]
-        array = ctypes.POINTER(ctypes.POINTER(_RawTrack))()
-        handle = self._media._as_parameter_
-        count = get(handle, ctypes.byref(array))
-        try:
-            out = []
-            for i in range(count):
-                t = array[i].contents
-                fourcc = t.codec.to_bytes(4, "little").decode("latin-1")
-                lang = t.language.decode("utf-8", "replace") if t.language else None
-                track = _Track(t.id, t.type, _FOURCC_NAMES.get(fourcc, fourcc.strip()), lang)
-                if t.type == 1 and t.details:  # video
-                    v = ctypes.cast(t.details, ctypes.POINTER(_RawVideoTrack)).contents
-                    fps = v.frame_rate_num / v.frame_rate_den if v.frame_rate_den else 0.0
-                    track = _Track(track.id, track.type, track.codec, lang, v.width, v.height, fps)
-                out.append(track)
-            return out
-        finally:
-            if count:
-                release(array, count)
+        return read_media_tracks(self._vlc, self._media)
 
     def _collect_media_info(self) -> None:
         player, media = self._player, self._media

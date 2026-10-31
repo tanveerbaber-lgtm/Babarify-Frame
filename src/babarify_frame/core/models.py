@@ -83,6 +83,18 @@ class SubtitlePosition(Enum):
     HIGH = "high"
 
 
+# Media files the library scans (M6); other extensions are ignored, so a scanned folder never
+# pulls in documents, images or subtitle files.
+VIDEO_EXTENSIONS = frozenset(
+    {
+        ".mp4", ".m4v", ".mkv", ".mov", ".avi", ".wmv", ".webm", ".ts", ".mts", ".m2ts",
+        ".mpg", ".mpeg", ".vob", ".ogv", ".flv", ".3gp",
+    }
+)  # fmt: skip
+AUDIO_EXTENSIONS = frozenset(
+    {".mp3", ".m4a", ".aac", ".flac", ".wav", ".ogg", ".opus", ".wma", ".ac3", ".mka"}
+)
+MEDIA_EXTENSIONS = VIDEO_EXTENSIONS | AUDIO_EXTENSIONS
 SUBTITLE_EXTENSIONS = frozenset({".srt", ".ass", ".ssa", ".vtt", ".sub", ".smi", ".sami", ".txt", ".idx"})
 _COLOR = re.compile(r"^#[0-9A-Fa-f]{6}$")
 

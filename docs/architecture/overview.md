@@ -1,4 +1,4 @@
-# Babarify Frame — Architecture Overview (M5)
+# Babarify Frame — Architecture Overview (M6)
 
 This describes the code as it exists at the end of Milestone 4. The product-level
 architecture and roadmap are in the
@@ -168,6 +168,30 @@ Therefore:
   non-modal Sync dialog. Track preferences (preferred audio/subtitle language, show subtitles
   automatically) are applied once per file, when tracks are known.
 - Dual subtitles are not offered (`supports_dual_subtitles=False` on all engines).
+
+## Library, history and playlists (M6)
+
+- `library/` is a new layer between `playback` and `ui`: it may use `core` and the
+  `playback.media_probe` contract, never the UI.
+  - `database.py` — one SQLite file (`%APPDATA%\Babarify\Frame\library.db`) with
+    versioned migrations (`PRAGMA user_version`; one transaction each), `quick_check` at start,
+    recovery by moving a damaged file aside, and a refusal to touch a newer schema.
+  - `scanner.py` — walks only user-chosen folders; skips hidden/system entries, links and
+    junctions; unchanged files (size + mtime) are not read; new/changed files get a content key
+    (size + SHA-1 of first and last 64 KiB) for duplicate detection.
+  - `service.py` — one background worker: scan, then metadata and thumbnails through a
+    `MediaProbe`. Events go to listeners on the worker thread (UI uses `UiBridge`). Probing
+    pauses between files while a video plays.
+  - `history.py` — resume rules (minimum 10 s watched; finished when less than
+    max(15 s, 3 %) remains; saved every 5 s and on pause/stop/file change/close).
+- `playback/media_probe.py` defines the probe contract; `adapters/libvlc_probe.py` implements
+  it with preparsing plus a muted, windowless decode into memory (libVLC 3 has no thumbnail
+  API). It uses its own shared libVLC instance (R20 rule: never one instance per file).
+- Identity of a file is `path_key` (absolute, case- and separator-normalised); URIs are their
+  own key. Files are never deleted or modified by the library: "remove" removes records.
+- UI: `pages/library.py` (grid with `library_view.LibraryModel`/`LibraryDelegate`, playlists
+  panel, folders dialog), Home's *Continue watching* and *Recently played*, Settings → Privacy
+  (remember history, resume, clear). `PlayerPage` owns saving positions and the play queue.
 
 ## Capability reporting
 

@@ -143,7 +143,34 @@ QCheckBox::indicator:checked {{ background: {GREEN}; border-color: {GREEN}; }}
 QScrollArea {{ background: transparent; border: none; }}
 QScrollBar:vertical {{ background: transparent; width: 10px; }}
 QScrollBar::handle:vertical {{ background: {BORDER}; border-radius: 5px; min-height: 30px; }}
-QScrollBar::add-line, QScrollBar::sub-line {{ height: 0; }}
+QScrollBar:horizontal {{ background: transparent; height: 10px; }}
+QScrollBar::handle:horizontal {{ background: {BORDER}; border-radius: 5px; min-width: 30px; }}
+QScrollBar::add-line, QScrollBar::sub-line {{ height: 0; width: 0; }}
+
+/* Library and history (M6) */
+QLineEdit {{
+    background: {SURFACE_RAISED}; border: 1px solid {BORDER}; border-radius: {RADIUS_S}px;
+    padding: {XS}px {S}px; color: {TEXT}; selection-background-color: {BLUE};
+}}
+QLineEdit:focus {{ border: 2px solid {CYAN}; }}
+QListView, QListWidget {{
+    background: {BG}; border: none; color: {TEXT}; outline: none;
+}}
+QListWidget {{ background: {SURFACE}; border: 1px solid {BORDER}; border-radius: {RADIUS_S}px; padding: {XS}px; }}
+QListWidget::item {{ padding: {S}px {M}px; border-radius: {RADIUS_S}px; }}
+QListWidget::item:hover {{ background: {SURFACE_RAISED}; }}
+QListWidget::item:selected {{ background: {SURFACE_PRESSED}; color: {TEXT}; }}
+QListWidget:focus, QListView:focus {{ border: 1px solid {CYAN}; }}
+QTabBar::tab {{
+    background: transparent; color: {TEXT_MUTED}; padding: {S}px {L}px; margin-right: {XS}px;
+    border: none; border-bottom: 2px solid transparent;
+}}
+QTabBar::tab:hover {{ color: {TEXT}; }}
+QTabBar::tab:selected {{ color: {TEXT}; border-bottom: 2px solid {CYAN}; }}
+QToolButton#continueCard {{
+    background: {SURFACE}; color: {TEXT}; border-radius: {RADIUS_S}px; padding: {S}px;
+}}
+QToolButton#continueCard:hover {{ background: {SURFACE_RAISED}; }}
 
 QStatusBar {{ background: {BG}; color: {TEXT_MUTED}; }}
 QStatusBar::item {{ border: none; }}

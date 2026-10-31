@@ -7,6 +7,9 @@ thread and must be shut down (``shutdown()``) while the window still exists.
 
 from __future__ import annotations
 
+import logging
+import os
+import sqlite3
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -28,6 +31,8 @@ from babarify_frame.configuration.preferences import Preferences, language_match
 from babarify_frame.core.errors import ErrorCode, PlaybackError
 from babarify_frame.core.events import ErrorOccurred, MediaInfoChanged, Notice, StateChanged
 from babarify_frame.core.models import EngineOptions, MediaInfo, PlaybackState, TrackInfo, TrackKind
+from babarify_frame.library.database import LibraryDatabase
+from babarify_frame.library.history import SAVE_INTERVAL_MS, resume_position
 from babarify_frame.playback.contracts import PlaybackEngine
 from babarify_frame.playback.controller import PlaybackController
 from babarify_frame.playback.factory import EngineFactory
@@ -41,7 +46,9 @@ from babarify_frame.ui.subtitles import (
     format_delay,
     track_label,
 )
-from babarify_frame.ui.widgets import VideoSurface, glyph_icon
+from babarify_frame.ui.widgets import VideoSurface, format_time, glyph_icon
+
+log = logging.getLogger(__name__)
 
 S = PlaybackState
 POSITION_REFRESH_MS = 100
@@ -73,9 +80,15 @@ class PlayerPage(QWidget):
     open_requested = Signal()
     subtitle_file_requested = Signal()  # the window shows the file dialog
     fullscreen_requested = Signal()
+    history_changed = Signal()  # a play was recorded or a position saved (M6)
 
     def __init__(
-        self, factory: EngineFactory, engine_name: str, prefs: Preferences, parent: QWidget | None = None
+        self,
+        factory: EngineFactory,
+        engine_name: str,
+        prefs: Preferences,
+        parent: QWidget | None = None,
+        history: LibraryDatabase | None = None,
     ) -> None:
         super().__init__(parent)
         self.setObjectName("page")
@@ -98,6 +111,13 @@ class PlayerPage(QWidget):
         self._embedded_subtitle_ids: set[int] = set()
         self._external_subtitles: list[str] = []
         self._sync_dialog: SyncDialog | None = None
+        # History and queue (M6)
+        self._history = history
+        self._current_uri: str | None = None
+        self._play_recorded = False
+        self._resumed_from_history = False
+        self._queue: list[str] = []
+        self._queue_index = -1
         self.last_error = ""  # most recent playback error, for the Playback info panel
         self._media_name = ""
         self._state = S.UNINITIALIZED
@@ -245,6 +265,7 @@ class PlayerPage(QWidget):
     # --------------------------------------------------------- commands
     def restart_engine(self) -> None:
         """Recreate the engine (e.g. after changing hardware decoding) and resume the current file."""
+        self._save_history()
         status = self._controller.status() if self.engine_is_ready else None
         if status is not None and status.uri and self.has_media and self._state is not S.ERROR:
             self._resume = (status.uri, status.position_ms, status.state in (S.PLAYING, S.BUFFERING))
@@ -257,10 +278,22 @@ class PlayerPage(QWidget):
         self._show_message("info", "Restarting playback engine…", "")
         self.start_engine()  # actions update through state_changed; engine_ready(False) means failure
 
-    def open_path(self, path: str, *, autoplay: bool = True) -> None:
+    def open_path(self, path: str, *, autoplay: bool = True, keep_queue: bool = False) -> None:
+        if not keep_queue:
+            self._queue, self._queue_index = [], -1
         if not self.engine_is_ready:
             self._pending_open = path  # opened once the engine is ready
             return
+        if self._current_uri is not None and self._current_uri != path:
+            self._save_history()  # the file being replaced keeps its place
+        self._current_uri = path
+        self._play_recorded = False
+        self._resumed_from_history = False
+        if self._resume_position is None and self._prefs.resume_playback:
+            start = self._history_resume_point(path)
+            if start:
+                self._resume_position = start
+                self._resumed_from_history = True
         self._media_name = Path(path).name if "://" not in path else path
         self._tracks_applied = False
         self._embedded_subtitle_ids = set()
@@ -288,7 +321,108 @@ class PlayerPage(QWidget):
 
     def stop(self) -> None:
         if self._state in HAS_MEDIA or self._state is S.ERROR:
+            self._save_history()  # stopping resets the position to 0
             self._run(self._controller.stop)
+
+    def start_over(self) -> None:
+        """Back to the beginning (e.g. after an automatic resume)."""
+        if self._state in SEEKABLE:
+            self.seek_to(0)
+            self.status_changed.emit("From the beginning")
+
+    # ---------------------------------------------------- history (M6)
+    @property
+    def history_enabled(self) -> bool:
+        return self._history is not None and self._prefs.remember_history
+
+    def _history_resume_point(self, path: str) -> int:
+        if not self.history_enabled or self._history is None:
+            return 0
+        try:
+            entry = self._history.history_for(path)
+        except sqlite3.Error:
+            log.exception("history lookup failed")
+            return 0
+        if entry is None:
+            return 0
+        return resume_position(entry.position_ms, entry.duration_ms, entry.finished)
+
+    def _save_history(self) -> None:
+        """Save the current file's position. Never raises: history must not break playback."""
+        uri = self._current_uri
+        if not self.history_enabled or self._history is None or uri is None or not self.engine_is_ready:
+            return
+        if not self._play_recorded or self._state not in (S.PLAYING, S.PAUSED, S.BUFFERING):
+            return
+        status = self._controller.status()
+        try:
+            self._history.save_position(uri, self._media_name, status.position_ms, status.duration_ms)
+        except sqlite3.Error:
+            log.exception("could not save playback position")
+            return
+        self.history_changed.emit()
+
+    def _record_play(self) -> None:
+        uri = self._current_uri
+        if self._play_recorded or uri is None:
+            return
+        self._play_recorded = True
+        if not self.history_enabled or self._history is None:
+            return
+        try:
+            self._history.record_play(uri, self._media_name, self._duration_ms)
+        except sqlite3.Error:
+            log.exception("could not record play")
+            return
+        self.history_changed.emit()
+
+    def _record_finished(self) -> None:
+        if self.history_enabled and self._history is not None and self._current_uri and self._play_recorded:
+            try:
+                self._history.mark_finished(self._current_uri)
+            except sqlite3.Error:
+                log.exception("could not mark finished")
+                return
+            self.history_changed.emit()
+
+    # ------------------------------------------------------ queue (M6)
+    @property
+    def queue(self) -> tuple[list[str], int]:
+        return list(self._queue), self._queue_index
+
+    def play_queue(self, paths: list[str], start: int = 0) -> None:
+        """Play a list of files in order (a playlist). Unavailable files are skipped."""
+        if not paths:
+            return
+        self._queue = list(paths)
+        self._queue_index = max(0, min(start, len(paths) - 1)) - 1
+        self.next_in_queue()
+
+    def next_in_queue(self) -> None:
+        self._step_queue(1)
+
+    def previous_in_queue(self) -> None:
+        self._step_queue(-1)
+
+    def _step_queue(self, direction: int) -> None:
+        if not self._queue:
+            self.status_changed.emit("No playlist is playing")
+            return
+        index = self._queue_index + direction
+        skipped = 0
+        while 0 <= index < len(self._queue):
+            path = self._queue[index]
+            if "://" in path or os.path.exists(path):
+                self._queue_index = index
+                self.open_path(path, keep_queue=True)
+                note = f" (skipped {skipped} missing)" if skipped else ""
+                self.status_changed.emit(
+                    f"Playlist {index + 1} of {len(self._queue)}: {self._media_name}{note}"
+                )
+                return
+            skipped += 1
+            index += direction
+        self.status_changed.emit("End of playlist" if direction > 0 else "Start of playlist")
 
     def seek_to(self, position_ms: int) -> None:
         if self._state in SEEKABLE:
@@ -597,6 +731,16 @@ class PlayerPage(QWidget):
             position, self._resume_position = self._resume_position, None
             if position > 0:
                 self._run(lambda: self._controller.seek(position))
+                if self._resumed_from_history:
+                    self.status_changed.emit(f"Resumed at {format_time(position)} · Home starts over")
+        if state in (S.PLAYING, S.PAUSED) and not self._play_recorded:
+            self._record_play()
+        elif state is S.PAUSED:
+            self._save_history()
+        elif state is S.ENDED:
+            self._record_finished()
+            if self._queue and self._queue_index < len(self._queue) - 1:
+                QTimer.singleShot(0, self.next_in_queue)
         if state in TRACK_STATES:
             self._maybe_apply_tracks()
         if state is S.READY and self._media_name:
@@ -664,10 +808,13 @@ class PlayerPage(QWidget):
         self._ticks += 1
         if status.state is S.PLAYING and self._ticks % STATUS_REFRESH_TICKS == 0:
             self._show_engine_status()
+        if status.state is S.PLAYING and self._ticks % (SAVE_INTERVAL_MS // POSITION_REFRESH_MS) == 0:
+            self._save_history()
 
     # --------------------------------------------------------- lifecycle
     def shutdown(self) -> None:
         """Close the engine. Must run while the window (and the video surface) still exists."""
+        self._save_history()
         self._closing = True
         if self._sync_dialog is not None:
             self._sync_dialog.close()

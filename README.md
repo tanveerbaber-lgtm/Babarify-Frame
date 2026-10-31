@@ -43,6 +43,10 @@ A 32-bit VLC installation cannot be used from 64-bit Python.
 ```
 
 Open files with **Ctrl+O**, by dragging them onto the window, or as a command-line argument.
+Drop a folder (or use *File → Add folder to library…*) to add it to the **Library**: only the
+folders you choose are scanned, in the background, and files are never modified or deleted.
+Files continue where you stopped; *Home* lists *Continue watching* and *Recently played*.
+History stays on this PC and can be turned off or cleared in *Settings → Privacy*.
 
 | Key | Action |
 |---|---|
@@ -55,6 +59,9 @@ Open files with **Ctrl+O**, by dragging them onto the window, or as a command-li
 | Ctrl+1 / 2 / 3 | Home / Now Playing / Settings |
 | Ctrl+O / Ctrl+Q | Open / exit |
 | Ctrl+I | Playback info (decoder, frames, engine log) |
+| Ctrl+L | Library |
+| N / P | Next / previous in playlist |
+| Home | Start over (after an automatic resume) |
 | V / B | Next subtitle track / next audio track |
 | G / H | Subtitles 50 ms earlier / later |
 | J / K | Audio 50 ms earlier / later |
