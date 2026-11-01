@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
 
 from babarify_frame.core.errors import PlaybackError
 from babarify_frame.core.network import stream_display_name, validate_stream_url
+from babarify_frame.ui.widgets import plain_text
 
 HELP = (
     "Supported: http:// and https:// (files, HLS .m3u8, M3U/PLS playlists, internet radio) and "
@@ -46,6 +47,7 @@ class NetworkStreamDialog(QDialog):
         self.reason = QLabel()
         self.reason.setObjectName("muted")
         self.reason.setWordWrap(True)
+        plain_text(self.reason)
         box.addWidget(self.reason)
         self.recent = QListWidget()
         self.recent.setAccessibleName("Recent streams")

@@ -63,6 +63,7 @@ from babarify_frame.ui.ai import (
     ModelDownload,
     SpokenSearchDialog,
     SubtitleJob,
+    ai_installed,
     generated_size,
 )
 from babarify_frame.ui.bookmarks import BookmarksDialog
@@ -467,7 +468,7 @@ class MainWindow(QMainWindow):
         self.add_bookmark_action.setEnabled(on_player and p.can_bookmark)
         self.bookmarks_action.setEnabled(p.has_media)
         self.media_info_action.setEnabled(ready)
-        ai_on = self._prefs.ai_enabled
+        ai_on = self._prefs.ai_enabled and ai_installed()
         uri = p.current_uri
         local_media = uri is not None and "://" not in uri
         self.generate_subtitles_action.setEnabled(ai_on and local_media)
@@ -536,7 +537,7 @@ class MainWindow(QMainWindow):
     def show_generate_subtitles(self) -> GenerateSubtitlesDialog | None:
         p = self.player
         uri = p.current_uri
-        if not self._prefs.ai_enabled or uri is None or "://" in uri:
+        if not (self._prefs.ai_enabled and ai_installed()) or uri is None or "://" in uri:
             return None
         if self._generate_dialog is None:
             dialog = GenerateSubtitlesDialog(self)
@@ -693,7 +694,9 @@ class MainWindow(QMainWindow):
         statuses = {name: ai_models.status(name) for name in ai_models.MODELS}
         if self.model_download.running and not busy:
             busy = "Downloading…"
-        self.settings.set_ai_status(statuses, len(transcripts), generated_size(transcripts), busy)
+        self.settings.set_ai_status(
+            statuses, len(transcripts), generated_size(transcripts), busy, installed=ai_installed()
+        )
 
     def show_media_info(self) -> MediaInfoDialog:
         if self._media_info_dialog is None:

@@ -11,6 +11,7 @@ import logging
 import os
 import sqlite3
 import threading
+import time
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -64,7 +65,7 @@ from babarify_frame.ui.subtitles import (
     format_delay,
     track_label,
 )
-from babarify_frame.ui.widgets import VideoSurface, format_time, glyph_icon
+from babarify_frame.ui.widgets import VideoSurface, format_time, glyph_icon, plain_text
 
 log = logging.getLogger(__name__)
 
@@ -207,6 +208,7 @@ class PlayerPage(QWidget):
         self._message_title.setObjectName("title")
         self._message_body = QLabel()
         self._message_body.setObjectName("muted")
+        plain_text(self._message_title, self._message_body)  # names and error details are untrusted
         for label in (self._message_icon, self._message_title, self._message_body):
             label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             label.setWordWrap(True)
@@ -275,10 +277,15 @@ class PlayerPage(QWidget):
             video_transform=self._transform,
         )
 
+        started = time.monotonic()
+
         def work() -> None:
             try:
-                self._engine_bridge.post(self._factory.create(self._engine_name, options))
+                engine = self._factory.create(self._engine_name, options)
+                log.info("%s engine ready in %.1f s", self._engine_name, time.monotonic() - started)
+                self._engine_bridge.post(engine)
             except PlaybackError as exc:
+                log.error("%s engine unavailable: %s", self._engine_name, exc)
                 self._engine_bridge.post(exc)
 
         self._engine_thread = threading.Thread(target=work, name="engine-start", daemon=True)

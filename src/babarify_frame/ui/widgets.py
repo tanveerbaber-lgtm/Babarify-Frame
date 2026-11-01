@@ -15,7 +15,7 @@ from PySide6.QtGui import (
     QPaintEvent,
     QPixmap,
 )
-from PySide6.QtWidgets import QSlider, QStyle, QStyleOptionSlider, QWidget
+from PySide6.QtWidgets import QLabel, QSlider, QStyle, QStyleOptionSlider, QWidget
 
 # Segoe Fluent Icons (Windows 11) / Segoe MDL2 Assets (Windows 10) code points.
 GLYPHS = {
@@ -67,6 +67,14 @@ def glyph_icon(name: str, color: str, disabled_color: str, size: int = 32) -> QI
         painter.end()
         icon.addPixmap(pixmap, mode)
     return icon
+
+
+def plain_text(*labels: QLabel) -> None:
+    """Show text exactly as given. QLabel otherwise guesses, and renders text that looks like HTML
+    as rich text (M10 security review): file tags, chapter titles, server error messages and
+    stream addresses are untrusted and must never be interpreted."""
+    for label in labels:
+        label.setTextFormat(Qt.TextFormat.PlainText)
 
 
 def format_time(ms: int | None) -> str:

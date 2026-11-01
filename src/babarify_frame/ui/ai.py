@@ -37,7 +37,7 @@ from babarify_frame.ai import models
 from babarify_frame.ai.subtitles import MACHINE_TAG, subtitle_path
 from babarify_frame.library.models import SpokenHit, Transcript
 from babarify_frame.ui.bridge import UiBridge
-from babarify_frame.ui.widgets import format_time
+from babarify_frame.ui.widgets import format_time, plain_text
 
 LOCAL_NOTE = (
     "Runs on this PC with an open-source speech model. The video, its sound and the subtitles "
@@ -53,9 +53,26 @@ class JobResult:
     model: str
 
 
+def worker_executable() -> Path | None:
+    """The release's worker (optional installer component, M10); None when running from source."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent / "ai" / "babarify-ai-worker.exe"
+    return None
+
+
+def ai_installed() -> bool:
+    executable = worker_executable()
+    return executable is None or executable.is_file()
+
+
 def worker_command(media: str, model: str, language: str, srt: Path, cues: Path) -> list[str]:
+    executable = worker_executable()
+    if executable is not None:
+        start = [str(executable)]
+    else:
+        start = [sys.executable, "-m", "babarify_frame.ai.worker"]
     return [
-        sys.executable, "-m", "babarify_frame.ai.worker",
+        *start,
         "--media", media, "--model-dir", str(models.model_path(model)),
         "--language", language or "auto", "--srt", str(srt), "--cues", str(cues),
     ]  # fmt: skip
@@ -201,6 +218,7 @@ class GenerateSubtitlesDialog(QDialog):
         self.bar.setTextVisible(False)
         self.status = QLabel()
         self.status.setWordWrap(True)
+        plain_text(self.media, self.status, self.existing)
         box.addWidget(self.bar)
         box.addWidget(self.status)
         note = QLabel(LOCAL_NOTE)

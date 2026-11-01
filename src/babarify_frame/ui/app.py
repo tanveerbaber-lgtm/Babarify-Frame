@@ -12,7 +12,7 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
-from babarify_frame import BRAND, PRODUCT_NAME, __version__
+from babarify_frame import BRAND, PRODUCT_NAME, __version__, app_log
 from babarify_frame.library.database import LibraryDatabase, default_database_path
 from babarify_frame.library.service import LibraryService, default_thumbnail_dir
 from babarify_frame.playback.factory import EngineFactory, default_factory
@@ -82,7 +82,8 @@ def parse_args(argv: Sequence[str] | None, engines: Sequence[str]) -> argparse.N
 def main(argv: Sequence[str] | None = None, factory: EngineFactory | None = None) -> int:
     factory = factory or default_factory()
     args = parse_args(argv, factory.names())
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    if not logging.getLogger().handlers:  # tests configure logging themselves
+        app_log.setup(__version__)
     _set_windows_app_id()
 
     app = QApplication.instance() or QApplication(sys.argv[:1])
@@ -104,7 +105,17 @@ def main(argv: Sequence[str] | None = None, factory: EngineFactory | None = None
         window.open_path(args.file)
 
     if args.smoke_test is not None:
-        QTimer.singleShot(args.smoke_test, window.close)
+
+        def finish_smoke_test() -> None:
+            status = window.controller.status() if window.player.engine_is_ready else None
+            logging.getLogger(__name__).info(  # recorded for the release check (M10)
+                "smoke test: state=%s position_ms=%s",
+                status.state.value if status is not None else "engine not ready",
+                status.position_ms if status is not None else 0,
+            )
+            window.close()
+
+        QTimer.singleShot(args.smoke_test, finish_smoke_test)
 
     code = app.exec()
     logging.getLogger(__name__).info("exited cleanly with code %s", code)

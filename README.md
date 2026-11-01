@@ -138,6 +138,7 @@ docs/          architecture, decisions (ADRs), milestone reports
 
 ## License
 
-Not chosen yet — tracked as an open decision in the
-[M1 licensing report](docs/milestones/M1/licensing-report.md). Until a license
-is added, all rights are reserved.
+Babarify Frame is free software, licensed under the **GNU General Public License v3 or later**
+([LICENSE](LICENSE)). Releases bundle libVLC, Qt/PySide6 and other components under their own
+licences; see `THIRD_PARTY_NOTICES.txt` in the program folder and [RELEASING.md](docs/RELEASING.md).
+Privacy: [docs/PRIVACY.md](docs/PRIVACY.md).

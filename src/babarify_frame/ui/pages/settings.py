@@ -26,6 +26,7 @@ from babarify_frame.ai.models import MODELS, ModelStatus
 from babarify_frame.configuration.preferences import LANGUAGES, SEEK_STEPS_S, Preferences
 from babarify_frame.core.models import SubtitlePosition, SubtitleStyle
 from babarify_frame.ui import theme
+from babarify_frame.ui.widgets import plain_text
 
 TEXT_COLORS = {
     "#FFFFFF": "White",
@@ -165,6 +166,7 @@ class SettingsPage(QWidget):
         for position, name in POSITIONS.items():
             self.subtitle_position.addItem(name, position.value)
         self.font_warning = _label("", "warning")
+        plain_text(self.font_warning)  # the font name comes from the settings file
         self.font_warning.hide()
         subtitles = self._card(
             "Subtitles and audio",
@@ -257,6 +259,11 @@ class SettingsPage(QWidget):
 
     def _build_ai_card(self) -> QFrame:
         self.ai_enabled = QCheckBox("Turn on AI features (they run on this PC)")
+        self.ai_missing = _label(
+            "The local AI component is not installed. To add it, run the Babarify Frame installer "
+            "again and choose the full installation.",
+            "warning",
+        )
         self.ai_model = QComboBox()
         self.ai_model.setAccessibleName("Speech model")
         for name, model in MODELS.items():
@@ -284,6 +291,7 @@ class SettingsPage(QWidget):
             "AI features",
             [
                 ("", self.ai_enabled),
+                ("", self.ai_missing),
                 ("Speech model", self.ai_model),
                 ("", buttons),
                 ("", self.ai_generated),
@@ -305,9 +313,18 @@ class SettingsPage(QWidget):
         return card
 
     def set_ai_status(
-        self, statuses: dict[str, ModelStatus], generated: int, generated_bytes: int, busy: str = ""
+        self,
+        statuses: dict[str, ModelStatus],
+        generated: int,
+        generated_bytes: int,
+        busy: str = "",
+        installed: bool = True,
     ) -> None:
         """Model and generated-subtitle state, refreshed by the window."""
+        self.ai_missing.setVisible(not installed)
+        self.ai_enabled.setEnabled(installed or self.ai_enabled.isChecked())  # can always switch off
+        for widget in (self.ai_model, self.ai_download, self.ai_delete_model):
+            widget.setVisible(installed)
         name = str(self.ai_model.currentData())
         state = statuses.get(name, ModelStatus.MISSING)
         text = {

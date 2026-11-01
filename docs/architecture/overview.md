@@ -1,4 +1,4 @@
-# Babarify Frame — Architecture Overview (M9)
+# Babarify Frame — Architecture Overview (M10)
 
 This describes the code as it exists at the end of Milestone 4. The product-level
 architecture and roadmap are in the
@@ -292,6 +292,21 @@ Off until *Settings → AI features* is switched on; local only (owner decision)
   language (or automatic detection), model, time estimate, progress and Stop; the result is
   added to the subtitle tracks. *View → Search spoken words* (Ctrl+Shift+F) opens a result
   1 s before the words. Switching AI off hides both and stops a running job.
+
+## Packaging and release (M10)
+
+- Release layout (per-user install, `%LOCALAPPDATA%\Programs\Babarify Frame`):
+  `Babarify Frame.exe` and `_internal\` (PyInstaller; Python, Qt/PySide6 as separate DLLs),
+  `engines\vlc\` (curated libVLC: 259 of 360 plugins, `tools/vlc_plugins.py`), and the optional
+  `ai\babarify-ai-worker.exe` (+ its own `_internal`), plus licence, notices and privacy texts.
+- A frozen app loads libVLC only from its own `engines` folder (`_engine_paths.bundled_dir`):
+  `BABARIFY_VLC_DIR` is ignored, and mpv is never loaded. The worker finds the engine one level
+  up.
+- `app_log.py`: local `app.log` (rotating) and `crash.log` (`faulthandler` and unhandled
+  Python errors) in `%LOCALAPPDATA%\Babarify\Frame\logs`; nothing is uploaded. Engine
+  start-up time and failures are logged.
+- Labels that show untrusted text use plain text (`widgets.plain_text`, R44).
+- Build, versioning, update/rollback, signing and licence obligations: [RELEASING.md](../RELEASING.md).
 
 ## Capability reporting
 

@@ -22,6 +22,7 @@ from PySide6.QtWidgets import QFrame, QLabel, QVBoxLayout, QWidget
 from babarify_frame.playback.preview import FramePreview, PreviewFrame
 from babarify_frame.ui import theme
 from babarify_frame.ui.bridge import UiBridge
+from babarify_frame.ui.widgets import plain_text
 
 log = logging.getLogger(__name__)
 
@@ -161,6 +162,7 @@ class PreviewPopup(QFrame):
         self.image.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.text = QLabel()
         self.text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        plain_text(self.text)  # chapter titles come from the file
         box.addWidget(self.image)
         box.addWidget(self.text)
 

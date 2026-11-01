@@ -32,6 +32,7 @@ from collections import deque
 from collections.abc import Callable
 from urllib.parse import parse_qs, quote, urljoin, urlsplit
 
+from babarify_frame import __version__
 from babarify_frame.core.errors import ErrorCode, PlaybackError
 from babarify_frame.core.network import validate_stream_url
 
@@ -43,7 +44,7 @@ READ_TIMEOUT_S = 20.0
 MAX_REDIRECTS = 5
 MAX_PLAYLIST_BYTES = 4 * 1024 * 1024
 CHUNK = 64 * 1024
-USER_AGENT = "BabarifyFrame/0.8 (libVLC)"
+USER_AGENT = f"BabarifyFrame/{__version__} (libVLC)"
 # Request headers passed on to the server, and response headers passed back to libVLC.
 _REQUEST_HEADERS = ("Range", "Icy-MetaData", "Accept")
 _RESPONSE_HEADERS = (

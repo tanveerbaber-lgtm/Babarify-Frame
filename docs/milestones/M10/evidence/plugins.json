@@ -1,0 +1,2882 @@
+[
+ {
+  "plugin": "libaccess_concat_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "concatenated inputs"
+ },
+ {
+  "plugin": "libaccess_imem_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "in-memory input (not used)"
+ },
+ {
+  "plugin": "libaccess_mms_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "mms"
+ },
+ {
+  "plugin": "libaccess_srt_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "srt"
+ },
+ {
+  "plugin": "libaccess_wasapi_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "audio capture"
+ },
+ {
+  "plugin": "libattachment_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libcdda_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "audio CD access"
+ },
+ {
+  "plugin": "libdcp_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "digital cinema packages"
+ },
+ {
+  "plugin": "libdshow_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "camera/microphone capture"
+ },
+ {
+  "plugin": "libdtv_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "TV tuner capture"
+ },
+ {
+  "plugin": "libdvdnav_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "DVD access (libdvdcss)"
+ },
+ {
+  "plugin": "libdvdread_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "DVD access (libdvdcss)"
+ },
+ {
+  "plugin": "libfilesystem_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libftp_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "ftp"
+ },
+ {
+  "plugin": "libhttp_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libhttps_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libidummy_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "vlc:// control URLs"
+ },
+ {
+  "plugin": "libimem_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "in-memory input (not used)"
+ },
+ {
+  "plugin": "liblibbluray_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "Blu-ray access"
+ },
+ {
+  "plugin": "liblive555_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libnfs_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "nfs"
+ },
+ {
+  "plugin": "librist_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "rist"
+ },
+ {
+  "plugin": "librtp_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "rtp"
+ },
+ {
+  "plugin": "libsatip_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "SAT>IP"
+ },
+ {
+  "plugin": "libscreen_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "screen capture"
+ },
+ {
+  "plugin": "libsdp_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "SDP sessions"
+ },
+ {
+  "plugin": "libsftp_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "sftp"
+ },
+ {
+  "plugin": "libshm_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "shared-memory capture"
+ },
+ {
+  "plugin": "libsmb_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "smb"
+ },
+ {
+  "plugin": "libtcp_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "raw tcp"
+ },
+ {
+  "plugin": "libtimecode_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "test-pattern input"
+ },
+ {
+  "plugin": "libudp_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "udp"
+ },
+ {
+  "plugin": "libvcd_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "VCD access"
+ },
+ {
+  "plugin": "libvdr_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "VDR recordings"
+ },
+ {
+  "plugin": "libvnc_plugin.dll",
+  "folder": "access",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "vnc"
+ },
+ {
+  "plugin": "libaccess_output_dummy_plugin.dll",
+  "folder": "access_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libaccess_output_file_plugin.dll",
+  "folder": "access_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libaccess_output_http_plugin.dll",
+  "folder": "access_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "streaming server"
+ },
+ {
+  "plugin": "libaccess_output_livehttp_plugin.dll",
+  "folder": "access_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "streaming server"
+ },
+ {
+  "plugin": "libaccess_output_rist_plugin.dll",
+  "folder": "access_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "streaming server"
+ },
+ {
+  "plugin": "libaccess_output_shout_plugin.dll",
+  "folder": "access_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "streaming server"
+ },
+ {
+  "plugin": "libaccess_output_srt_plugin.dll",
+  "folder": "access_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "streaming server"
+ },
+ {
+  "plugin": "libaccess_output_udp_plugin.dll",
+  "folder": "access_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "streaming server"
+ },
+ {
+  "plugin": "libaudio_format_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libaudiobargraph_a_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libchorus_flanger_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libcompressor_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdolby_surround_decoder_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libequalizer_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libgain_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libheadphone_channel_mixer_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libkaraoke_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmad_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmono_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libnormvol_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libparam_eq_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libremap_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libsamplerate_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libscaletempo_pitch_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libscaletempo_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libsimple_channel_mixer_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libspatialaudio_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libspatializer_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libspeex_resampler_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libstereo_widen_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libtospdif_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libtrivial_channel_mixer_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libugly_resampler_plugin.dll",
+  "folder": "audio_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libfloat_mixer_plugin.dll",
+  "folder": "audio_mixer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libinteger_mixer_plugin.dll",
+  "folder": "audio_mixer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libadummy_plugin.dll",
+  "folder": "audio_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libafile_plugin.dll",
+  "folder": "audio_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libamem_plugin.dll",
+  "folder": "audio_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdirectsound_plugin.dll",
+  "folder": "audio_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmmdevice_plugin.dll",
+  "folder": "audio_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libwasapi_plugin.dll",
+  "folder": "audio_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libwaveout_plugin.dll",
+  "folder": "audio_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libadpcm_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libaes3_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libaom_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libaraw_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libaribsub_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libavcodec_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libcc_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libcdg_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libcrystalhd_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libcvdsub_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libd3d11va_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdav1d_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libddummy_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdmo_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdvbsub_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdxva2_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libedummy_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libfaad_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libflac_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libfluidsynth_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libg711_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libjpeg_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libkate_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "liblibass_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "liblpcm_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmft_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmpg123_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "liboggspots_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libopus_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpng_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libqsv_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "librawvideo_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "librtpvideo_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libscte18_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libscte27_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libspdif_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libspeex_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libspudec_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libstl_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libsubsdec_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libsubstx3g_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libsubsusf_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libsvcdsub_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libt140_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libtextst_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libtheora_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libttml_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libtwolame_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libuleaddvaudio_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libvorbis_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libvpx_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libwebvtt_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libx26410b_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "H.264 encoder"
+ },
+ {
+  "plugin": "libx264_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "H.264 encoder"
+ },
+ {
+  "plugin": "libx265_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "HEVC encoder"
+ },
+ {
+  "plugin": "libzvbi_plugin.dll",
+  "folder": "codec",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdummy_plugin.dll",
+  "folder": "control",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "remote-control interfaces (http, telnet, hotkeys...): not used by an embedded player"
+ },
+ {
+  "plugin": "libgestures_plugin.dll",
+  "folder": "control",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "remote-control interfaces (http, telnet, hotkeys...): not used by an embedded player"
+ },
+ {
+  "plugin": "libhotkeys_plugin.dll",
+  "folder": "control",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "remote-control interfaces (http, telnet, hotkeys...): not used by an embedded player"
+ },
+ {
+  "plugin": "libnetsync_plugin.dll",
+  "folder": "control",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "remote-control interfaces (http, telnet, hotkeys...): not used by an embedded player"
+ },
+ {
+  "plugin": "libntservice_plugin.dll",
+  "folder": "control",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "remote-control interfaces (http, telnet, hotkeys...): not used by an embedded player"
+ },
+ {
+  "plugin": "liboldrc_plugin.dll",
+  "folder": "control",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "remote-control interfaces (http, telnet, hotkeys...): not used by an embedded player"
+ },
+ {
+  "plugin": "libwin_hotkeys_plugin.dll",
+  "folder": "control",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "remote-control interfaces (http, telnet, hotkeys...): not used by an embedded player"
+ },
+ {
+  "plugin": "libwin_msg_plugin.dll",
+  "folder": "control",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "remote-control interfaces (http, telnet, hotkeys...): not used by an embedded player"
+ },
+ {
+  "plugin": "libdirect3d11_filters_plugin.dll",
+  "folder": "d3d11",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdirect3d9_filters_plugin.dll",
+  "folder": "d3d9",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libadaptive_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libaiff_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libasf_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libau_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libavi_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libcaf_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdemux_cdg_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdemux_chromecast_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "Chromecast"
+ },
+ {
+  "plugin": "libdemux_stl_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdemuxdump_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdiracsys_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdirectory_demux_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdmxmus_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libes_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libflacsys_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libgme_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libh26x_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libimage_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmjpeg_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmkv_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmod_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmp4_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmpc_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmpgv_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libnoseek_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libnsc_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libnsv_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libnuv_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libogg_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libplaylist_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libps_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpva_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "librawaud_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "librawdv_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "librawvid_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libreal_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libsid_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libsmf_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libsubtitle_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libts_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libtta_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libty_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libvc1_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libvobsub_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libvoc_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libwav_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libxa_plugin.dll",
+  "folder": "demux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libqt_plugin.dll",
+  "folder": "gui",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "VLC's own interfaces"
+ },
+ {
+  "plugin": "libskins2_plugin.dll",
+  "folder": "gui",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "VLC's own interfaces"
+ },
+ {
+  "plugin": "libfile_keystore_plugin.dll",
+  "folder": "keystore",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "credential stores: Babarify stores no passwords"
+ },
+ {
+  "plugin": "libmemory_keystore_plugin.dll",
+  "folder": "keystore",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "credential stores: Babarify stores no passwords"
+ },
+ {
+  "plugin": "libconsole_logger_plugin.dll",
+  "folder": "logger",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "file/syslog loggers: the app keeps its own log"
+ },
+ {
+  "plugin": "libfile_logger_plugin.dll",
+  "folder": "logger",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "file/syslog loggers: the app keeps its own log"
+ },
+ {
+  "plugin": "liblua_plugin.dll",
+  "folder": "lua",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "Lua scripting: disabled with --no-lua (M8)"
+ },
+ {
+  "plugin": "libfolder_plugin.dll",
+  "folder": "meta_engine",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "online cover-art and lyrics fetchers"
+ },
+ {
+  "plugin": "libtaglib_plugin.dll",
+  "folder": "meta_engine",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "online cover-art and lyrics fetchers"
+ },
+ {
+  "plugin": "libaddonsfsstorage_plugin.dll",
+  "folder": "misc",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "VLC add-on storage"
+ },
+ {
+  "plugin": "libaddonsvorepository_plugin.dll",
+  "folder": "misc",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "downloads VLC add-ons"
+ },
+ {
+  "plugin": "libaudioscrobbler_plugin.dll",
+  "folder": "misc",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "submits listening history to Last.fm"
+ },
+ {
+  "plugin": "libexport_plugin.dll",
+  "folder": "misc",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "playlist export (not used)"
+ },
+ {
+  "plugin": "libfingerprinter_plugin.dll",
+  "folder": "misc",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "online AcoustID lookups"
+ },
+ {
+  "plugin": "libgnutls_plugin.dll",
+  "folder": "misc",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "liblogger_plugin.dll",
+  "folder": "misc",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "file logger (the app keeps its own log)"
+ },
+ {
+  "plugin": "libstats_plugin.dll",
+  "folder": "misc",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libvod_rtsp_plugin.dll",
+  "folder": "misc",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "RTSP streaming server"
+ },
+ {
+  "plugin": "libxml_plugin.dll",
+  "folder": "misc",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmux_asf_plugin.dll",
+  "folder": "mux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libmux_avi_plugin.dll",
+  "folder": "mux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libmux_dummy_plugin.dll",
+  "folder": "mux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmux_mp4_plugin.dll",
+  "folder": "mux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libmux_mpjpeg_plugin.dll",
+  "folder": "mux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libmux_ogg_plugin.dll",
+  "folder": "mux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libmux_ps_plugin.dll",
+  "folder": "mux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libmux_ts_plugin.dll",
+  "folder": "mux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libmux_wav_plugin.dll",
+  "folder": "mux",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpacketizer_a52_plugin.dll",
+  "folder": "packetizer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpacketizer_av1_plugin.dll",
+  "folder": "packetizer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpacketizer_copy_plugin.dll",
+  "folder": "packetizer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpacketizer_dirac_plugin.dll",
+  "folder": "packetizer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpacketizer_dts_plugin.dll",
+  "folder": "packetizer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpacketizer_flac_plugin.dll",
+  "folder": "packetizer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpacketizer_h264_plugin.dll",
+  "folder": "packetizer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpacketizer_hevc_plugin.dll",
+  "folder": "packetizer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpacketizer_mlp_plugin.dll",
+  "folder": "packetizer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpacketizer_mpeg4audio_plugin.dll",
+  "folder": "packetizer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpacketizer_mpeg4video_plugin.dll",
+  "folder": "packetizer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpacketizer_mpegaudio_plugin.dll",
+  "folder": "packetizer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpacketizer_mpegvideo_plugin.dll",
+  "folder": "packetizer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpacketizer_vc1_plugin.dll",
+  "folder": "packetizer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmediadirs_plugin.dll",
+  "folder": "services_discovery",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "network/device discovery (UPnP, SAP, mDNS...)"
+ },
+ {
+  "plugin": "libmicrodns_plugin.dll",
+  "folder": "services_discovery",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "network/device discovery (UPnP, SAP, mDNS...)"
+ },
+ {
+  "plugin": "libpodcast_plugin.dll",
+  "folder": "services_discovery",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "network/device discovery (UPnP, SAP, mDNS...)"
+ },
+ {
+  "plugin": "libsap_plugin.dll",
+  "folder": "services_discovery",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "network/device discovery (UPnP, SAP, mDNS...)"
+ },
+ {
+  "plugin": "libupnp_plugin.dll",
+  "folder": "services_discovery",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "network/device discovery (UPnP, SAP, mDNS...)"
+ },
+ {
+  "plugin": "libwindrive_plugin.dll",
+  "folder": "services_discovery",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "network/device discovery (UPnP, SAP, mDNS...)"
+ },
+ {
+  "plugin": "libaudiobargraph_v_plugin.dll",
+  "folder": "spu",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "liblogo_plugin.dll",
+  "folder": "spu",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmarq_plugin.dll",
+  "folder": "spu",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmosaic_plugin.dll",
+  "folder": "spu",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libremoteosd_plugin.dll",
+  "folder": "spu",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "librss_plugin.dll",
+  "folder": "spu",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libsubsdelay_plugin.dll",
+  "folder": "spu",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libarchive_plugin.dll",
+  "folder": "stream_extractor",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "archive extraction"
+ },
+ {
+  "plugin": "libadf_plugin.dll",
+  "folder": "stream_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libaribcam_plugin.dll",
+  "folder": "stream_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "ARIB conditional access"
+ },
+ {
+  "plugin": "libcache_block_plugin.dll",
+  "folder": "stream_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libcache_read_plugin.dll",
+  "folder": "stream_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libhds_plugin.dll",
+  "folder": "stream_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "Adobe HDS: would fetch segments around the stream proxy (M8)"
+ },
+ {
+  "plugin": "libinflate_plugin.dll",
+  "folder": "stream_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libprefetch_plugin.dll",
+  "folder": "stream_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "librecord_plugin.dll",
+  "folder": "stream_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libskiptags_plugin.dll",
+  "folder": "stream_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libstream_out_autodel_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libstream_out_bridge_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libstream_out_chromaprint_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libstream_out_chromecast_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "Chromecast"
+ },
+ {
+  "plugin": "libstream_out_cycle_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libstream_out_delay_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libstream_out_description_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libstream_out_display_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libstream_out_dummy_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libstream_out_duplicate_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libstream_out_es_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libstream_out_gather_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libstream_out_mosaic_bridge_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libstream_out_record_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libstream_out_rtp_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "streaming server"
+ },
+ {
+  "plugin": "libstream_out_setid_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libstream_out_smem_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "not used"
+ },
+ {
+  "plugin": "libstream_out_standard_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libstream_out_stats_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "stream output not used (only transcode to WAV for the AI worker)"
+ },
+ {
+  "plugin": "libstream_out_transcode_plugin.dll",
+  "folder": "stream_out",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libfreetype_plugin.dll",
+  "folder": "text_renderer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libsapi_plugin.dll",
+  "folder": "text_renderer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libtdummy_plugin.dll",
+  "folder": "text_renderer",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libchain_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libgrey_yuv_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libi420_10_p010_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libi420_nv12_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libi420_rgb_mmx_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libi420_rgb_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libi420_rgb_sse2_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libi420_yuy2_mmx_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libi420_yuy2_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libi420_yuy2_sse2_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libi422_i420_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libi422_yuy2_mmx_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libi422_yuy2_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libi422_yuy2_sse2_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "librv32_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libswscale_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libyuvp_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libyuy2_i420_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libyuy2_i422_plugin.dll",
+  "folder": "video_chroma",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libadjust_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libalphamask_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libanaglyph_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libantiflicker_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libball_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libblend_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libblendbench_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libbluescreen_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libcanvas_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libcolorthres_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libcroppadd_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdeinterlace_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libedgedetection_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "liberase_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libextract_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libfps_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libfreeze_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libgaussianblur_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libgradfun_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libgradient_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libgrain_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libhqdn3d_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libinvert_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmagnify_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmirror_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmotionblur_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libmotiondetect_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "liboldmovie_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libposterize_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpostproc_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpsychedelic_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpuzzle_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libripple_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "librotate_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU General Public License, version 2 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libscale_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libscene_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libsepia_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libsharpen_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libtransform_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libvhs_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libwave_plugin.dll",
+  "folder": "video_filter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libcaca_plugin.dll",
+  "folder": "video_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdirect3d11_plugin.dll",
+  "folder": "video_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdirect3d9_plugin.dll",
+  "folder": "video_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdirectdraw_plugin.dll",
+  "folder": "video_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libdrawable_plugin.dll",
+  "folder": "video_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libflaschen_plugin.dll",
+  "folder": "video_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libgl_plugin.dll",
+  "folder": "video_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libglinterop_dxva2_plugin.dll",
+  "folder": "video_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libglwin32_plugin.dll",
+  "folder": "video_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libvdummy_plugin.dll",
+  "folder": "video_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libvmem_plugin.dll",
+  "folder": "video_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libwgl_plugin.dll",
+  "folder": "video_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libwingdi_plugin.dll",
+  "folder": "video_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libwinhibit_plugin.dll",
+  "folder": "video_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libyuv_plugin.dll",
+  "folder": "video_output",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libclone_plugin.dll",
+  "folder": "video_splitter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libpanoramix_plugin.dll",
+  "folder": "video_splitter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libwall_plugin.dll",
+  "folder": "video_splitter",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "yes",
+  "reason": ""
+ },
+ {
+  "plugin": "libglspectrum_plugin.dll",
+  "folder": "visualization",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "audio visualisations: not offered"
+ },
+ {
+  "plugin": "libgoom_plugin.dll",
+  "folder": "visualization",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "audio visualisations: not offered"
+ },
+ {
+  "plugin": "libprojectm_plugin.dll",
+  "folder": "visualization",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "audio visualisations: not offered"
+ },
+ {
+  "plugin": "libvisual_plugin.dll",
+  "folder": "visualization",
+  "licence": "Licensed under the terms of the GNU Lesser General Public License, version 2.1 or later.",
+  "copyright": "Copyright (C) the VideoLAN VLC media player developers",
+  "shipped": "no",
+  "reason": "audio visualisations: not offered"
+ }
+]

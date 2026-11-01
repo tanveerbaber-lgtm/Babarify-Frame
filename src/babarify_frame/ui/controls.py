@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
 
 from babarify_frame.configuration.preferences import PLAYBACK_RATES
 from babarify_frame.ui import theme
-from babarify_frame.ui.widgets import SeekSlider, format_time, glyph_icon
+from babarify_frame.ui.widgets import SeekSlider, format_time, glyph_icon, plain_text
 
 # Width (px) below which secondary controls are hidden, most dispensable first.
 COMPACT_WIDTH = 760
@@ -89,6 +89,7 @@ class ControlBar(QFrame):
         self.forward_button = self._button("forward", "Forward", "Forward (→)", self.forward_clicked)
         self.title_label = self._label("", "mediaTitle", "Now playing")
         self.title_label.setMinimumWidth(40)
+        plain_text(self.title_label)
         self.speed_button = QToolButton()
         self.speed_button.setObjectName("speedButton")
         self.speed_button.setText(rate_label(1.0))

@@ -26,7 +26,7 @@ from PySide6.QtWidgets import (
 from babarify_frame.core.models import PlaybackState
 from babarify_frame.playback.controller import PlaybackController
 from babarify_frame.ui import theme
-from babarify_frame.ui.widgets import format_time
+from babarify_frame.ui.widgets import format_time, plain_text
 
 REFRESH_MS = 500
 LOG_LINES = 40
@@ -114,6 +114,7 @@ class PlaybackInfoDialog(QDialog):
         self._values: dict[str, QLabel] = {}
         for name in FIELDS:
             value = QLabel("—")
+            plain_text(value)  # engine version, decoder and log text
             value.setObjectName("muted")
             value.setWordWrap(True)
             value.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)

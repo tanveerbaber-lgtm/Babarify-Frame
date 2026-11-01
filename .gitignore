@@ -28,3 +28,6 @@ tools/engine-benchmark/results/raw/
 
 # Local AI models (M9): downloaded on demand, never committed
 .models/
+
+# Release builds (M10): tools/build_release.py
+release/

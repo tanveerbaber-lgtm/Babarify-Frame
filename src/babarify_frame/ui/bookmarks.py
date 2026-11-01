@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
 )
 
 from babarify_frame.library.models import Bookmark
-from babarify_frame.ui.widgets import format_time
+from babarify_frame.ui.widgets import format_time, plain_text
 
 
 def bookmark_text(bookmark: Bookmark) -> str:
@@ -43,6 +43,7 @@ class BookmarksDialog(QDialog):
         self.title = QLabel()
         self.title.setObjectName("muted")
         self.title.setWordWrap(True)
+        plain_text(self.title)
         box.addWidget(self.title)
         self.list = QListWidget()
         self.list.setAccessibleName("Bookmarks")

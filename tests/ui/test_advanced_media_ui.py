@@ -288,3 +288,20 @@ def test_no_preview_source_for_streams_or_when_switched_off(qtbot: QtBot, tmp_pa
     qtbot.wait(200)
     assert preview.opened == [] and preview.requests == []
     win.close()
+
+
+# ------------------------------------------------------------ untrusted text (M10 review)
+def test_untrusted_names_and_errors_are_shown_as_plain_text(qtbot: QtBot, window: MainWindow) -> None:
+    from PySide6.QtCore import Qt
+
+    from babarify_frame.core.errors import ErrorCode
+
+    engine = play(qtbot, window, "https://example.com/%3Cimg%20src%3Dx%3E.mp4?duration=60000")
+    title = window.player.controls.title_label
+    assert title.textFormat() is Qt.TextFormat.PlainText and "<img src=x>.mp4" in title.toolTip()
+    engine.simulate_error(ErrorCode.NETWORK_ERROR, '<img src="file:///C:/x.png"><b>Click here</b>')
+    qtbot.waitUntil(lambda: window.player.state is S.ERROR, timeout=3000)
+    body = window.player._message_body
+    assert body.textFormat() is Qt.TextFormat.PlainText and "<b>Click here</b>" in body.text()
+    popup_text = window.player._popup.text
+    assert popup_text.textFormat() is Qt.TextFormat.PlainText

@@ -1,0 +1,104 @@
+{
+ "install_old": 0,
+ "installed_version_old": "0.9.0",
+ "openwith_registered": true,
+ "default_app_unchanged": true,
+ "install_size_mb": 430,
+ "run_old": {
+  "exit": 0,
+  "foreign_modules": [
+   "C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.24.12741.0_x64__8wekyb3d8bbwe\\CascadiaCode.ttf",
+   "C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.24.12741.0_x64__8wekyb3d8bbwe\\CascadiaCodeItalic.ttf",
+   "C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.24.12741.0_x64__8wekyb3d8bbwe\\CascadiaMono.ttf",
+   "C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.24.12741.0_x64__8wekyb3d8bbwe\\CascadiaMonoItalic.ttf",
+   "C:\\ProgramData\\Microsoft\\Windows Defender\\Platform\\4.18.26100.4-0\\MpOAV.dll",
+   "C:\\Users\\Babarify\\AppData\\Local\\Temp\\babarify-release-check-hh_e53pm\\profile\\APPDATA\\Babarify\\Frame\\library.db-shm"
+  ],
+  "dev_paths_loaded": [],
+  "log_started": true,
+  "log_played": true,
+  "engine_ready": [
+   "babarify_frame.ui.pages.player: libvlc engine ready in 6.7 s"
+  ],
+  "log_tail": [
+   "2026-11-01 08:58:57,145 INFO babarify_frame.library.database: library schema migrated to 4",
+   "2026-11-01 08:59:04,976 INFO babarify_frame.ui.pages.player: libvlc engine ready in 6.7 s",
+   "2026-11-01 08:59:18,322 INFO babarify_frame.ui.app: smoke test: state=playing position_ms=10901",
+   "2026-11-01 08:59:18,508 INFO babarify_frame.ui.app: exited cleanly with code 0"
+  ],
+  "crash_log": "--- start 2026-11-01 08:58:56 version 0.9.0 ---\n"
+ },
+ "ai_worker": {
+  "exit": 0,
+  "done": {
+   "cues": 7,
+   "language": "en",
+   "srt": "C:\\Users\\Babarify\\AppData\\Local\\Temp\\babarify-release-check-hh_e53pm\\s.srt"
+  },
+  "error": null
+ },
+ "upgrade": 0,
+ "installed_version_new": "0.9.1",
+ "run_new": {
+  "exit": 0,
+  "foreign_modules": [
+   "C:\\$Extend\\$Deleted\\001700000013C3393184DB2F",
+   "C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.24.12741.0_x64__8wekyb3d8bbwe\\CascadiaCode.ttf",
+   "C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.24.12741.0_x64__8wekyb3d8bbwe\\CascadiaCodeItalic.ttf",
+   "C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.24.12741.0_x64__8wekyb3d8bbwe\\CascadiaMono.ttf",
+   "C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.24.12741.0_x64__8wekyb3d8bbwe\\CascadiaMonoItalic.ttf",
+   "C:\\ProgramData\\Microsoft\\Windows Defender\\Platform\\4.18.26100.4-0\\MpOAV.dll",
+   "C:\\Users\\Babarify\\AppData\\Local\\Temp\\babarify-release-check-hh_e53pm\\profile\\APPDATA\\Babarify\\Frame\\library.db-shm"
+  ],
+  "dev_paths_loaded": [],
+  "log_started": true,
+  "log_played": true,
+  "engine_ready": [
+   "babarify_frame.ui.pages.player: libvlc engine ready in 6.7 s",
+   "babarify_frame.ui.pages.player: libvlc engine ready in 14.8 s"
+  ],
+  "log_tail": [
+   "2026-11-01 09:00:16,880 INFO babarify_frame.app_log: Babarify Frame 0.9.0 started",
+   "2026-11-01 09:00:33,633 INFO babarify_frame.ui.pages.player: libvlc engine ready in 14.8 s",
+   "2026-11-01 09:00:38,896 INFO babarify_frame.ui.app: smoke test: state=playing position_ms=12418",
+   "2026-11-01 09:00:39,326 INFO babarify_frame.ui.app: exited cleanly with code 0"
+  ],
+  "crash_log": "--- start 2026-11-01 08:58:56 version 0.9.0 ---\n--- start 2026-11-01 09:00:16 version 0.9.0 ---\n"
+ },
+ "data_kept_after_upgrade": true,
+ "rollback": 0,
+ "installed_version_after_rollback": "0.9.0",
+ "run_rollback": {
+  "exit": 0,
+  "foreign_modules": [
+   "C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.24.12741.0_x64__8wekyb3d8bbwe\\CascadiaCode.ttf",
+   "C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.24.12741.0_x64__8wekyb3d8bbwe\\CascadiaCodeItalic.ttf",
+   "C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.24.12741.0_x64__8wekyb3d8bbwe\\CascadiaMono.ttf",
+   "C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.24.12741.0_x64__8wekyb3d8bbwe\\CascadiaMonoItalic.ttf",
+   "C:\\ProgramData\\Microsoft\\Windows Defender\\Platform\\4.18.26100.4-0\\MpOAV.dll",
+   "C:\\Users\\Babarify\\AppData\\Local\\Temp\\babarify-release-check-hh_e53pm\\profile\\APPDATA\\Babarify\\Frame\\library.db-shm"
+  ],
+  "dev_paths_loaded": [],
+  "log_started": true,
+  "log_played": true,
+  "engine_ready": [
+   "babarify_frame.ui.pages.player: libvlc engine ready in 6.7 s",
+   "babarify_frame.ui.pages.player: libvlc engine ready in 14.8 s",
+   "babarify_frame.ui.pages.player: libvlc engine ready in 14.5 s"
+  ],
+  "log_tail": [
+   "2026-11-01 09:01:17,937 INFO babarify_frame.app_log: Babarify Frame 0.9.0 started",
+   "2026-11-01 09:01:34,541 INFO babarify_frame.ui.pages.player: libvlc engine ready in 14.5 s",
+   "2026-11-01 09:01:40,106 INFO babarify_frame.ui.app: smoke test: state=playing position_ms=14417",
+   "2026-11-01 09:01:40,247 INFO babarify_frame.ui.app: exited cleanly with code 0"
+  ],
+  "crash_log": "--- start 2026-11-01 08:58:56 version 0.9.0 ---\n--- start 2026-11-01 09:00:16 version 0.9.0 ---\n--- start 2026-11-01 09:01:17 version 0.9.0 ---\n"
+ },
+ "data_kept_after_rollback": true,
+ "uninstall": 0,
+ "program_removed": true,
+ "uninstall_entry_removed": true,
+ "openwith_removed": true,
+ "default_app_still_unchanged": true,
+ "user_data_kept_on_silent_uninstall": true
+}
