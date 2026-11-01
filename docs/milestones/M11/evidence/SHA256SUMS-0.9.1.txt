@@ -1,0 +1,3 @@
+ca0d637328cc3a7cb06f9a881193c622ee2f91dcfe83e2abfae7351294fb6c03  BabarifyFrame-0.9.1-manifest.json
+b54e7a7dd3997caa3c791073947443df1b5c6eeb58fdefb97e4bd92c733c9220  BabarifyFrame-0.9.1-setup.exe
+7e6f783d0927e514b86d199e3d65fa5f1889267903097d797647d32aa5c28051  BabarifyFrame-0.9.1-source.zip

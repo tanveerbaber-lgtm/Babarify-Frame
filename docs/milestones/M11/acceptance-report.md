@@ -54,8 +54,18 @@ in `docs/beta/TRIAGE.md` are met, then decide from `tools/triage_summary.py`.
 ## 2. Beta build
 
 0.9.1 = 0.9.0 + *Report a problem* + the contrast fix (R45). Release notes:
-[0.9.1.md](../../release-notes/0.9.1.md). The final installer is built from the accepted
-commit; its checksums are recorded here at acceptance (as in M10).
+[0.9.1.md](../../release-notes/0.9.1.md). Final build from commit `372f48f` (clean tree):
+
+| File | Size | SHA-256 |
+|---|---|---|
+| BabarifyFrame-0.9.1-setup.exe | 122.4 MB | `b54e7a7dd3997caa3c791073947443df1b5c6eeb58fdefb97e4bd92c733c9220` |
+| BabarifyFrame-0.9.1-source.zip | 14.8 MB | `7e6f783d0927e514b86d199e3d65fa5f1889267903097d797647d32aa5c28051` |
+| BabarifyFrame-0.9.1-manifest.json | 0.1 MB | `ca0d637328cc3a7cb06f9a881193c622ee2f91dcfe83e2abfae7351294fb6c03` |
+
+This installer passed the release check (0.9.0 → 0.9.1 → 0.9.0: install, clean-environment
+playback in all three, AI worker, data kept, uninstall;
+[`evidence/release_check_final.json`](evidence/release_check_final.json)). 685 files, as in
+0.9.0. The artifacts are in `release/0.9.1/` on the build PC (not in git).
 
 ## 3. Accessibility and usability review
 
