@@ -99,6 +99,11 @@ class SettingsPage(QWidget):
             "Boost makes quiet files louder but can distort loud passages. A boosted volume is "
             "never remembered: the next session starts at 100 % or less."
         )
+        self.seek_previews = QCheckBox("Show pictures when pointing at the seek bar")
+        self.seek_previews.setToolTip(
+            "Local video files only. Pictures are made by a second, silent decoder; turn this off "
+            "on slow computers."
+        )
         self.hardware_decoding = QComboBox()
         self.hardware_decoding.addItem("Automatic (recommended)", True)
         self.hardware_decoding.addItem("Off (software only)", False)
@@ -114,6 +119,7 @@ class SettingsPage(QWidget):
                 ("Hardware decoding", self.hardware_decoding),
                 ("", self.remember_volume),
                 ("", self.allow_boost),
+                ("", self.seek_previews),
             ],
         )
 
@@ -221,6 +227,7 @@ class SettingsPage(QWidget):
         self.seek_step.currentIndexChanged.connect(self._changed)
         self.remember_volume.toggled.connect(self._changed)
         self.allow_boost.toggled.connect(self._changed)
+        self.seek_previews.toggled.connect(self._changed)
         self.hardware_decoding.currentIndexChanged.connect(self._changed)
         self.hide_delay.valueChanged.connect(self._changed)
         self.start_fullscreen.toggled.connect(self._changed)
@@ -276,6 +283,7 @@ class SettingsPage(QWidget):
         self.seek_step.setCurrentIndex(max(0, SEEK_STEPS_S.index(prefs.seek_step_s)))
         self.remember_volume.setChecked(prefs.remember_volume)
         self.allow_boost.setChecked(prefs.allow_volume_boost)
+        self.seek_previews.setChecked(prefs.seek_previews)
         self.hardware_decoding.setCurrentIndex(0 if prefs.hardware_decoding else 1)
         self.hide_delay.setValue(round(prefs.controls_hide_delay_ms / 1000))
         self.start_fullscreen.setChecked(prefs.start_fullscreen)
@@ -306,6 +314,7 @@ class SettingsPage(QWidget):
             seek_step_s=int(self.seek_step.currentData()),
             remember_volume=self.remember_volume.isChecked(),
             allow_volume_boost=self.allow_boost.isChecked(),
+            seek_previews=self.seek_previews.isChecked(),
             hardware_decoding=bool(self.hardware_decoding.currentData()),
             controls_hide_delay_ms=self.hide_delay.value() * 1000,
             start_fullscreen=self.start_fullscreen.isChecked(),

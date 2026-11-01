@@ -36,6 +36,26 @@ class TrackInfo:
     language: str | None = None
     codec: str | None = None
     selected: bool = False
+    # Details for the media information panel (M8); 0 = not reported by the engine.
+    width: int = 0
+    height: int = 0
+    frame_rate: float = 0.0
+    channels: int = 0
+    sample_rate: int = 0
+    bitrate: int = 0  # bits per second
+
+
+@dataclass(frozen=True)
+class Chapter:
+    """A chapter of the file (M8). Chapters are sorted by start and do not overlap."""
+
+    index: int
+    start_ms: int
+    title: str = ""
+
+    @property
+    def label(self) -> str:
+        return self.title or f"Chapter {self.index + 1}"
 
 
 @dataclass(frozen=True)
@@ -48,9 +68,18 @@ class MediaInfo:
     frame_rate: float | None = None
     audio_codec: str | None = None
     tracks: tuple[TrackInfo, ...] = ()
+    chapters: tuple[Chapter, ...] = ()  # M8
+    metadata: tuple[tuple[str, str], ...] = ()  # (label, value) from the file's tags, e.g. ("Title", ...)
 
     def tracks_of(self, kind: TrackKind) -> tuple[TrackInfo, ...]:
         return tuple(t for t in self.tracks if t.kind is kind)
+
+    def chapter_at(self, position_ms: int) -> Chapter | None:
+        current = None
+        for chapter in self.chapters:
+            if chapter.start_ms <= position_ms:
+                current = chapter
+        return current
 
 
 @dataclass(frozen=True)
@@ -87,6 +116,9 @@ class EngineCapabilities:
     supports_frame_step: bool = False
     supports_frame_back_step: bool = False
     supports_snapshot: bool = False
+    # Advanced media (M8)
+    network_schemes: frozenset[str] = frozenset()  # subset of core.network.STREAM_SCHEMES
+    supports_chapters: bool = False  # MediaInfo.chapters is filled when the file has chapters
     notes: tuple[str, ...] = field(default=())
 
 

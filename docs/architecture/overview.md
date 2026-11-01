@@ -1,4 +1,4 @@
-# Babarify Frame — Architecture Overview (M7)
+# Babarify Frame — Architecture Overview (M8)
 
 This describes the code as it exists at the end of Milestone 4. The product-level
 architecture and roadmap are in the
@@ -216,6 +216,54 @@ Therefore:
   Picture, equalizer and profiles persist in preferences. Volume boost (up to 150 %) is
   opt-in and never remembered.
 - `ui/enhancements.py`: the Picture & Sound panel (Ctrl+E), built from capabilities.
+
+## Network streams (M8)
+
+Every address (typed, dropped, from history or inside a playlist) is untrusted.
+
+- `core/network.py` `validate_stream_url`: only http, https and rtsp; a host is required;
+  user names/passwords, whitespace and control characters are refused; at most 2,048
+  characters; the fragment is dropped. `normalize_local_uri` applies it to every network
+  URI, limited to the engine's `allowed_schemes` (`EngineCapabilities.network_schemes`
+  tells the UI; mpv has none yet).
+- libVLC 3 follows HTTP redirects to *any* scheme it has a plugin for (measured: a redirect
+  to `file:///…` played the local file) and HLS manifests may name `file:` segments. So
+  libVLC never fetches a web address: `playback/stream_proxy.py` runs a loopback HTTP server
+  (127.0.0.1, random port, random per-process path token) that fetches upstream itself
+  (system certificate store, connect 10 s / read 20 s), follows at most 5 redirects and
+  only to validated http/https addresses, rewrites every `#EXTM3U` playlist entry and
+  `URI="…"` attribute to go through it again (other schemes are removed and counted),
+  refuses DASH/Smooth manifests (415) and playlists over 4 MB, and records a reason for
+  every refusal. libVLC runs with `--no-lua`, so Lua playlist/meta scripts cannot fetch
+  pages around the proxy. RTSP goes to libVLC (live555) directly.
+- Remote M3U/PLS/XSPF lists end at once in libVLC with their entries as sub-items; the
+  adapter plays the first entry that passes `validate_stream_url` (through the proxy),
+  skips the rest with a `Notice`, and stops at 3 levels of nesting.
+- A server that accepts the connection and never answers leaves libVLC "opening" forever:
+  the adapter gives up after `OPEN_TIMEOUT_S` (30 s). Failures are `NETWORK_ERROR` with the
+  proxy's reason ("the server answered 404 …", "redirected to a non-web address (file:)").
+- UI: *File → Open network stream* (Ctrl+N) checks the address while typing and lists recent
+  streams from history; links dropped from a browser open the same way. Titles, history
+  names and the media panel show host and file name, never the query string.
+
+## Chapters, bookmarks, media information and previews (M8)
+
+- `MediaInfo.chapters` (`Chapter(index, start_ms, title)`) and `MediaInfo.metadata` (file
+  tags); `TrackInfo` carries size, frame rate, channels, sample rate and bitrate when the
+  engine reports them. libVLC chapters are read with ctypes (`read_chapters`): python-vlc's
+  helper never frees libVLC's array. Chapter navigation is a seek; *previous* restarts the
+  current chapter when more than 3 s into it.
+- Bookmarks: library schema v3 `bookmarks` table, per file by `path_key` like history, at
+  most 200 per file, labels cleaned to 120 characters. They are the user's notes, so
+  clearing or switching off history keeps them.
+- Seek-bar previews: `playback/preview.py` `FramePreview`; `LibVlcPreview` is a second,
+  muted, windowless player paused on the file (software decoding, memory callbacks, the
+  probe's shared instance, R20/R26) that seeks for each request. `ui/seek_preview.py` runs it
+  on one background thread, decodes only the newest request and caches up to 400 frames per
+  file. Local video files only (a stream would be downloaded twice); *Settings → Playback*
+  can switch it off. The seek bar draws chapter starts (grey) and bookmarks (amber).
+- `ui/media_info.py` (Ctrl+Shift+I): general facts, tags, every track and the chapters;
+  values are HTML-escaped and shortened, and can be copied as text.
 
 ## Capability reporting
 

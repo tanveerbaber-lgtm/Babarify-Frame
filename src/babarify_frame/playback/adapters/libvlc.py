@@ -16,6 +16,12 @@ Findings encoded here (see docs/milestones/M1/benchmark-report.md):
   maps "ended with nothing decoded" to MEDIA_OPEN_FAILED.
 * No TimeChanged while paused; seeking an ended player needs a restart; MPEG-TS/PS
   and Ogg report streams and video size late. Each is handled below.
+* Network streams (M8): libVLC follows HTTP redirects to any scheme (file: included) and has
+  no option against it, so http/https go through ``stream_proxy`` and libVLC is started with
+  ``--no-lua`` (Lua playlist scripts fetch pages on their own). A server that accepts the
+  connection and never answers leaves libVLC "opening" forever: an open timeout ends it.
+  Remote playlists end at once with their entries as sub-items; only web/rtsp entries are
+  played.
 """
 
 from __future__ import annotations
@@ -27,7 +33,7 @@ import threading
 import time
 from collections import deque
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, ClassVar
 
@@ -40,6 +46,7 @@ from babarify_frame.core.enhancements import (
 )
 from babarify_frame.core.errors import ErrorCode, PlaybackError
 from babarify_frame.core.models import (
+    Chapter,
     EngineCapabilities,
     EngineOptions,
     MediaInfo,
@@ -49,9 +56,11 @@ from babarify_frame.core.models import (
     TrackInfo,
     TrackKind,
 )
+from babarify_frame.core.network import STREAM_SCHEMES, is_network_uri, uri_scheme, validate_stream_url
 from babarify_frame.playback.adapters._engine_paths import add_dll_dir, find_vlc_dir
 from babarify_frame.playback.contracts import EngineBase
 from babarify_frame.playback.factory import EngineProbe
+from babarify_frame.playback.stream_proxy import get_proxy
 
 S = PlaybackState
 _HW_RE = re.compile(r"Using (.+?) for hardware decoding")
@@ -115,6 +124,19 @@ _SUB_MARGIN = {
     SubtitlePosition.HIGH: 300,
 }
 EXTERNAL_SUBTITLE_TIMEOUT_S = 2.5
+OPEN_TIMEOUT_S = 30.0  # network streams: give up if nothing plays by then (M8)
+MAX_PLAYLIST_DEPTH = 3  # a playlist entry that is itself a playlist, and so on
+# Instance options for every player instance. --no-lua: Lua playlist/meta scripts would fetch
+# web pages directly, around the stream proxy (M8).
+BASE_ARGS = ("--no-video-title-show", "--no-lua")
+# File tags shown in the media information panel (libVLC Meta name, label).
+_META_FIELDS = (
+    ("Title", "Title"), ("Artist", "Artist"), ("AlbumArtist", "Album artist"), ("Album", "Album"),
+    ("TrackNumber", "Track"), ("Date", "Date"), ("Genre", "Genre"), ("Description", "Description"),
+    ("Copyright", "Copyright"), ("Publisher", "Publisher"), ("EncodedBy", "Encoded by"),
+    ("Language", "Language"), ("ShowName", "Show"), ("Season", "Season"), ("Episode", "Episode"),
+    ("NowPlaying", "Now playing"),
+)  # fmt: skip
 
 
 def subtitle_style_args(style: SubtitleStyle) -> tuple[str, ...]:
@@ -212,6 +234,16 @@ class _RawVideoTrack(ctypes.Structure):
     ]
 
 
+class _RawAudioTrack(ctypes.Structure):
+    # libvlc_audio_track_t (libVLC 3.x)
+    _fields_ = [("channels", ctypes.c_uint), ("rate", ctypes.c_uint)]
+
+
+class _RawChapter(ctypes.Structure):
+    # libvlc_chapter_description_t (libVLC 3.x)
+    _fields_ = [("time_offset", ctypes.c_int64), ("duration", ctypes.c_int64), ("name", ctypes.c_char_p)]
+
+
 class _RawTrack(ctypes.Structure):
     # libvlc_media_track_t (libVLC 3.x). The union holds a pointer to the per-kind struct.
     _fields_ = [
@@ -237,6 +269,9 @@ class _Track:
     width: int = 0
     height: int = 0
     fps: float = 0.0
+    channels: int = 0
+    rate: int = 0
+    bitrate: int = 0
 
 
 def read_media_tracks(vlc: Any, media: Any) -> list[_Track]:
@@ -255,16 +290,46 @@ def read_media_tracks(vlc: Any, media: Any) -> list[_Track]:
             t = array[i].contents
             fourcc = t.codec.to_bytes(4, "little").decode("latin-1")
             lang = t.language.decode("utf-8", "replace") if t.language else None
-            track = _Track(t.id, t.type, _FOURCC_NAMES.get(fourcc, fourcc.strip()), lang)
+            track = _Track(t.id, t.type, _FOURCC_NAMES.get(fourcc, fourcc.strip()), lang, bitrate=t.bitrate)
             if t.type == 1 and t.details:  # video
                 v = ctypes.cast(t.details, ctypes.POINTER(_RawVideoTrack)).contents
                 fps = v.frame_rate_num / v.frame_rate_den if v.frame_rate_den else 0.0
-                track = _Track(track.id, track.type, track.codec, lang, v.width, v.height, fps)
+                track = replace(track, width=v.width, height=v.height, fps=fps)
+            elif t.type == 0 and t.details:  # audio
+                a = ctypes.cast(t.details, ctypes.POINTER(_RawAudioTrack)).contents
+                track = replace(track, channels=a.channels, rate=a.rate)
             out.append(track)
         return out
     finally:
         if count:
             release(array, count)
+
+
+def read_chapters(vlc: Any, player: Any) -> tuple[Chapter, ...]:
+    """Chapters of the current title. python-vlc's helper never frees libVLC's array and fails
+    on an error count (-1), so the libVLC 3 structs are read directly, like the tracks."""
+    dll = vlc.dll
+    get = dll.libvlc_media_player_get_full_chapter_descriptions
+    get.argtypes = [
+        ctypes.c_void_p,
+        ctypes.c_int,
+        ctypes.POINTER(ctypes.POINTER(ctypes.POINTER(_RawChapter))),
+    ]
+    get.restype = ctypes.c_int
+    release = dll.libvlc_chapter_descriptions_release
+    release.argtypes = [ctypes.POINTER(ctypes.POINTER(_RawChapter)), ctypes.c_uint]
+    array = ctypes.POINTER(ctypes.POINTER(_RawChapter))()
+    count = get(player._as_parameter_, -1, ctypes.byref(array))
+    if count <= 0:
+        return ()
+    try:
+        raw = [array[i].contents for i in range(count)]
+        found = sorted(
+            (max(0, int(c.time_offset)), (c.name or b"").decode("utf-8", "replace").strip()) for c in raw
+        )
+    finally:
+        release(array, count)
+    return tuple(Chapter(i, start, title[:200]) for i, (start, title) in enumerate(found))
 
 
 class _RawStats(ctypes.Structure):
@@ -290,6 +355,7 @@ class _RawStats(ctypes.Structure):
 
 class LibVlcEngine(EngineBase):
     name = "libvlc"
+    allowed_schemes = frozenset({"file"}) | STREAM_SCHEMES
 
     def __init__(self, options: EngineOptions | None = None, extra_args: tuple[str, ...] = ()) -> None:
         super().__init__()
@@ -320,15 +386,18 @@ class LibVlcEngine(EngineBase):
         self._equalizer = EqualizerSettings()
         self._eq_presets: tuple[str, ...] = ()
         self._eq_bands: tuple[int, ...] = ()
+        # Network streams (M8)
+        self._open_generation = 0
+        self._open_started = 0.0
+        self._open_timer: threading.Timer | None = None
+        self._playlist_depth = 0
 
     # ------------------------------------------------------------ setup
     def _do_initialize(self) -> None:
         vlc = self._vlc = _load_vlc()
         style_args = subtitle_style_args(self._options.subtitle_style)
         transform_args = video_transform_args(self._options.video_transform)
-        self._shared = _SharedInstance.get(
-            vlc, ("--no-video-title-show", *style_args, *transform_args, *self._extra_args)
-        )
+        self._shared = _SharedInstance.get(vlc, (*BASE_ARGS, *style_args, *transform_args, *self._extra_args))
         self._instance = self._shared.instance
         self._shared.add_sink(self._on_log_line)
         self._player = self._instance.media_player_new()
@@ -390,6 +459,8 @@ class LibVlcEngine(EngineBase):
             supports_frame_step=True,
             supports_frame_back_step=False,  # libVLC 3 can only step forward
             supports_snapshot=True,
+            network_schemes=STREAM_SCHEMES,
+            supports_chapters=True,
             subtitle_style="restart",  # style is an instance option: a new engine applies it
             max_delay_ms=60_000,
             hardware_decoding="requested" if self._options.hardware_decoding else "disabled",
@@ -399,6 +470,7 @@ class LibVlcEngine(EngineBase):
                 "Brightness and contrast look stronger with software decoding than with hardware "
                 "decoding (different libVLC filters).",
                 "Rotation and flips restart playback at the same position.",
+                "Web streams are fetched by Babarify's own loopback proxy (http/https redirects only).",
             ),
         )
 
@@ -458,8 +530,21 @@ class LibVlcEngine(EngineBase):
         self._confirmed = False
         self._loading_target = None
         self._pending_seek = None
+        self._cancel_open_timer()
+        self._open_generation += 1  # a pending timeout belongs to the previous media
+        self._playlist_depth = 0
+        self._open_location(uri)
+
+    def _open_location(self, uri: str) -> None:
+        """Load ``uri`` (validated) into the player and start it; network addresses get the open
+        timeout, and http/https go through the stream proxy."""
         old = self._media
-        self._media = self._instance.media_new_path(uri)
+        if is_network_uri(uri):
+            location = get_proxy().wrap(uri) if uri_scheme(uri) in ("http", "https") else uri
+            self._media = self._instance.media_new_location(location)
+            self._start_open_timer()
+        else:
+            self._media = self._instance.media_new_path(uri)
         # Must be a per-media option: libVLC 3.0.24 silently ignores --avcodec-hw at instance level
         # (M4 finding: "Off" kept using D3D11VA until this was moved here).
         self._media.add_option(f":avcodec-hw={'any' if self._options.hardware_decoding else 'none'}")
@@ -470,6 +555,40 @@ class LibVlcEngine(EngineBase):
             old.release()
         if self._player.play() != 0:
             self._fail(PlaybackError(ErrorCode.MEDIA_OPEN_FAILED, self._last_error()))
+
+    def _start_open_timer(self) -> None:
+        self._cancel_open_timer()
+        self._open_generation += 1
+        self._open_started = time.monotonic()
+        timer = threading.Timer(OPEN_TIMEOUT_S, self._on_open_timeout, args=(self._open_generation,))
+        timer.daemon = True
+        self._open_timer = timer
+        timer.start()
+
+    def _cancel_open_timer(self) -> None:
+        if self._open_timer is not None:
+            self._open_timer.cancel()
+            self._open_timer = None
+
+    def _on_open_timeout(self, generation: int) -> None:
+        if generation == self._open_generation and self.state is S.LOADING:
+            self._defer(self._give_up_opening, generation)
+
+    def _give_up_opening(self, generation: int) -> None:
+        if generation != self._open_generation or self.state is not S.LOADING or self._player is None:
+            return
+        self._player.stop()  # not a user stop: the Stopped event is ignored
+        self._fail(PlaybackError(ErrorCode.NETWORK_ERROR, f"nothing played within {OPEN_TIMEOUT_S:.0f} s"))
+
+    def _network_error(self, fallback: str) -> PlaybackError:
+        proxy = get_proxy()
+        reasons = proxy.failures_since(self._open_started) if self._open_started else []
+        if reasons:
+            return PlaybackError(ErrorCode.NETWORK_ERROR, reasons[-1])
+        removed = proxy.removed_since(self._open_started) if self._open_started else 0
+        if removed:
+            fallback = f"{removed} playlist entries were removed because they are not web addresses"
+        return PlaybackError(ErrorCode.NETWORK_ERROR, fallback)
 
     def _do_play(self) -> None:
         state = self.state
@@ -643,6 +762,7 @@ class LibVlcEngine(EngineBase):
         self._player.set_rate(rate)
 
     def _do_close(self) -> None:
+        self._cancel_open_timer()
         try:
             # Stop receiving log lines first; the shared instance itself stays alive (R20).
             if self._shared is not None:
@@ -697,6 +817,7 @@ class LibVlcEngine(EngineBase):
         self._transition(S.PAUSED)
 
     def _confirm_media(self) -> None:
+        self._cancel_open_timer()
         if not self._confirmed:
             self._confirmed = True
             self._enter_target_if_confirmed()
@@ -724,11 +845,63 @@ class LibVlcEngine(EngineBase):
         stats = self.playback_stats()
         decoded = stats.get("decoded_video", 0) + stats.get("decoded_audio", 0)
         if self.get_playback_state().position_ms == 0 and decoded == 0:
-            self._fail(PlaybackError(ErrorCode.MEDIA_OPEN_FAILED, self._last_error()))
+            if self.state is S.LOADING and self._open_playlist_entry():
+                return
+            if self._uri is not None and is_network_uri(self._uri):
+                self._fail(self._network_error("the address did not return playable media"))
+            else:
+                self._fail(PlaybackError(ErrorCode.MEDIA_OPEN_FAILED, self._last_error()))
         else:
             self._end_reached()
 
+    def _open_playlist_entry(self) -> bool:
+        """A playlist ends at once and lists its entries as sub-items (M8 spike). Play the first
+        web or rtsp entry; file:, vlc: and every other scheme are skipped. Returns False when
+        there is nothing to play (the caller reports the failure)."""
+        media = self._media
+        items = media.subitems() if media is not None else None
+        if items is None:
+            return False
+        try:
+            mrls = [items.item_at_index(i).get_mrl() or "" for i in range(min(items.count(), 1000))]
+        finally:
+            items.release()
+        if not mrls:
+            return False
+        if self._playlist_depth >= MAX_PLAYLIST_DEPTH:
+            self._fail(PlaybackError(ErrorCode.UNSUPPORTED, "playlists nested too deeply"))
+            return True
+        proxy = get_proxy()
+        skipped, target = 0, None
+        for mrl in mrls:
+            candidate = proxy.unwrap(mrl) or mrl
+            try:
+                target = validate_stream_url(candidate)
+                break
+            except PlaybackError:
+                skipped += 1
+        skipped += proxy.removed_since(self._open_started) if self._open_started else 0
+        if target is None:
+            self._fail(
+                PlaybackError(
+                    ErrorCode.UNSUPPORTED, f"the playlist has no web or rtsp entries ({skipped} skipped)"
+                )
+            )
+            return True
+        if skipped:
+            self._notice(
+                ErrorCode.UNSUPPORTED, f"skipped {skipped} playlist entries that are not web addresses"
+            )
+        self._playlist_depth += 1
+        self._confirmed = False
+        self._open_location(target)
+        return True
+
     def _on_error(self, _event: Any) -> None:
+        if self._uri is not None and is_network_uri(self._uri):
+            self._cancel_open_timer()
+            self._fail(self._network_error(self._last_error()))
+            return
         code = ErrorCode.MEDIA_OPEN_FAILED if self.state is S.LOADING else ErrorCode.ENGINE_FAILURE
         self._fail(PlaybackError(code, self._last_error()))
 
@@ -769,6 +942,20 @@ class LibVlcEngine(EngineBase):
         errors = [line for line in self._log if line.startswith("4 ")]
         return errors[-1][2:] if errors else "libVLC reported an error"  # strip the log-level prefix
 
+    def _read_metadata(self, media: Any) -> tuple[tuple[str, str], ...]:
+        meta = self._vlc.Meta
+        file_name = Path(self._uri).name if self._uri and not is_network_uri(self._uri) else ""
+        out = []
+        for name, label in _META_FIELDS:
+            value = media.get_meta(getattr(meta, name))
+            if isinstance(value, bytes):
+                value = value.decode("utf-8", "replace")
+            value = " ".join(str(value or "").split())[:500]
+            # libVLC reports the file name (or the address) as the title of untagged media.
+            if value and not (name == "Title" and value in (file_name, self._uri, Path(file_name).stem)):
+                out.append((label, value))
+        return tuple(out)
+
     def _read_tracks(self) -> list[_Track]:
         return read_media_tracks(self._vlc, self._media)
 
@@ -792,6 +979,12 @@ class LibVlcEngine(EngineBase):
                     title=names.get(t.id),
                     language=t.language,
                     codec=t.codec,
+                    width=t.width,
+                    height=t.height,
+                    frame_rate=t.fps,
+                    channels=t.channels,
+                    sample_rate=t.rate,
+                    bitrate=t.bitrate,
                     selected=(
                         kinds[t.type] is TrackKind.VIDEO
                         or (kinds[t.type] is TrackKind.AUDIO and t.id == audio_sel)
@@ -828,6 +1021,8 @@ class LibVlcEngine(EngineBase):
                     frame_rate=player.get_fps() or (raw_video.fps if raw_video else 0.0) or None,
                     audio_codec=audio.codec if audio else None,
                     tracks=tracks,
+                    chapters=read_chapters(self._vlc, player),
+                    metadata=self._read_metadata(media),
                 )
             )
             self._size_retries = 6 if (video is not None and not width) else 0

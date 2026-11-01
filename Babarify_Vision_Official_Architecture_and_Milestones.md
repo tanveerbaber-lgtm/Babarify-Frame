@@ -837,7 +837,7 @@ Use the following checklist as the project status source of truth. Mark a milest
 - [x] M5 — Audio and Subtitle Studio — **CONDITIONAL**, accepted by the owner 2026-10-31 ([report](docs/milestones/M5/acceptance-report.md))
 - [x] M6 — Media Library and Personal History — **PASS**, accepted by the owner 2026-10-31 ([report](docs/milestones/M6/acceptance-report.md))
 - [x] M7 — Picture and Audio Enhancement — **PASS**, accepted by the owner 2026-11-01 ([report](docs/milestones/M7/acceptance-report.md))
-- [ ] M8 — Advanced Media and Network Features
+- [x] M8 — Advanced Media and Network Features — **PASS**, accepted by the owner 2026-11-01 ([report](docs/milestones/M8/acceptance-report.md))
 - [ ] M9 — Intelligent and Optional AI Features
 - [ ] M10 — Windows Packaging, Security, and Release
 - [ ] M11 — Public Beta and User Feedback
@@ -850,8 +850,8 @@ Use the following checklist as the project status source of truth. Mark a milest
 ### Current status
 
 **Project planning baseline:** Defined in this document.  
-**Implementation status:** M1 accepted as CONDITIONAL, M2 as PASS, M3 as CONDITIONAL, M4 as PASS (2026-10-27), M5 as CONDITIONAL, M6 as PASS (2026-10-31), M7 as PASS (2026-11-01). Playback engine: libVLC, provisional ([ADR-0001](docs/decisions/ADR-0001-playback-engine.md)).  
-**Next action:** M8 — Advanced Media and Network Features. Open from M5: committed subtitle render check (`tools/subtitle_render_check.py`).
+**Implementation status:** M1 accepted as CONDITIONAL, M2 as PASS, M3 as CONDITIONAL, M4 as PASS (2026-10-27), M5 as CONDITIONAL, M6 as PASS (2026-10-31), M7 as PASS (2026-11-01), M8 as PASS (2026-11-01). Playback engine: libVLC, provisional ([ADR-0001](docs/decisions/ADR-0001-playback-engine.md)).  
+**Next action:** M9 — Intelligent and Optional AI Features. Open from M5: committed subtitle render check (`tools/subtitle_render_check.py`).
 
 ---
 

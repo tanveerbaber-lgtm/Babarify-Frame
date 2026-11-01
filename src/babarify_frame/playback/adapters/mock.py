@@ -2,8 +2,11 @@
 
 It never decodes media. Time only moves when ``advance()`` is called.
 
-Mock URIs: ``mock://<name>?duration=<ms>&fail=open`` (all parameters optional).
-Existing local files are also accepted and get ``default_duration_ms``.
+Mock URIs: ``mock://<name>?duration=<ms>&fail=open&chapters=<n>`` (all parameters optional;
+``chapters`` splits the duration into n equal chapters, ``duration=0`` is a live stream).
+Existing local files are also accepted and get ``default_duration_ms``. http/https/rtsp
+addresses are simulated streams (M8): the host ``fail.invalid`` gives a network error, and
+the query takes the same parameters as mock URIs; without ``duration`` a stream is live.
 """
 
 from __future__ import annotations
@@ -21,6 +24,7 @@ from babarify_frame.core.enhancements import (
 )
 from babarify_frame.core.errors import ErrorCode, PlaybackError
 from babarify_frame.core.models import (
+    Chapter,
     EngineCapabilities,
     EngineOptions,
     MediaInfo,
@@ -29,6 +33,7 @@ from babarify_frame.core.models import (
     TrackInfo,
     TrackKind,
 )
+from babarify_frame.core.network import STREAM_SCHEMES, is_network_uri
 from babarify_frame.playback.contracts import EngineBase
 
 S = PlaybackState
@@ -42,7 +47,7 @@ _TINY_PNG = bytes.fromhex(
 
 class MockEngine(EngineBase):
     name = "mock"
-    allowed_schemes = frozenset({"mock", "file"})
+    allowed_schemes = frozenset({"mock", "file"}) | STREAM_SCHEMES
 
     def __init__(
         self,
@@ -86,6 +91,8 @@ class MockEngine(EngineBase):
             supports_frame_step=True,
             supports_frame_back_step=False,
             supports_snapshot=True,
+            network_schemes=STREAM_SCHEMES,
+            supports_chapters=True,
             hardware_decoding="unavailable",
             notes=("Simulated engine: no real decoding.",),
         )
@@ -104,22 +111,48 @@ class MockEngine(EngineBase):
     def _do_open(self, uri: str, autoplay: bool) -> None:
         self.calls.append(f"open:{uri}")
         parts = urlsplit(uri)
-        params = parse_qs(parts.query) if parts.scheme == "mock" else {}
+        network = is_network_uri(uri)
+        params = parse_qs(parts.query) if parts.scheme == "mock" or network else {}
+        if network and parts.hostname == "fail.invalid":
+            self._fail(
+                PlaybackError(ErrorCode.NETWORK_ERROR, "the server name fail.invalid could not be found")
+            )
+            return
         if params.get("fail") == ["open"]:
             self._fail(PlaybackError(ErrorCode.MEDIA_OPEN_FAILED, f"simulated open failure: {uri}"))
             return
-        duration = int(params.get("duration", [self.default_duration_ms])[0])
+        default = 0 if network else self.default_duration_ms
+        duration = int(params.get("duration", [default])[0])
+        count = int(params.get("chapters", ["0"])[0])
+        chapters = (
+            tuple(Chapter(i, duration * i // count, f"Part {i + 1}") for i in range(count))
+            if count > 0 and duration > 0
+            else ()
+        )
         self._pending = MediaInfo(
             uri=uri,
-            duration_ms=duration,
+            duration_ms=duration or None,
+            chapters=chapters,
+            metadata=(("Title", "Mock title"), ("Artist", "Mock artist")),
             video_codec="h264",
             width=1920,
             height=1080,
             frame_rate=30.0,
             audio_codec="aac",
             tracks=(
-                TrackInfo(1, TrackKind.VIDEO, codec="h264", selected=True),
-                TrackInfo(2, TrackKind.AUDIO, title="English", language="eng", codec="aac", selected=True),
+                TrackInfo(
+                    1, TrackKind.VIDEO, codec="h264", selected=True, width=1920, height=1080, frame_rate=30.0
+                ),
+                TrackInfo(
+                    2,
+                    TrackKind.AUDIO,
+                    title="English",
+                    language="eng",
+                    codec="aac",
+                    selected=True,
+                    channels=2,
+                    sample_rate=48000,
+                ),
                 TrackInfo(3, TrackKind.AUDIO, title="French", language="fra", codec="ac3"),
                 TrackInfo(4, TrackKind.SUBTITLE, title="English", language="eng", codec="subrip"),
                 TrackInfo(5, TrackKind.SUBTITLE, title="French", language="fra", codec="ass"),

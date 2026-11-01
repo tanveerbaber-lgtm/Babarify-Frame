@@ -1,4 +1,4 @@
-"""SQLite store for library folders, media, history and playlists (M6).
+"""SQLite store for library folders, media, history and playlists (M6), and bookmarks (M8).
 
 Design rules:
 * Local only: one file in the user's app-data folder; nothing is uploaded.
@@ -27,6 +27,7 @@ from pathlib import Path
 
 from babarify_frame.library.history import is_finished
 from babarify_frame.library.models import (
+    Bookmark,
     HistoryEntry,
     LibraryFolder,
     MediaEntry,
@@ -93,9 +94,21 @@ MIGRATIONS: tuple[tuple[str, ...], ...] = (
             title TEXT NOT NULL)""",
         "CREATE INDEX playlist_items_order ON playlist_items(playlist_id, position)",
     ),
+    (  # 3: timeline bookmarks (M8)
+        """CREATE TABLE bookmarks(
+            id INTEGER PRIMARY KEY,
+            path_key TEXT NOT NULL,
+            path TEXT NOT NULL,
+            position_ms INTEGER NOT NULL,
+            label TEXT NOT NULL,
+            created_at REAL NOT NULL)""",
+        "CREATE INDEX bookmarks_media ON bookmarks(path_key, position_ms)",
+    ),
 )
 SCHEMA_VERSION = len(MIGRATIONS)
 MAX_PLAYLIST_NAME = 120
+MAX_BOOKMARK_LABEL = 120
+MAX_BOOKMARKS_PER_FILE = 200
 
 
 class LibraryError(Exception):
@@ -621,6 +634,46 @@ class LibraryDatabase:
             ids.insert(target, ids.pop(index))
             for position, iid in enumerate(ids):
                 conn.execute("UPDATE playlist_items SET position = ? WHERE id = ?", (position, iid))
+
+    # ----------------------------------------------------------- bookmarks
+    @staticmethod
+    def _clean_label(label: str) -> str:
+        return " ".join(label.split())[:MAX_BOOKMARK_LABEL].strip()
+
+    def add_bookmark(self, path: str, position_ms: int, label: str) -> Bookmark:
+        """Add a bookmark; an empty label is allowed (the UI shows the time instead)."""
+        position_ms, clean, now = max(0, int(position_ms)), self._clean_label(label), time.time()
+        key = path_key(path)
+        with self._transaction() as conn:
+            count = conn.execute("SELECT COUNT(*) FROM bookmarks WHERE path_key = ?", (key,)).fetchone()[0]
+            if count >= MAX_BOOKMARKS_PER_FILE:
+                raise LibraryError(f"A file can have at most {MAX_BOOKMARKS_PER_FILE} bookmarks")
+            cur = conn.execute(
+                """INSERT INTO bookmarks(path_key, path, position_ms, label, created_at)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (key, path, position_ms, clean, now),
+            )
+        return Bookmark(int(cur.lastrowid or 0), path, position_ms, clean, now)
+
+    def bookmarks_for(self, path: str) -> list[Bookmark]:
+        rows = self._query(
+            "SELECT * FROM bookmarks WHERE path_key = ? ORDER BY position_ms, id", (path_key(path),)
+        )
+        return [Bookmark(r["id"], r["path"], r["position_ms"], r["label"], r["created_at"]) for r in rows]
+
+    def rename_bookmark(self, bookmark_id: int, label: str) -> None:
+        with self._transaction() as conn:
+            conn.execute(
+                "UPDATE bookmarks SET label = ? WHERE id = ?", (self._clean_label(label), bookmark_id)
+            )
+
+    def delete_bookmark(self, bookmark_id: int) -> None:
+        with self._transaction() as conn:
+            conn.execute("DELETE FROM bookmarks WHERE id = ?", (bookmark_id,))
+
+    def clear_bookmarks(self, path: str) -> None:
+        with self._transaction() as conn:
+            conn.execute("DELETE FROM bookmarks WHERE path_key = ?", (path_key(path),))
 
 
 def _local_exists(path: str) -> bool:

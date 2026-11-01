@@ -37,6 +37,7 @@ from babarify_frame.core.enhancements import (
 from babarify_frame.core.errors import ErrorCode, PlaybackError
 from babarify_frame.core.events import ErrorOccurred, MediaInfoChanged, Notice, StateChanged
 from babarify_frame.core.models import (
+    Chapter,
     EngineCapabilities,
     EngineOptions,
     MediaInfo,
@@ -44,14 +45,18 @@ from babarify_frame.core.models import (
     TrackInfo,
     TrackKind,
 )
-from babarify_frame.library.database import LibraryDatabase
+from babarify_frame.core.network import is_network_uri, stream_display_name
+from babarify_frame.library.database import LibraryDatabase, LibraryError
 from babarify_frame.library.history import SAVE_INTERVAL_MS, resume_position
+from babarify_frame.library.models import Bookmark
 from babarify_frame.playback.contracts import PlaybackEngine
 from babarify_frame.playback.controller import PlaybackController
 from babarify_frame.playback.factory import EngineFactory
+from babarify_frame.playback.preview import FramePreview
 from babarify_frame.ui import theme
 from babarify_frame.ui.bridge import UiBridge
 from babarify_frame.ui.controls import ControlBar
+from babarify_frame.ui.seek_preview import PreviewPopup, SeekPreview
 from babarify_frame.ui.subtitles import (
     DELAY_STEP_MS,
     SyncDialog,
@@ -80,6 +85,7 @@ VOLUME_STEP = 5
 HAS_MEDIA = frozenset({S.LOADING, S.PLAYING, S.PAUSED, S.BUFFERING, S.ENDED})
 SEEKABLE = frozenset({S.PLAYING, S.PAUSED, S.BUFFERING, S.ENDED})
 TRACK_STATES = frozenset({S.PLAYING, S.PAUSED, S.BUFFERING, S.ENDED})  # engines accept track changes
+CHAPTER_RESTART_MS = 3000  # "previous chapter" within this of a chapter start goes one further back
 
 
 @dataclass(frozen=True)
@@ -106,6 +112,8 @@ class PlayerPage(QWidget):
     picture_changed = Signal(object)  # PictureSettings (M7), for the window to persist
     equalizer_changed = Signal(object)  # EqualizerSettings
     enhancements_reset = Signal()  # the engine was (re)created: refresh controls from capabilities
+    bookmarks_changed = Signal()  # M8: the current file's bookmarks changed (or another file opened)
+    media_info_changed = Signal()  # M8: tracks, tags or chapters of the current file changed
 
     def __init__(
         self,
@@ -114,6 +122,7 @@ class PlayerPage(QWidget):
         prefs: Preferences,
         parent: QWidget | None = None,
         history: LibraryDatabase | None = None,
+        preview_factory: Callable[[], FramePreview] | None = None,
     ) -> None:
         super().__init__(parent)
         self.setObjectName("page")
@@ -147,6 +156,12 @@ class PlayerPage(QWidget):
         self._transform = VideoTransform.NONE  # this session only; applied when the engine is created
         self._geometry: tuple[str, str, float] = ("", "", 0.0)  # per file
         self._ab: tuple[int | None, int | None] = (None, None)  # A-B repeat points, per file
+        # Advanced media (M8)
+        self._bookmarks: list[Bookmark] = []
+        self._preview = SeekPreview(preview_factory, self) if preview_factory is not None else None
+        self._preview_path: str | None = None
+        self._popup = PreviewPopup(self)
+        self._hover: tuple[int, QPoint] | None = None
         self.last_error = ""  # most recent playback error, for the Playback info panel
         self._media_name = ""
         self._state = S.UNINITIALIZED
@@ -198,6 +213,9 @@ class PlayerPage(QWidget):
             box.addWidget(label, alignment=Qt.AlignmentFlag.AlignHCenter)
         self._message_body.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self._message_body.setMaximumWidth(640)
+        # A word-wrapped label centred in a box is otherwise laid out too narrow and too short,
+        # cutting off long reasons (M8 evidence: a network refusal lost its last line).
+        self._message_body.setMinimumWidth(480)
         self._message_action = QPushButton("Open another file…")
         self._message_action.setAccessibleName("Open another file")
         self._message_action.clicked.connect(self.open_requested)
@@ -221,6 +239,10 @@ class PlayerPage(QWidget):
         c.rate_selected.connect(self.set_rate)
         c.fullscreen_clicked.connect(self.fullscreen_requested)
         c.tracks_menu_opening.connect(self._fill_tracks_menu)
+        c.seek.hovered.connect(self._on_seek_hover)
+        c.seek.hover_left.connect(self._on_seek_left)
+        if self._preview is not None:
+            self._preview.frame_ready.connect(self._on_preview_frame)
 
     # ----------------------------------------------------------- engine
     @property
@@ -327,7 +349,12 @@ class PlayerPage(QWidget):
             if start:
                 self._resume_position = start
                 self._resumed_from_history = True
-        self._media_name = Path(path).name if "://" not in path else path
+        if is_network_uri(path):
+            self._media_name = stream_display_name(path)  # never the query: it can hold tokens
+        else:
+            self._media_name = Path(path).name if "://" not in path else path
+        self._set_preview(None)
+        self._load_bookmarks()
         self._geometry = ("", "", 0.0)  # aspect, crop and zoom belong to a file
         self._ab = (None, None)
         self._tracks_applied = False
@@ -368,6 +395,133 @@ class PlayerPage(QWidget):
         if self._state in SEEKABLE:
             self.seek_to(0)
             self.status_changed.emit("From the beginning")
+
+    # --------------------------------------------- chapters and bookmarks (M8)
+    @property
+    def chapters(self) -> tuple[Chapter, ...]:
+        info = self._controller.media_info() if self.engine_is_ready else None
+        return info.chapters if info is not None and self.has_media else ()
+
+    def current_chapter(self) -> Chapter | None:
+        info = self._controller.media_info() if self.engine_is_ready else None
+        if info is None or not info.chapters:
+            return None
+        return info.chapter_at(self._controller.status().position_ms)
+
+    def jump_to_chapter(self, index: int) -> None:
+        chapters = self.chapters
+        if 0 <= index < len(chapters) and self.is_seekable:
+            chapter = chapters[index]
+            self.seek_to(chapter.start_ms)
+            self.status_changed.emit(f"Chapter {index + 1} of {len(chapters)}: {chapter.label}")
+
+    def next_chapter(self) -> None:
+        position = self._controller.status().position_ms if self.engine_is_ready else 0
+        later = [c for c in self.chapters if c.start_ms > position + 500]
+        if later:
+            self.jump_to_chapter(later[0].index)
+        elif self.chapters:
+            self.status_changed.emit("Last chapter")
+
+    def previous_chapter(self) -> None:
+        current = self.current_chapter()
+        if current is None:
+            return
+        position = self._controller.status().position_ms
+        if position - current.start_ms > CHAPTER_RESTART_MS or current.index == 0:
+            self.jump_to_chapter(current.index)
+        else:
+            self.jump_to_chapter(current.index - 1)
+
+    @property
+    def bookmarks(self) -> list[Bookmark]:
+        return list(self._bookmarks)
+
+    @property
+    def can_bookmark(self) -> bool:
+        return self._history is not None and self._current_uri is not None and self.is_seekable
+
+    def _load_bookmarks(self) -> None:
+        self._bookmarks = []
+        if self._history is not None and self._current_uri is not None:
+            try:
+                self._bookmarks = self._history.bookmarks_for(self._current_uri)
+            except sqlite3.Error:
+                log.exception("could not read bookmarks")
+        self._update_marks()
+        self.bookmarks_changed.emit()
+
+    def add_bookmark(self, label: str = "") -> Bookmark | None:
+        if not self.can_bookmark or self._history is None or self._current_uri is None:
+            return None
+        position = self._controller.status().position_ms
+        try:
+            bookmark = self._history.add_bookmark(self._current_uri, position, label)
+        except LibraryError as exc:
+            self.status_changed.emit(str(exc))
+            return None
+        except sqlite3.Error:
+            log.exception("could not add bookmark")
+            self.status_changed.emit("The bookmark could not be saved")
+            return None
+        self._load_bookmarks()
+        self.status_changed.emit(f"Bookmark added at {format_time(position)}")
+        return bookmark
+
+    def rename_bookmark(self, bookmark_id: int, label: str) -> None:
+        if self._history is not None:
+            self._history.rename_bookmark(bookmark_id, label)
+            self._load_bookmarks()
+
+    def delete_bookmark(self, bookmark_id: int) -> None:
+        if self._history is not None:
+            self._history.delete_bookmark(bookmark_id)
+            self._load_bookmarks()
+
+    def _update_marks(self) -> None:
+        chapters = tuple(c.start_ms for c in self.chapters)
+        self.controls.seek.set_marks(chapters, tuple(b.position_ms for b in self._bookmarks))
+
+    # ------------------------------------------------- seek previews (M8)
+    @property
+    def preview(self) -> SeekPreview | None:
+        return self._preview
+
+    def _set_preview(self, path: str | None) -> None:
+        if self._preview is None:
+            return
+        if path is not None and not self._prefs.seek_previews:
+            path = None
+        if path == self._preview_path:
+            return
+        self._preview_path = path
+        self._preview.set_media(path, self._duration_ms if path else None)
+
+    def _hover_text(self, position_ms: int) -> str:
+        info = self._controller.media_info() if self.engine_is_ready else None
+        chapter = info.chapter_at(position_ms) if info is not None else None
+        text = format_time(position_ms)
+        return f"{text} · {chapter.label}" if chapter is not None else text
+
+    def _on_seek_hover(self, position_ms: int, anchor: QPoint) -> None:
+        if not self.is_seekable:
+            return
+        self._hover = (position_ms, anchor)
+        pixmap = (
+            self._preview.request(position_ms) if self._preview is not None and self._preview_path else None
+        )
+        self._popup.show_at(anchor, self._hover_text(position_ms), pixmap)
+
+    def _on_seek_left(self) -> None:
+        self._hover = None
+        self._popup.hide()
+
+    def _on_preview_frame(self, bucket: int) -> None:
+        if self._hover is None or self._preview is None:
+            return
+        position, anchor = self._hover
+        if self._preview.bucket_of(position) == bucket:
+            self._popup.show_at(anchor, self._hover_text(position), self._preview.pixmap(bucket))
 
     # ---------------------------------------------------- history (M6)
     @property
@@ -517,7 +671,14 @@ class PlayerPage(QWidget):
             prefs.hardware_decoding != self._prefs.hardware_decoding
             or (style_changed and self._controller.capabilities().subtitle_style == "restart")
         )
+        previews_changed = prefs.seek_previews != self._prefs.seek_previews
         self._prefs = prefs
+        if previews_changed:
+            info = self._controller.media_info() if self.engine_is_ready else None
+            if prefs.seek_previews and info is not None:
+                self._apply_media_info(info)  # starts previews for a local video
+            else:
+                self._set_preview(None)
         if boost_changed:
             self.controls.set_volume_maximum(self.volume_maximum)
             if self.controls.volume.value() > self.volume_maximum:
@@ -952,6 +1113,15 @@ class PlayerPage(QWidget):
 
     def _apply_media_info(self, info: MediaInfo) -> None:
         self._duration_ms = info.duration_ms
+        self._update_marks()
+        if (
+            info.video_codec
+            and info.duration_ms
+            and self._current_uri
+            and not is_network_uri(self._current_uri)
+        ):
+            self._set_preview(self._current_uri)
+        self.media_info_changed.emit()
         self.controls.set_position(self._controller.status().position_ms, info.duration_ms)
         if info.video_codec is None and info.audio_codec is not None:
             self._is_audio_only = True
@@ -1022,6 +1192,9 @@ class PlayerPage(QWidget):
             self._sync_dialog.close()
         self._position_timer.stop()
         self._cursor_timer.stop()
+        self._popup.hide()
+        if self._preview is not None:
+            self._preview.shutdown()
         self._controller.shutdown()
         if self._engine_thread is not None:
             self._engine_thread.join(timeout=10)

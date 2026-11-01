@@ -27,7 +27,7 @@ from babarify_frame.playback.media_probe import THUMBNAIL_WIDTH, MediaProbe, Pro
 
 PARSE_TIMEOUT_S = 4.0
 FRAME_TIMEOUT_S = 4.0
-_PROBE_ARGS = ("--no-video-title-show", "--no-audio", "--no-spu", "--no-osd", "--no-stats")
+_PROBE_ARGS = ("--no-video-title-show", "--no-lua", "--no-audio", "--no-spu", "--no-osd", "--no-stats")
 
 _FormatCb = ctypes.CFUNCTYPE(
     ctypes.c_uint,

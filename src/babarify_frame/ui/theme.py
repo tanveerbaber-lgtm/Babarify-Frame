@@ -170,6 +170,7 @@ QListWidget::item {{ padding: {S}px {M}px; border-radius: {RADIUS_S}px; }}
 QListWidget::item:hover {{ background: {SURFACE_RAISED}; }}
 QListWidget::item:selected {{ background: {SURFACE_PRESSED}; color: {TEXT}; }}
 QListWidget:focus, QListView:focus {{ border: 1px solid {CYAN}; }}
+QTextBrowser, QTextEdit, QPlainTextEdit {{ background: {SURFACE}; color: {TEXT}; border: 1px solid {BORDER}; border-radius: {RADIUS_S}px; padding: {S}px; selection-background-color: {SURFACE_PRESSED}; }}
 QTabBar::tab {{
     background: transparent; color: {TEXT_MUTED}; padding: {S}px {L}px; margin-right: {XS}px;
     border: none; border-bottom: 2px solid transparent;

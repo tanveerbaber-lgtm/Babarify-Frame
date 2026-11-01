@@ -47,20 +47,25 @@ from babarify_frame import PRODUCT_NAME, TAGLINE, __version__
 from babarify_frame.configuration.preferences import Preferences, PreferencesStore, WindowGeometry
 from babarify_frame.core.enhancements import EqualizerSettings
 from babarify_frame.core.models import SUBTITLE_EXTENSIONS, PlaybackState
+from babarify_frame.core.network import is_network_uri
 from babarify_frame.library.database import LibraryDatabase
 from babarify_frame.library.models import HistoryEntry
 from babarify_frame.library.service import LibraryService
 from babarify_frame.playback.controller import PlaybackController
 from babarify_frame.playback.factory import EngineFactory
+from babarify_frame.playback.preview import FramePreview
 from babarify_frame.ui import theme
+from babarify_frame.ui.bookmarks import BookmarksDialog
 from babarify_frame.ui.diagnostics import PlaybackInfoDialog
 from babarify_frame.ui.enhancements import EnhancementsDialog
+from babarify_frame.ui.media_info import MediaInfoDialog
+from babarify_frame.ui.network import NetworkStreamDialog
 from babarify_frame.ui.pages.home import SHORTCUTS, HomePage
 from babarify_frame.ui.pages.library import LibraryPage
 from babarify_frame.ui.pages.player import VOLUME_STEP, PlayerPage
 from babarify_frame.ui.pages.settings import SettingsPage
 from babarify_frame.ui.subtitles import SUBTITLE_FILTER
-from babarify_frame.ui.widgets import glyph_icon
+from babarify_frame.ui.widgets import format_time, glyph_icon
 
 MEDIA_FILTER = (
     "Media files (*.mp4 *.m4v *.mkv *.mov *.avi *.wmv *.webm *.ts *.mts *.m2ts *.mpg *.mpeg *.vob "
@@ -78,6 +83,7 @@ class MainWindow(QMainWindow):
         engine_name: str = "libvlc",
         store: PreferencesStore | None = None,
         library: LibraryService | None = None,
+        preview_factory: Callable[[], FramePreview] | None = None,
     ) -> None:
         super().__init__()
         self._store = store or PreferencesStore()
@@ -87,6 +93,8 @@ class MainWindow(QMainWindow):
         self._was_maximized = False
         self._info_dialog: PlaybackInfoDialog | None = None
         self._enhancements: EnhancementsDialog | None = None
+        self._media_info_dialog: MediaInfoDialog | None = None
+        self._bookmarks_dialog: BookmarksDialog | None = None
 
         self.setWindowTitle(PRODUCT_NAME)
         self.setWindowIcon(icon)
@@ -95,7 +103,9 @@ class MainWindow(QMainWindow):
 
         self.home = HomePage(icon)
         db = self.library_service.db
-        self.player = PlayerPage(factory, engine_name, self._prefs, history=db)
+        self.player = PlayerPage(
+            factory, engine_name, self._prefs, history=db, preview_factory=preview_factory
+        )
         self.library = LibraryPage(self.library_service, self._prefs.library_sort)
         self.settings = SettingsPage(self._prefs, self._store.path, library_path=db.path)
         self._pages = QStackedWidget()
@@ -175,6 +185,7 @@ class MainWindow(QMainWindow):
         K = QKeySequence
         p = self.player
         self.open_action = self._action("&Open file…", [K(K.StandardKey.Open)], self.choose_file)
+        self.open_stream_action = self._action("Open network &stream…", [K("Ctrl+N")], self.choose_stream)
         quit_action = self._action("E&xit", [K("Ctrl+Q")], self.close)
         self.home_action = self._action("&Home", [K("Ctrl+1")], lambda: self.show_page(self.home))
         self.player_action = self._action("&Now Playing", [K("Ctrl+2")], lambda: self.show_page(self.player))
@@ -231,6 +242,14 @@ class MainWindow(QMainWindow):
             "Pre&vious frame", [K(Qt.Key.Key_Comma)], lambda: p.frame_step(backward=True)
         )
         self.ab_action = self._action("&A-B repeat", [K(Qt.Key.Key_L)], p.ab_loop_step)
+        # Advanced media (M8)
+        self.next_chapter_action = self._action("Next c&hapter", [K("Ctrl+Right")], p.next_chapter)
+        self.previous_chapter_action = self._action("Previous chap&ter", [K("Ctrl+Left")], p.previous_chapter)
+        self.add_bookmark_action = self._action("Add &bookmark", [K("Ctrl+B")], lambda: p.add_bookmark())
+        self.bookmarks_action = self._action("Boo&kmarks…", [K("Ctrl+Shift+B")], self.show_bookmarks)
+        self.media_info_action = self._action(
+            "&Media information…", [K("Ctrl+Shift+I")], self.show_media_info
+        )
         self._track_actions = (
             self.next_subtitle_action,
             self.next_audio_action,
@@ -255,6 +274,7 @@ class MainWindow(QMainWindow):
         menus = self.menuBar()
         file_menu = menus.addMenu("&File")
         file_menu.addAction(self.open_action)
+        file_menu.addAction(self.open_stream_action)
         file_menu.addAction(self.load_subtitle_action)
         file_menu.addAction(self.add_folder_action)
         file_menu.addSeparator()
@@ -263,6 +283,13 @@ class MainWindow(QMainWindow):
         for action in self._playback_actions[:4]:
             play_menu.addAction(action)
         play_menu.addAction(self.start_over_action)
+        play_menu.addSeparator()
+        play_menu.addAction(self.next_chapter_action)
+        play_menu.addAction(self.previous_chapter_action)
+        self.chapters_menu = play_menu.addMenu("&Chapters")
+        self.chapters_menu.aboutToShow.connect(self._fill_chapters_menu)
+        play_menu.addAction(self.add_bookmark_action)
+        play_menu.addAction(self.bookmarks_action)
         play_menu.addSeparator()
         play_menu.addAction(self.next_action)
         play_menu.addAction(self.previous_action)
@@ -293,6 +320,7 @@ class MainWindow(QMainWindow):
         view_menu.addSeparator()
         view_menu.addAction(self.fullscreen_action)
         view_menu.addAction(self.info_action)
+        view_menu.addAction(self.media_info_action)
         help_menu = menus.addMenu("&Help")
         help_menu.addAction(shortcuts_action)
         help_menu.addAction(about_action)
@@ -317,6 +345,9 @@ class MainWindow(QMainWindow):
         self.home.play_requested.connect(self.open_path)
         self.home.forget_requested.connect(self._forget)
         self.player.history_changed.connect(self._history_changed)
+        self.player.bookmarks_changed.connect(self._refresh_bookmarks)
+        self.player.media_info_changed.connect(self._refresh_media_info)
+        self.player.media_info_changed.connect(self._update_actions)
         self.player.picture_changed.connect(lambda v: self._remember(picture=v))
         self.player.equalizer_changed.connect(lambda v: self._remember(equalizer=v))
         self.player.enhancements_reset.connect(self._refresh_enhancements)
@@ -393,6 +424,14 @@ class MainWindow(QMainWindow):
         for action in self._track_actions:
             action.setEnabled(on_player and p.can_change_tracks)
         self.sync_action.setEnabled(p.has_media and p.state is not PlaybackState.ERROR)
+        self.open_stream_action.setEnabled(ready)
+        has_chapters = on_player and p.is_seekable and len(p.chapters) > 1
+        for action in (self.next_chapter_action, self.previous_chapter_action):
+            action.setEnabled(has_chapters)
+        self.chapters_menu.setEnabled(has_chapters)
+        self.add_bookmark_action.setEnabled(on_player and p.can_bookmark)
+        self.bookmarks_action.setEnabled(p.has_media)
+        self.media_info_action.setEnabled(ready)
 
     # ---------------------------------------------------------- commands
     def choose_file(self) -> None:
@@ -405,6 +444,68 @@ class MainWindow(QMainWindow):
     def open_path(self, path: str) -> None:
         self.show_page(self.player)
         self.player.open_path(path)
+
+    def choose_stream(self) -> NetworkStreamDialog | None:
+        """Ask for a network address (M8). Returns the dialog (tests drive it); opens on accept."""
+        if not self.player.engine_is_ready:
+            return None
+        caps = self.player.capabilities_or_none()
+        recent = []
+        if self._prefs.remember_history:
+            recent = [e.path for e in self.library_service.db.recent(50) if is_network_uri(e.path)][:8]
+        dialog = NetworkStreamDialog(caps.network_schemes if caps else frozenset(), recent, self)
+        dialog.accepted.connect(lambda: self.open_path(dialog.url) if dialog.url else None)
+        dialog.open()
+        return dialog
+
+    # ------------------------------------------- chapters, bookmarks, info (M8)
+    def _fill_chapters_menu(self) -> None:
+        menu = self.chapters_menu
+        menu.clear()
+        current = self.player.current_chapter()
+        for chapter in self.player.chapters[:200]:
+            label = f"{format_time(chapter.start_ms)}  {chapter.label}".replace("&", "&&")
+            action = menu.addAction(label)
+            action.setCheckable(True)
+            action.setChecked(current is not None and chapter.index == current.index)
+            action.triggered.connect(lambda _=False, i=chapter.index: self.player.jump_to_chapter(i))
+
+    def show_bookmarks(self) -> BookmarksDialog:
+        if self._bookmarks_dialog is None:
+            dialog = BookmarksDialog(self)
+            dialog.jump_requested.connect(self.player.seek_to)
+            dialog.add_requested.connect(lambda: self.player.add_bookmark())
+            dialog.rename_requested.connect(self.player.rename_bookmark)
+            dialog.delete_requested.connect(self.player.delete_bookmark)
+            self._bookmarks_dialog = dialog
+        self._refresh_bookmarks()
+        self._bookmarks_dialog.show()
+        self._bookmarks_dialog.raise_()
+        return self._bookmarks_dialog
+
+    def _refresh_bookmarks(self) -> None:
+        if self._bookmarks_dialog is not None:
+            p = self.player
+            name = p.controls.title_label.toolTip() if p.has_media else ""
+            self._bookmarks_dialog.set_bookmarks(name, p.bookmarks, can_add=p.can_bookmark)
+        self._update_actions()
+
+    def show_media_info(self) -> MediaInfoDialog:
+        if self._media_info_dialog is None:
+            self._media_info_dialog = MediaInfoDialog(self)
+        self._refresh_media_info()
+        self._media_info_dialog.show()
+        self._media_info_dialog.raise_()
+        return self._media_info_dialog
+
+    def _refresh_media_info(self) -> None:
+        dialog = self._media_info_dialog
+        if dialog is None:
+            return
+        p = self.player
+        status = p.controller.status() if p.engine_is_ready else None
+        uri = status.uri if status is not None and p.has_media and status.uri else ""
+        dialog.set_media(p.controller.media_info() if uri else None, uri)
 
     def play_list(self, paths: list[str], start: int = 0) -> None:
         self.show_page(self.player)
@@ -590,7 +691,8 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------ window
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
         urls = event.mimeData().urls()
-        if self.player.engine_is_ready and urls and urls[0].isLocalFile():
+        dropped_stream = bool(urls) and is_network_uri(urls[0].toString())  # a link from a browser (M8)
+        if self.player.engine_is_ready and urls and (urls[0].isLocalFile() or dropped_stream):
             event.acceptProposedAction()
             self.home.set_drag_active(True)
 
@@ -601,6 +703,10 @@ class MainWindow(QMainWindow):
     def dropEvent(self, event: QDropEvent) -> None:
         self.home.set_drag_active(False)
         urls = event.mimeData().urls()
+        if urls and not urls[0].isLocalFile() and is_network_uri(urls[0].toString()):
+            self.open_path(urls[0].toString())  # validated by the engine like a typed address
+            event.acceptProposedAction()
+            return
         if urls and urls[0].isLocalFile() and Path(urls[0].toLocalFile()).is_dir():
             self.add_library_folder(urls[0].toLocalFile())  # a dropped folder joins the library
             event.acceptProposedAction()
@@ -646,6 +752,11 @@ class MainWindow(QMainWindow):
             "<tr><td><b>J / K</b></td><td>Audio 50 ms earlier / later</td></tr>"
             "<tr><td><b>Ctrl+D</b></td><td>Sync and delay</td></tr>"
             "<tr><td><b>Ctrl+Shift+O</b>&nbsp;&nbsp;</td><td>Load subtitle file</td></tr>"
+            "<tr><td><b>Ctrl+N</b></td><td>Open network stream</td></tr>"
+            "<tr><td><b>Ctrl+→ / Ctrl+←</b>&nbsp;&nbsp;</td><td>Next / previous chapter</td></tr>"
+            "<tr><td><b>Ctrl+B</b></td><td>Add bookmark</td></tr>"
+            "<tr><td><b>Ctrl+Shift+B</b>&nbsp;&nbsp;</td><td>Bookmarks</td></tr>"
+            "<tr><td><b>Ctrl+Shift+I</b>&nbsp;&nbsp;</td><td>Media information</td></tr>"
             "<tr><td><b>F1</b></td><td>This list</td></tr>"
         )
         QMessageBox.information(

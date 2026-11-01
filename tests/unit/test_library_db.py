@@ -38,7 +38,7 @@ def scan(db: LibraryDatabase, folder_path: Path, cancel: threading.Event | None 
 # ------------------------------------------------------------ migrations
 def test_fresh_database_has_current_schema(tmp_path: Path) -> None:
     db = LibraryDatabase(tmp_path / "library.db")
-    assert db.schema_version == SCHEMA_VERSION == 2
+    assert db.schema_version == SCHEMA_VERSION == 3
     assert db.recovered is None and db.read_only_reason is None
     db.close()
 
@@ -53,10 +53,11 @@ def test_version_1_database_migrates_and_keeps_data(tmp_path: Path) -> None:
     )
     conn.close()
     db = LibraryDatabase(path)
-    assert db.schema_version == 2
+    assert db.schema_version == 3
     row = db._query("SELECT position_ms, play_count FROM history WHERE path_key = 'k'")[0]
     assert (row[0], row[1]) == (42000, 3)
     assert db.playlists() == []  # the v2 tables exist
+    assert db.bookmarks_for("C:/a.mkv") == []  # and the v3 table
     db.close()
 
 
@@ -66,8 +67,8 @@ def test_failed_migration_rolls_back(tmp_path: Path, monkeypatch: pytest.MonkeyP
     monkeypatch.setattr(dbmod, "MIGRATIONS", (*dbmod.MIGRATIONS, ("CREATE TABLE extra(x)", "NOT VALID SQL")))
     conn = sqlite3.connect(path, isolation_level=None)
     with pytest.raises(sqlite3.OperationalError):
-        LibraryDatabase._migrate(conn, target=3)
-    assert conn.execute("PRAGMA user_version").fetchone()[0] == 2
+        LibraryDatabase._migrate(conn, target=4)
+    assert conn.execute("PRAGMA user_version").fetchone()[0] == 3
     assert conn.execute("SELECT name FROM sqlite_master WHERE name = 'extra'").fetchone() is None
     conn.close()
 
@@ -329,3 +330,41 @@ def test_playlists(db: LibraryDatabase, tmp_path: Path) -> None:
 
 def test_playlist_name_is_limited(db: LibraryDatabase) -> None:
     assert len(db.create_playlist("x" * 500).name) == dbmod.MAX_PLAYLIST_NAME
+
+
+# ------------------------------------------------------------ bookmarks (M8)
+def test_bookmarks_are_kept_per_file_in_time_order(tmp_path: Path) -> None:
+    db = LibraryDatabase(tmp_path / "library.db")
+    db.add_bookmark("C:/Films/a.mkv", 90_000, "  The   chase ")
+    db.add_bookmark("C:/Films/a.mkv", 30_000, "")
+    db.add_bookmark("C:/Films/b.mkv", 5_000, "other")
+    marks = db.bookmarks_for("c:/films/A.mkv")  # same file, different spelling (path_key)
+    assert [(b.position_ms, b.label) for b in marks] == [(30_000, ""), (90_000, "The chase")]
+    db.rename_bookmark(marks[0].id, "Start " * 40)
+    assert db.bookmarks_for("C:/Films/a.mkv")[0].label == ("Start " * 40)[:120].strip()
+    db.delete_bookmark(marks[1].id)
+    assert len(db.bookmarks_for("C:/Films/a.mkv")) == 1
+    db.clear_bookmarks("C:/Films/a.mkv")
+    assert db.bookmarks_for("C:/Films/a.mkv") == [] and len(db.bookmarks_for("C:/Films/b.mkv")) == 1
+    db.close()
+
+
+def test_bookmark_limit_and_stream_addresses(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(dbmod, "MAX_BOOKMARKS_PER_FILE", 3)
+    db = LibraryDatabase(tmp_path / "library.db")
+    url = "https://example.com/show.mp4?token=1"
+    for ms in (1, 2, 3):
+        db.add_bookmark(url, ms * 1000, "")
+    with pytest.raises(LibraryError):
+        db.add_bookmark(url, 4000, "")
+    assert db.add_bookmark("C:/other.mkv", -5, "").position_ms == 0  # clamped
+    db.close()
+
+
+def test_clearing_history_keeps_bookmarks(tmp_path: Path) -> None:
+    db = LibraryDatabase(tmp_path / "library.db")
+    db.record_play("C:/a.mkv", "a.mkv", 600_000)
+    db.add_bookmark("C:/a.mkv", 12_000, "note")
+    db.clear_history()
+    assert db.history_count() == 0 and len(db.bookmarks_for("C:/a.mkv")) == 1
+    db.close()

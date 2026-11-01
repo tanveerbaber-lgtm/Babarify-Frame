@@ -47,6 +47,9 @@ Drop a folder (or use *File → Add folder to library…*) to add it to the **Li
 folders you choose are scanned, in the background, and files are never modified or deleted.
 Files continue where you stopped; *Home* lists *Continue watching* and *Recently played*.
 History stays on this PC and can be turned off or cleared in *Settings → Privacy*.
+Network streams (http, https, HLS, internet radio, rtsp) open with **Ctrl+N** or by dropping a
+link; Babarify fetches web streams itself and never follows a redirect or playlist entry to a
+local file or another program. Point at the seek bar for a preview picture (local videos).
 
 | Key | Action |
 |---|---|
@@ -58,6 +61,10 @@ History stays on this PC and can be turned off or cleared in *Settings → Priva
 | F, F11, double-click video | Fullscreen (Esc to leave) |
 | Ctrl+1 / 2 / 3 | Home / Now Playing / Settings |
 | Ctrl+O / Ctrl+Q | Open / exit |
+| Ctrl+N | Open a network stream |
+| Ctrl+→ / Ctrl+← | Next / previous chapter (also *Playback → Chapters*) |
+| Ctrl+B / Ctrl+Shift+B | Add a bookmark / list bookmarks |
+| Ctrl+Shift+I | Media information (tracks, tags, chapters) |
 | Ctrl+I | Playback info (decoder, frames, engine log) |
 | Ctrl+L | Library |
 | N / P | Next / previous in playlist |

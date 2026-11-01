@@ -1,0 +1,47 @@
+{
+  "previews": [
+    {
+      "file": "h264_1080p30_aac.mp4",
+      "opened": true,
+      "open_ms": 878,
+      "frames": 20,
+      "missing": 0,
+      "median_ms": 129,
+      "worst_ms": 355
+    },
+    {
+      "file": "hevc_2160p30_aac.mkv",
+      "opened": true,
+      "open_ms": 371,
+      "frames": 20,
+      "missing": 0,
+      "median_ms": 688,
+      "worst_ms": 1187
+    },
+    {
+      "file": "av1_1080p30_opus.mkv",
+      "opened": true,
+      "open_ms": 807,
+      "frames": 15,
+      "missing": 5,
+      "median_ms": 64,
+      "worst_ms": 383
+    },
+    {
+      "file": "e_long_1h_240p.mkv",
+      "opened": true,
+      "open_ms": 659,
+      "frames": 20,
+      "missing": 0,
+      "median_ms": 10,
+      "worst_ms": 115
+    }
+  ],
+  "proxy": {
+    "file": "hevc_2160p30_aac.mkv",
+    "bytes": 33177347,
+    "direct_mb_s": 910,
+    "proxy_mb_s": 412,
+    "same_size": true
+  }
+}

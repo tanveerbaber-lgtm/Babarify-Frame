@@ -4,8 +4,17 @@ from __future__ import annotations
 
 from functools import cache
 
-from PySide6.QtCore import QRectF, Qt, Signal
-from PySide6.QtGui import QColor, QFont, QFontDatabase, QIcon, QMouseEvent, QPainter, QPixmap
+from PySide6.QtCore import QEvent, QPoint, QRectF, Qt, Signal
+from PySide6.QtGui import (
+    QColor,
+    QFont,
+    QFontDatabase,
+    QIcon,
+    QMouseEvent,
+    QPainter,
+    QPaintEvent,
+    QPixmap,
+)
 from PySide6.QtWidgets import QSlider, QStyle, QStyleOptionSlider, QWidget
 
 # Segoe Fluent Icons (Windows 11) / Segoe MDL2 Assets (Windows 10) code points.
@@ -94,20 +103,72 @@ class SeekSlider(QSlider):
     """Horizontal slider that jumps to the clicked position and reports user seeks.
 
     ``seek_requested`` fires when the user releases the handle or clicks the groove;
-    programmatic ``setValue`` calls never trigger it.
+    programmatic ``setValue`` calls never trigger it. M8: chapter starts and bookmarks are
+    drawn as marks, and ``hovered`` reports the time under the mouse (for previews).
     """
 
     seek_requested = Signal(int)
+    hovered = Signal(int, QPoint)  # time under the mouse, global position of the groove point
+    hover_left = Signal()
+
+    CHAPTER_COLOR = "#8FA3BF"
+    BOOKMARK_COLOR = "#F5B544"
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(Qt.Orientation.Horizontal, parent)
         self.setRange(0, 0)
         self.setAccessibleName("Seek")
+        self.setMouseTracking(True)
         self.sliderReleased.connect(lambda: self.seek_requested.emit(self.value()))
+        self._chapter_marks: tuple[int, ...] = ()
+        self._bookmark_marks: tuple[int, ...] = ()
 
     @property
     def user_dragging(self) -> bool:
         return self.isSliderDown()
+
+    def set_marks(self, chapters: tuple[int, ...], bookmarks: tuple[int, ...]) -> None:
+        """Times (ms) of chapter starts (the first one, at 0, is not drawn) and bookmarks."""
+        if (chapters, bookmarks) != (self._chapter_marks, self._bookmark_marks):
+            self._chapter_marks, self._bookmark_marks = chapters, bookmarks
+            self.update()
+
+    @property
+    def marks(self) -> tuple[tuple[int, ...], tuple[int, ...]]:
+        return self._chapter_marks, self._bookmark_marks
+
+    def value_at(self, x: int) -> int:
+        return QStyle.sliderValueFromPosition(self.minimum(), self.maximum(), x, self.width())
+
+    def x_of(self, value: int) -> int:
+        return QStyle.sliderPositionFromValue(self.minimum(), self.maximum(), value, self.width())
+
+    def paintEvent(self, event: QPaintEvent) -> None:
+        super().paintEvent(event)
+        if self.maximum() <= 0 or not (self._chapter_marks or self._bookmark_marks):
+            return
+        painter = QPainter(self)
+        mid = self.height() // 2
+        for times, color, half in (
+            (self._chapter_marks, self.CHAPTER_COLOR, 5),
+            (self._bookmark_marks, self.BOOKMARK_COLOR, 7),
+        ):
+            painter.setPen(QColor(color))
+            for ms in times:
+                if 0 < ms <= self.maximum():
+                    x = self.x_of(ms)
+                    painter.drawLine(x, mid - half, x, mid + half)
+        painter.end()
+
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
+        super().mouseMoveEvent(event)
+        if self.maximum() > 0:
+            x = max(0, min(self.width() - 1, int(event.position().x())))
+            self.hovered.emit(self.value_at(x), self.mapToGlobal(QPoint(x, 0)))
+
+    def leaveEvent(self, event: QEvent) -> None:
+        super().leaveEvent(event)
+        self.hover_left.emit()
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton and self.maximum() > 0:
@@ -117,9 +178,7 @@ class SeekSlider(QSlider):
                 QStyle.ComplexControl.CC_Slider, opt, QStyle.SubControl.SC_SliderHandle, self
             )
             if not handle.contains(event.position().toPoint()):
-                value = QStyle.sliderValueFromPosition(
-                    self.minimum(), self.maximum(), int(event.position().x()), self.width()
-                )
+                value = self.value_at(int(event.position().x()))
                 self.setValue(value)
                 self.seek_requested.emit(value)
                 event.accept()

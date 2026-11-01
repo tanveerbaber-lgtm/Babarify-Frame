@@ -13,6 +13,7 @@ class ErrorCode(Enum):
     UNSUPPORTED = "unsupported"  # capability not offered by this engine
     ENGINE_UNAVAILABLE = "engine_unavailable"  # engine library missing or failed to load
     ENGINE_FAILURE = "engine_failure"  # unexpected engine error
+    NETWORK_ERROR = "network_error"  # a network stream could not be reached or was refused (M8)
 
 
 # Short, user-facing explanations. Technical detail goes in PlaybackError.detail.
@@ -26,6 +27,7 @@ USER_MESSAGES: dict[ErrorCode, str] = {
     ErrorCode.UNSUPPORTED: "This feature isn't supported by the current playback engine.",
     ErrorCode.ENGINE_UNAVAILABLE: "The playback engine could not be loaded.",
     ErrorCode.ENGINE_FAILURE: "The playback engine reported an unexpected error.",
+    ErrorCode.NETWORK_ERROR: "The stream could not be played. Check the address and your connection.",
 }
 
 

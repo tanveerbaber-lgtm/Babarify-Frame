@@ -17,6 +17,7 @@ from babarify_frame.library.database import LibraryDatabase, default_database_pa
 from babarify_frame.library.service import LibraryService, default_thumbnail_dir
 from babarify_frame.playback.factory import EngineFactory, default_factory
 from babarify_frame.playback.media_probe import MediaProbe
+from babarify_frame.playback.preview import FramePreview
 from babarify_frame.ui.main_window import MainWindow
 from babarify_frame.ui.theme import STYLESHEET
 
@@ -44,6 +45,12 @@ def _libvlc_probe() -> MediaProbe:
     from babarify_frame.playback.adapters.libvlc_probe import LibVlcProbe
 
     return LibVlcProbe()
+
+
+def libvlc_preview() -> FramePreview:
+    from babarify_frame.playback.adapters.libvlc_preview import LibVlcPreview
+
+    return LibVlcPreview()
 
 
 def create_library() -> LibraryService:
@@ -87,7 +94,10 @@ def main(argv: Sequence[str] | None = None, factory: EngineFactory | None = None
     icon = load_icon()
     app.setWindowIcon(icon)
 
-    window = MainWindow(factory, icon, engine_name=args.engine, library=create_library())
+    preview = libvlc_preview if args.engine == "libvlc" else None  # previews need libVLC (M8)
+    window = MainWindow(
+        factory, icon, engine_name=args.engine, library=create_library(), preview_factory=preview
+    )
     window.show()
     window.start_engine()
     if args.file:

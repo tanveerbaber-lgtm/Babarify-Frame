@@ -116,6 +116,8 @@ class Preferences:
     equalizer: EqualizerSettings = field(default_factory=EqualizerSettings)
     profiles: tuple[EnhancementProfile, ...] = ()
     allow_volume_boost: bool = False  # volume above 100 % (up to 150 %); never remembered
+    # Advanced media (M8)
+    seek_previews: bool = True  # pictures when hovering over the seek bar (local video files)
     window: WindowGeometry | None = field(default=None)
 
     @classmethod

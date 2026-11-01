@@ -100,3 +100,14 @@ class PlaylistItem:
     path: str
     title: str
     available: bool = True
+
+
+@dataclass(frozen=True)
+class Bookmark:
+    """A user's named point in a file (M8). Kept per file, by path_key, like history."""
+
+    id: int
+    path: str
+    position_ms: int
+    label: str
+    created_at: float
