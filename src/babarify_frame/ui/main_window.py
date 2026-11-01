@@ -6,9 +6,10 @@ Pages:
 * Now Playing — ``PlayerPage``; owns the playback controller.
 * Settings — persisted UI preferences.
 
-Keyboard model: playback shortcuts (Space, arrows, M, S, F, and the M5 track keys V, B, G,
-H, J, K) are active only while the Now Playing page is shown, so they never fight with form
-controls elsewhere. Ctrl+O, Ctrl+Q, Ctrl+1/2/3, F1 and Esc work everywhere.
+Keyboard model: playback shortcuts (Space, arrows, M, S, F, the M5 track keys V, B, G, H,
+J, K and the M7 keys Shift+S, period, comma, L) are active only while the Now Playing page
+is shown, so they never fight with form controls elsewhere. Ctrl+O, Ctrl+Q, Ctrl+1/2/3, F1
+and Esc work everywhere.
 """
 
 from __future__ import annotations
@@ -44,6 +45,7 @@ from PySide6.QtWidgets import (
 
 from babarify_frame import PRODUCT_NAME, TAGLINE, __version__
 from babarify_frame.configuration.preferences import Preferences, PreferencesStore, WindowGeometry
+from babarify_frame.core.enhancements import EqualizerSettings
 from babarify_frame.core.models import SUBTITLE_EXTENSIONS, PlaybackState
 from babarify_frame.library.database import LibraryDatabase
 from babarify_frame.library.models import HistoryEntry
@@ -52,6 +54,7 @@ from babarify_frame.playback.controller import PlaybackController
 from babarify_frame.playback.factory import EngineFactory
 from babarify_frame.ui import theme
 from babarify_frame.ui.diagnostics import PlaybackInfoDialog
+from babarify_frame.ui.enhancements import EnhancementsDialog
 from babarify_frame.ui.pages.home import SHORTCUTS, HomePage
 from babarify_frame.ui.pages.library import LibraryPage
 from babarify_frame.ui.pages.player import VOLUME_STEP, PlayerPage
@@ -83,6 +86,7 @@ class MainWindow(QMainWindow):
         self.library_service = library or LibraryService(LibraryDatabase(None))
         self._was_maximized = False
         self._info_dialog: PlaybackInfoDialog | None = None
+        self._enhancements: EnhancementsDialog | None = None
 
         self.setWindowTitle(PRODUCT_NAME)
         self.setWindowIcon(icon)
@@ -219,6 +223,14 @@ class MainWindow(QMainWindow):
             "Audio 50 ms later", [K(Qt.Key.Key_K)], lambda: p.step_audio_delay(1)
         )
         self.sync_action = self._action("Sync and &delay…", [K("Ctrl+D")], p.show_sync_dialog)
+        # Picture and sound (M7)
+        self.enhancements_action = self._action("&Picture && Sound…", [K("Ctrl+E")], self.show_enhancements)
+        self.snapshot_action = self._action("Take &snapshot", [K("Shift+S")], lambda: p.take_snapshot())
+        self.next_frame_action = self._action("Next &frame", [K(Qt.Key.Key_Period)], lambda: p.frame_step())
+        self.previous_frame_action = self._action(
+            "Pre&vious frame", [K(Qt.Key.Key_Comma)], lambda: p.frame_step(backward=True)
+        )
+        self.ab_action = self._action("&A-B repeat", [K(Qt.Key.Key_L)], p.ab_loop_step)
         self._track_actions = (
             self.next_subtitle_action,
             self.next_audio_action,
@@ -265,6 +277,16 @@ class MainWindow(QMainWindow):
         for action in self._track_actions[2:]:
             tracks_menu.addAction(action)
         tracks_menu.addAction(self.sync_action)
+        video_menu = menus.addMenu("Vi&deo")
+        video_menu.addAction(self.enhancements_action)
+        video_menu.addSeparator()
+        for action in (
+            self.snapshot_action,
+            self.next_frame_action,
+            self.previous_frame_action,
+            self.ab_action,
+        ):
+            video_menu.addAction(action)
         view_menu = menus.addMenu("&View")
         for action in (self.home_action, self.library_action, self.player_action, self.settings_action):
             view_menu.addAction(action)
@@ -295,6 +317,10 @@ class MainWindow(QMainWindow):
         self.home.play_requested.connect(self.open_path)
         self.home.forget_requested.connect(self._forget)
         self.player.history_changed.connect(self._history_changed)
+        self.player.picture_changed.connect(lambda v: self._remember(picture=v))
+        self.player.equalizer_changed.connect(lambda v: self._remember(equalizer=v))
+        self.player.enhancements_reset.connect(self._refresh_enhancements)
+        self.player.state_changed.connect(lambda _s: self._refresh_enhancements())
         self.player.state_changed.connect(
             lambda state: self.library_service.set_playback_active(state is PlaybackState.PLAYING)
         )
@@ -353,6 +379,16 @@ class MainWindow(QMainWindow):
         self.next_action.setEnabled(on_player and index < len(queue) - 1)
         self.previous_action.setEnabled(on_player and index > 0)
         self.start_over_action.setEnabled(on_player and p.is_seekable)
+        caps = p.capabilities_or_none()
+        playing_video = p.has_media and p.state in (PlaybackState.PLAYING, PlaybackState.PAUSED)
+        self.snapshot_action.setEnabled(on_player and playing_video and bool(caps and caps.supports_snapshot))
+        self.next_frame_action.setEnabled(
+            on_player and playing_video and bool(caps and caps.supports_frame_step)
+        )
+        self.previous_frame_action.setEnabled(
+            on_player and playing_video and bool(caps and caps.supports_frame_back_step)
+        )
+        self.ab_action.setEnabled(on_player and p.is_seekable)
         self.load_subtitle_action.setEnabled(p.can_load_subtitles)
         for action in self._track_actions:
             action.setEnabled(on_player and p.can_change_tracks)
@@ -417,6 +453,41 @@ class MainWindow(QMainWindow):
             self.library_service.db.clear_history()
             self.refresh_home()
             self.statusBar().showMessage("History cleared")
+
+    # ------------------------------------------------- picture and sound (M7)
+    def show_enhancements(self) -> EnhancementsDialog:
+        if self._enhancements is None:
+            dialog = EnhancementsDialog(self._preset_values, self)
+            dialog.picture_changed.connect(self.player.set_picture)
+            dialog.equalizer_changed.connect(self.player.set_equalizer)
+            dialog.geometry_changed.connect(self.player.set_geometry)
+            dialog.transform_changed.connect(self.player.set_transform)
+            dialog.profiles_changed.connect(lambda profiles: self._remember(profiles=tuple(profiles)))
+            self._enhancements = dialog
+        self._enhancements.set_profiles(self._prefs.profiles)
+        self._refresh_enhancements()
+        self._enhancements.show()
+        self._enhancements.raise_()
+        return self._enhancements
+
+    def _preset_values(self, name: str) -> EqualizerSettings:
+        return self.player.controller.engine.equalizer_preset(name)
+
+    def _refresh_enhancements(self) -> None:
+        dialog = self._enhancements
+        if dialog is None:
+            return
+        p = self.player
+        info = p.controller.media_info() if p.engine_is_ready else None
+        has_video = bool(info and info.video_codec)
+        dialog.set_capabilities(p.capabilities_or_none(), has_video)
+        dialog.set_picture(self._prefs.picture)
+        dialog.set_equalizer(self._prefs.equalizer)
+        dialog.set_video(p.video_geometry, p.transform)
+
+    def _remember(self, **changes: object) -> None:
+        self._prefs = replace(self._prefs, **changes)  # type: ignore[arg-type]
+        self._store.save(self._prefs)
 
     def _on_library_sort(self, sort: str) -> None:
         self._prefs = replace(self._prefs, library_sort=sort)
@@ -495,6 +566,9 @@ class MainWindow(QMainWindow):
             muted=self._prefs.muted,
             window=self._prefs.window,
             library_sort=self._prefs.library_sort,
+            picture=self._prefs.picture,
+            equalizer=self._prefs.equalizer,
+            profiles=self._prefs.profiles,
         )
         self.player.set_preferences(self._prefs)
         self._store.save(self._prefs)
@@ -563,6 +637,10 @@ class MainWindow(QMainWindow):
             "<tr><td><b>Ctrl+L</b></td><td>Library</td></tr>"
             "<tr><td><b>N / P</b></td><td>Next / previous in playlist</td></tr>"
             "<tr><td><b>Home</b></td><td>Start over</td></tr>"
+            "<tr><td><b>Ctrl+E</b></td><td>Picture &amp; Sound</td></tr>"
+            "<tr><td><b>Shift+S</b></td><td>Snapshot (Pictures\\Babarify Frame)</td></tr>"
+            "<tr><td><b>. / ,</b></td><td>Next / previous frame</td></tr>"
+            "<tr><td><b>L</b></td><td>A-B repeat (set A, set B, off)</td></tr>"
             "<tr><td><b>V / B</b></td><td>Next subtitle / audio track</td></tr>"
             "<tr><td><b>G / H</b></td><td>Subtitles 50 ms earlier / later</td></tr>"
             "<tr><td><b>J / K</b></td><td>Audio 50 ms earlier / later</td></tr>"
@@ -591,6 +669,8 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event: QCloseEvent) -> None:
         if self._info_dialog is not None:
             self._info_dialog.close()
+        if self._enhancements is not None:
+            self._enhancements.close()
         self._store.save(self._final_preferences())
         # Rule: the engine must be closed while its host window still exists.
         self.player.shutdown()  # also saves the playback position

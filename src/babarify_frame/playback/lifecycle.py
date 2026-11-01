@@ -33,6 +33,12 @@ COMMAND_STATES: dict[str, frozenset[S]] = {
     "select_track": frozenset({S.PLAYING, S.PAUSED, S.BUFFERING, S.ENDED}),
     "set_delay": frozenset({S.LOADING, S.PLAYING, S.PAUSED, S.BUFFERING, S.ENDED}),
     "set_subtitle_style": _ACTIVE,
+    "set_picture": _ACTIVE,
+    "set_video_geometry": _ACTIVE,
+    "set_equalizer": _ACTIVE,
+    "set_rotation": _ACTIVE,
+    "frame_step": frozenset({S.PLAYING, S.PAUSED}),
+    "take_snapshot": frozenset({S.PLAYING, S.PAUSED, S.BUFFERING}),
 }
 
 

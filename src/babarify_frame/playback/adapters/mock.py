@@ -13,6 +13,12 @@ from dataclasses import replace
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
+from babarify_frame.core.enhancements import (
+    PICTURE_RANGES,
+    EqualizerSettings,
+    PictureSettings,
+    VideoTransform,
+)
 from babarify_frame.core.errors import ErrorCode, PlaybackError
 from babarify_frame.core.models import (
     EngineCapabilities,
@@ -26,6 +32,12 @@ from babarify_frame.core.models import (
 from babarify_frame.playback.contracts import EngineBase
 
 S = PlaybackState
+
+# A valid 1x1 PNG, so snapshot handling can be tested without a renderer.
+_TINY_PNG = bytes.fromhex(
+    "89504e470d0a1a0a0000000d4948445200000001000000010806000000"
+    "1f15c4890000000d49444154789c6360000002000154a24f5d0000000049454e44ae426082"
+)
 
 
 class MockEngine(EngineBase):
@@ -42,6 +54,10 @@ class MockEngine(EngineBase):
         super().__init__()
         self.options = options or EngineOptions()
         self.subtitle_style = self.options.subtitle_style
+        self.picture = PictureSettings()
+        self.geometry: tuple[str, str, float] = ("", "", 0.0)
+        self.equalizer = EqualizerSettings()
+        self.transform = self.options.video_transform
         self.auto_complete_loading = auto_complete_loading
         self.default_duration_ms = default_duration_ms
         self.window_id: int | None = None
@@ -59,6 +75,17 @@ class MockEngine(EngineBase):
             supports_embedding=True,
             supports_external_subtitles=True,
             subtitle_style="live",
+            picture_adjustments=frozenset(PICTURE_RANGES),
+            supports_aspect_ratio=True,
+            supports_crop=True,
+            supports_zoom=True,
+            rotation="live",
+            supports_equalizer=True,
+            equalizer_presets=("Flat", "Rock", "Classical"),
+            equalizer_bands_hz=(31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000),
+            supports_frame_step=True,
+            supports_frame_back_step=False,
+            supports_snapshot=True,
             hardware_decoding="unavailable",
             notes=("Simulated engine: no real decoding.",),
         )
@@ -177,6 +204,37 @@ class MockEngine(EngineBase):
     def _do_set_subtitle_style(self, style: SubtitleStyle) -> None:
         self.calls.append(f"style:{style.text_color}:{style.size_pct}")
         self.subtitle_style = style
+
+    # ---------------------------------------------- picture and sound (M7)
+    def _do_set_picture(self, picture: PictureSettings) -> None:
+        self.calls.append("picture")
+        self.picture = picture
+
+    def _do_set_video_geometry(self, aspect: str, crop: str, zoom: float) -> None:
+        self.calls.append(f"geometry:{aspect}:{crop}:{zoom}")
+        self.geometry = (aspect, crop, zoom)
+
+    def _do_set_equalizer(self, equalizer: EqualizerSettings) -> None:
+        self.calls.append(f"equalizer:{equalizer.enabled}")
+        self.equalizer = equalizer
+
+    def _do_set_rotation(self, transform: VideoTransform) -> None:
+        self.calls.append(f"rotation:{transform.value}")
+        self.transform = transform
+
+    def equalizer_preset(self, name: str) -> EqualizerSettings:
+        if name not in self.get_capabilities().equalizer_presets:
+            raise PlaybackError(ErrorCode.INVALID_ARGUMENT, f"no equalizer preset {name!r}")
+        level = {"Flat": 0.0, "Rock": 4.0, "Classical": -2.0}[name]
+        return EqualizerSettings(True, name, 0.0, (level,) * 10)
+
+    def _do_frame_step(self, backward: bool) -> None:
+        self.calls.append("frame_step")
+        self._set_position(self.get_playback_state().position_ms + 40)  # 25 fps
+
+    def _do_take_snapshot(self, path: str) -> None:
+        self.calls.append(f"snapshot:{path}")
+        Path(path).write_bytes(_TINY_PNG)
 
     # ---------------------------------------------- simulation controls
     def complete_loading(self) -> None:

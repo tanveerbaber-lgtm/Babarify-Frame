@@ -62,6 +62,10 @@ History stays on this PC and can be turned off or cleared in *Settings → Priva
 | Ctrl+L | Library |
 | N / P | Next / previous in playlist |
 | Home | Start over (after an automatic resume) |
+| Ctrl+E | Picture & Sound: brightness, contrast, colour, aspect, crop, zoom, rotation, equalizer, profiles |
+| Shift+S | Snapshot to Pictures\Babarify Frame |
+| . / , | Next / previous frame |
+| L | A-B repeat (set A, set B, off) |
 | V / B | Next subtitle track / next audio track |
 | G / H | Subtitles 50 ms earlier / later |
 | J / K | Audio 50 ms earlier / later |

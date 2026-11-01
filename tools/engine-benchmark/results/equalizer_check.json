@@ -1,0 +1,21 @@
+{
+  "rows": [
+    {
+      "case": "no equalizer",
+      "rms": 514
+    },
+    {
+      "case": "1 kHz band -20 dB",
+      "rms": 13
+    },
+    {
+      "case": "preamp -12 dB",
+      "rms": 32
+    },
+    {
+      "case": "equalizer removed",
+      "rms": 514
+    }
+  ],
+  "ok": true
+}

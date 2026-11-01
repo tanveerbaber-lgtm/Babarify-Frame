@@ -1,4 +1,4 @@
-# Babarify Frame — Architecture Overview (M6)
+# Babarify Frame — Architecture Overview (M7)
 
 This describes the code as it exists at the end of Milestone 4. The product-level
 architecture and roadmap are in the
@@ -192,6 +192,30 @@ Therefore:
 - UI: `pages/library.py` (grid with `library_view.LibraryModel`/`LibraryDelegate`, playlists
   panel, folders dialog), Home's *Continue watching* and *Recently played*, Settings → Privacy
   (remember history, resume, clear). `PlayerPage` owns saving positions and the play queue.
+
+## Picture and sound (M7)
+
+- `core/enhancements.py`: `PictureSettings` (brightness, contrast, saturation, hue, gamma),
+  `EqualizerSettings` (on/off, preset name, preamp, 10 bands in dB), `VideoTransform`
+  (rotations and flips), `EnhancementProfile`, plus the allowed aspect/crop/zoom values. All
+  validate untrusted data like `SubtitleStyle`.
+- Contract: `set_picture`, `set_video_geometry(aspect, crop, zoom)`, `set_equalizer`,
+  `equalizer_preset(name)`, `set_rotation`, `frame_step(backward)`, `take_snapshot(path)`.
+  `EngineBase` refuses (UNSUPPORTED) anything the capabilities do not list, instead of
+  silently ignoring it; defaults are always accepted.
+- Capabilities say what each engine really does (measured on screen for libVLC):
+  `picture_adjustments` (libVLC drops gamma under hardware decoding, where it has no effect),
+  `supports_aspect_ratio/crop/zoom`, `rotation` ("live"/"restart"/"unsupported"),
+  `supports_equalizer` with the engine's presets and band frequencies,
+  `supports_frame_step` / `supports_frame_back_step`, `supports_snapshot`.
+- libVLC: rotation is an instance option (`transform` filter), so it is part of the shared
+  instance key and a change restarts the engine at the same position (like subtitle style).
+  Picture values are always re-applied by switching the adjust filter off and on (R30).
+- `PlayerPage` owns per-file geometry (reset on open), session rotation, A-B repeat (checked
+  on the 100 ms position poll), frame stepping and snapshots (`Pictures\Babarify Frame`).
+  Picture, equalizer and profiles persist in preferences. Volume boost (up to 150 %) is
+  opt-in and never remembered.
+- `ui/enhancements.py`: the Picture & Sound panel (Ctrl+E), built from capabilities.
 
 ## Capability reporting
 

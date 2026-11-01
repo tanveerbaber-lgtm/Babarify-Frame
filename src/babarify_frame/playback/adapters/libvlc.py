@@ -31,6 +31,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, ClassVar
 
+from babarify_frame.core.enhancements import (
+    PICTURE_RANGES,
+    EqualizerSettings,
+    PictureSettings,
+    VideoTransform,
+    aspect_to_engine,
+)
 from babarify_frame.core.errors import ErrorCode, PlaybackError
 from babarify_frame.core.models import (
     EngineCapabilities,
@@ -125,6 +132,14 @@ def subtitle_style_args(style: SubtitleStyle) -> tuple[str, ...]:
     if style.font_family:
         args.append(f"--freetype-font={style.font_family}")
     return tuple(args)
+
+
+def video_transform_args(transform: VideoTransform) -> tuple[str, ...]:
+    """libVLC 3 rotates only through the instance-level transform filter (M7 spike: the same
+    options per media are ignored), so rotation needs its own shared instance, like style."""
+    if transform is VideoTransform.NONE:
+        return ()
+    return ("--video-filter=transform", f"--transform-type={transform.value}")
 
 
 class _SharedInstance:
@@ -299,16 +314,33 @@ class LibVlcEngine(EngineBase):
         self._confirmed = False
         self._loading_target: PlaybackState | None = None
         self._pending_seek: int | None = None  # seek requested after end of media
+        # Picture and sound (M7): kept so they survive opening another file.
+        self._picture = PictureSettings()
+        self._geometry: tuple[str, str, float] = ("", "", 0.0)
+        self._equalizer = EqualizerSettings()
+        self._eq_presets: tuple[str, ...] = ()
+        self._eq_bands: tuple[int, ...] = ()
 
     # ------------------------------------------------------------ setup
     def _do_initialize(self) -> None:
         vlc = self._vlc = _load_vlc()
         style_args = subtitle_style_args(self._options.subtitle_style)
-        self._shared = _SharedInstance.get(vlc, ("--no-video-title-show", *style_args, *self._extra_args))
+        transform_args = video_transform_args(self._options.video_transform)
+        self._shared = _SharedInstance.get(
+            vlc, ("--no-video-title-show", *style_args, *transform_args, *self._extra_args)
+        )
         self._instance = self._shared.instance
         self._shared.add_sink(self._on_log_line)
         self._player = self._instance.media_player_new()
         self._version = vlc.libvlc_get_version().decode()
+        self._eq_presets = tuple(
+            vlc.libvlc_audio_equalizer_get_preset_name(i).decode()
+            for i in range(vlc.libvlc_audio_equalizer_get_preset_count())
+        )
+        self._eq_bands = tuple(
+            round(vlc.libvlc_audio_equalizer_get_band_frequency(i))
+            for i in range(vlc.libvlc_audio_equalizer_get_band_count())
+        )
         events = self._player.event_manager()
         E = vlc.EventType
         for event_type, handler in (
@@ -344,12 +376,29 @@ class LibVlcEngine(EngineBase):
             supports_embedding=True,
             supports_external_subtitles=True,
             supports_dual_subtitles=False,  # libVLC 3 renders one subtitle track at a time
+            # M7 spike (screen pixels): all five work with software decoding; with hardware
+            # decoding (D3D11 video processor) gamma has no effect, so it is not offered then.
+            picture_adjustments=frozenset(PICTURE_RANGES)
+            - (frozenset({"gamma"}) if self._options.hardware_decoding else frozenset()),
+            supports_aspect_ratio=True,
+            supports_crop=True,
+            supports_zoom=True,
+            rotation="restart",
+            supports_equalizer=True,
+            equalizer_presets=self._eq_presets,
+            equalizer_bands_hz=self._eq_bands,
+            supports_frame_step=True,
+            supports_frame_back_step=False,  # libVLC 3 can only step forward
+            supports_snapshot=True,
             subtitle_style="restart",  # style is an instance option: a new engine applies it
             max_delay_ms=60_000,
             hardware_decoding="requested" if self._options.hardware_decoding else "disabled",
             notes=(
                 "Hardware decoder in use is read from the libVLC log.",
                 "Subtitle style applies to plain-text subtitles; ASS/SSA keep their own styling.",
+                "Brightness and contrast look stronger with software decoding than with hardware "
+                "decoding (different libVLC filters).",
+                "Rotation and flips restart playback at the same position.",
             ),
         )
 
@@ -415,6 +464,8 @@ class LibVlcEngine(EngineBase):
         # (M4 finding: "Off" kept using D3D11VA until this was moved here).
         self._media.add_option(f":avcodec-hw={'any' if self._options.hardware_decoding else 'none'}")
         self._player.set_media(self._media)
+        self._apply_picture()
+        self._apply_equalizer()
         if old is not None:
             old.release()
         if self._player.play() != 0:
@@ -504,6 +555,83 @@ class LibVlcEngine(EngineBase):
     def _do_set_subtitle_delay(self, delay_ms: int) -> None:
         self._player.video_set_spu_delay(delay_ms * 1000)
         self._refetch()  # subtitles already queued would otherwise keep their old timing
+
+    # ---------------------------------------------- picture and sound (M7)
+    def _do_set_picture(self, picture: PictureSettings) -> None:
+        self._picture = picture
+        self._apply_picture()
+
+    def _apply_picture(self) -> None:
+        """R30: values changed while the adjust filter is on are applied unreliably (hardware
+        decoding shows wrong colours, software decoding ignores them). Always switch the filter
+        off, set every value, then switch it on again."""
+        player, picture = self._player, self._picture
+        if player is None:
+            return
+        adjust = self._vlc.VideoAdjustOption
+        player.video_set_adjust_int(adjust.Enable, 0)
+        if picture.is_default:
+            return
+        for option, value in (
+            (adjust.Brightness, picture.brightness),
+            (adjust.Contrast, picture.contrast),
+            (adjust.Saturation, picture.saturation),
+            (adjust.Hue, picture.hue),
+            (adjust.Gamma, picture.gamma),
+        ):
+            player.video_set_adjust_float(option, value)
+        player.video_set_adjust_int(adjust.Enable, 1)
+
+    def _do_set_video_geometry(self, aspect: str, crop: str, zoom: float) -> None:
+        self._geometry = (aspect, crop, zoom)
+        self._apply_geometry()
+
+    def _apply_geometry(self) -> None:
+        if self._player is None:
+            return
+        aspect, crop, zoom = self._geometry
+        self._player.video_set_aspect_ratio(aspect_to_engine(aspect))
+        self._player.video_set_crop_geometry(aspect_to_engine(crop))
+        self._player.video_set_scale(zoom)
+
+    def _do_set_equalizer(self, equalizer: EqualizerSettings) -> None:
+        self._equalizer = equalizer
+        self._apply_equalizer()
+
+    def _apply_equalizer(self) -> None:
+        if self._player is None:
+            return
+        eq = self._equalizer
+        if not eq.enabled:
+            self._player.set_equalizer(None)
+            return
+        settings = self._vlc.AudioEqualizer()
+        settings.set_preamp(eq.preamp_db)
+        for index, value in enumerate(eq.bands_db):
+            settings.set_amp_at_index(value, index)
+        self._player.set_equalizer(settings)  # libVLC copies the values; the object can go
+        settings.release()
+
+    def equalizer_preset(self, name: str) -> EqualizerSettings:
+        if name not in self._eq_presets:
+            raise PlaybackError(ErrorCode.INVALID_ARGUMENT, f"no equalizer preset {name!r}")
+        handle = self._vlc.libvlc_audio_equalizer_new_from_preset(self._eq_presets.index(name))
+        try:
+            preamp = self._vlc.libvlc_audio_equalizer_get_preamp(handle)
+            bands = tuple(
+                self._vlc.libvlc_audio_equalizer_get_amp_at_index(handle, i)
+                for i in range(len(self._eq_bands))
+            )
+        finally:
+            self._vlc.libvlc_audio_equalizer_release(handle)
+        return EqualizerSettings(True, name, round(preamp, 1), tuple(round(b, 1) for b in bands)).normalized()
+
+    def _do_frame_step(self, backward: bool) -> None:
+        self._player.next_frame()
+
+    def _do_take_snapshot(self, path: str) -> None:
+        if self._player.video_take_snapshot(0, path, 0, 0) != 0:
+            self._notice(ErrorCode.ENGINE_FAILURE, "the snapshot could not be saved")
 
     def _do_set_volume(self, level: int) -> None:
         self._player.audio_set_volume(level)

@@ -33,18 +33,19 @@ TIMEOUT_MS = 15_000
 
 
 def _engine_params() -> list[Any]:
+    # Probing mpv starts and ends a live mpv handle, which can crash this process (S1, R33),
+    # so mpv is probed only when its tests are switched on.
     factory = default_factory()
     params = []
     for name in ("libvlc", "mpv"):
+        if name == "mpv" and os.environ.get("BABARIFY_TEST_MPV") != "1":
+            skip = pytest.mark.skip(
+                reason="mpv is the alternate engine; set BABARIFY_TEST_MPV=1 (see M1 finding S1)"
+            )
+            params.append(pytest.param(name, marks=[skip], id=name))
+            continue
         probe = factory.probe(name)
         marks = [pytest.mark.skipif(not probe.available, reason=f"{name} unavailable: {probe.detail}")]
-        if name == "mpv":
-            marks.append(
-                pytest.mark.skipif(
-                    os.environ.get("BABARIFY_TEST_MPV") != "1",
-                    reason="mpv is the alternate engine; set BABARIFY_TEST_MPV=1 (see M1 finding S1)",
-                )
-            )
         params.append(pytest.param(name, marks=marks, id=name))
     return params
 

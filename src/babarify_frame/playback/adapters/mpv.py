@@ -18,6 +18,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from babarify_frame.core.enhancements import PICTURE_RANGES, PictureSettings, VideoTransform, aspect_to_engine
 from babarify_frame.core.errors import ErrorCode, PlaybackError
 from babarify_frame.core.models import (
     EngineCapabilities,
@@ -132,6 +133,15 @@ class MpvEngine(EngineBase):
             supports_subtitle_tracks=True,
             supports_embedding=True,
             supports_external_subtitles=True,
+            picture_adjustments=frozenset(PICTURE_RANGES),
+            supports_aspect_ratio=True,
+            supports_crop=False,  # not offered: mpv's video-crop needs a newer build than the one tested
+            supports_zoom=False,  # mpv's video-zoom is relative, not "fit" / "actual pixels"
+            rotation="live",
+            supports_equalizer=False,  # would need an lavfi filter chain; not offered
+            supports_frame_step=True,
+            supports_frame_back_step=True,
+            supports_snapshot=True,
             supports_dual_subtitles=False,  # mpv can (secondary-sid); not offered until verified
             subtitle_style="live",
             max_delay_ms=60_000,
@@ -258,6 +268,42 @@ class MpvEngine(EngineBase):
         player["sub-pos"] = _SUB_POS[style.position]
         if style.font_family:
             player["sub-font"] = style.font_family
+
+    # ---------------------------------------------- picture and sound (M7)
+    def _do_set_picture(self, picture: PictureSettings) -> None:
+        # mpv uses -100..100 around 0 = unchanged for each property.
+        def scaled(value: float) -> int:
+            return max(-100, min(100, round(value)))
+
+        player = self._player
+        player["brightness"] = scaled((picture.brightness - 1.0) * 100)
+        player["contrast"] = scaled((picture.contrast - 1.0) * 100)
+        player["saturation"] = scaled((picture.saturation - 1.0) * 100)  # 3.0 is capped at 2x
+        player["hue"] = scaled(picture.hue / 180 * 100)
+        player["gamma"] = scaled((picture.gamma - 1.0) * 100)
+
+    def _do_set_video_geometry(self, aspect: str, crop: str, zoom: float) -> None:
+        self._player["video-aspect-override"] = aspect_to_engine(aspect) or "-1"
+
+    def _do_set_rotation(self, transform: VideoTransform) -> None:
+        player = self._player
+        degrees = {
+            VideoTransform.ROTATE_90: 90,
+            VideoTransform.ROTATE_180: 180,
+            VideoTransform.ROTATE_270: 270,
+        }
+        player["video-rotate"] = degrees.get(transform, 0)
+        flip = {VideoTransform.FLIP_HORIZONTAL: "hflip", VideoTransform.FLIP_VERTICAL: "vflip"}.get(transform)
+        player.command("vf", "set", flip or "")
+
+    def _do_frame_step(self, backward: bool) -> None:
+        self._player.command("frame-back-step" if backward else "frame-step")
+
+    def _do_take_snapshot(self, path: str) -> None:
+        try:
+            self._player.command("screenshot-to-file", path, "video")
+        except SystemError:
+            self._notice(ErrorCode.ENGINE_FAILURE, "the snapshot could not be saved")
 
     def _do_close(self) -> None:
         try:

@@ -335,7 +335,7 @@ def test_scanning_keeps_the_ui_responsive(qtbot: QtBot, window: MainWindow, tmp_
     assert window.library_service.db.counts()[0] == 2000
     worst = max(gaps)
     print(f"2000 files: {time.perf_counter() - started:.2f} s, worst UI gap {worst} ms")
-    assert worst < 250
+    assert worst < 250, f"longest UI gaps (ms): {sorted(gaps)[-5:]} of {len(gaps)} ticks"
 
 
 # ------------------------------------------------------------- queue (playlist)

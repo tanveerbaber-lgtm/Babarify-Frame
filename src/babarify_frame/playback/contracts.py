@@ -23,6 +23,14 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from babarify_frame.core.enhancements import (
+    ASPECT_RATIOS,
+    PICTURE_RANGES,
+    ZOOM_LEVELS,
+    EqualizerSettings,
+    PictureSettings,
+    VideoTransform,
+)
 from babarify_frame.core.errors import ErrorCode, PlaybackError
 from babarify_frame.core.events import (
     EndReached,
@@ -118,6 +126,33 @@ class PlaybackEngine(ABC):
     @abstractmethod
     def set_subtitle_style(self, style: SubtitleStyle) -> None:
         """Only for engines whose capabilities report subtitle_style == "live"."""
+
+    # Picture and sound (M7) ---------------------------------------------
+    @abstractmethod
+    def set_picture(self, picture: PictureSettings) -> None:
+        """Apply brightness/contrast/saturation/hue/gamma; unsupported fields must stay default."""
+
+    @abstractmethod
+    def set_video_geometry(self, aspect: str, crop: str, zoom: float) -> None:
+        """Aspect ratio and crop from ASPECT_RATIOS ("" = file default), zoom from ZOOM_LEVELS."""
+
+    @abstractmethod
+    def set_equalizer(self, equalizer: EqualizerSettings) -> None: ...
+    @abstractmethod
+    def set_rotation(self, transform: VideoTransform) -> None:
+        """Only for engines whose capabilities report rotation == "live"."""
+
+    @abstractmethod
+    def frame_step(self, backward: bool = False) -> None:
+        """Show the next (or previous) frame and stay paused."""
+
+    @abstractmethod
+    def take_snapshot(self, path: str) -> None:
+        """Save the current frame as PNG at ``path`` (the folder must exist)."""
+
+    def equalizer_preset(self, name: str) -> EqualizerSettings:
+        """The values of one of capabilities().equalizer_presets, enabled, ready to adjust."""
+        raise PlaybackError(ErrorCode.UNSUPPORTED, "the equalizer is not supported")
 
 
 def normalize_local_uri(uri: str, allowed_schemes: frozenset[str]) -> str:
@@ -219,6 +254,25 @@ class EngineBase(PlaybackEngine):
 
     def _do_set_subtitle_style(self, style: SubtitleStyle) -> None:
         raise PlaybackError(ErrorCode.UNSUPPORTED, "subtitle style cannot change during playback")
+
+    def _do_set_picture(self, picture: PictureSettings) -> None:
+        raise PlaybackError(ErrorCode.UNSUPPORTED, "picture adjustments are not supported")
+
+    def _do_set_video_geometry(self, aspect: str, crop: str, zoom: float) -> None:
+        raise PlaybackError(ErrorCode.UNSUPPORTED, "aspect, crop and zoom are not supported")
+
+    def _do_set_equalizer(self, equalizer: EqualizerSettings) -> None:
+        raise PlaybackError(ErrorCode.UNSUPPORTED, "the equalizer is not supported")
+
+    def _do_set_rotation(self, transform: VideoTransform) -> None:
+        raise PlaybackError(ErrorCode.UNSUPPORTED, "rotation cannot change during playback")
+
+    def _do_frame_step(self, backward: bool) -> None:
+        raise PlaybackError(ErrorCode.UNSUPPORTED, "frame stepping is not supported")
+
+    def _do_take_snapshot(self, path: str) -> None:
+        raise PlaybackError(ErrorCode.UNSUPPORTED, "snapshots are not supported")
+
 
     # ------------------------------------------------------- public API
     def initialize(self) -> None:
@@ -385,6 +439,66 @@ class EngineBase(PlaybackEngine):
         self._do_set_subtitle_delay(self._check_delay(delay_ms))
         with self._lock:
             self._subtitle_delay_ms = delay_ms
+
+    # Picture and sound (M7) ---------------------------------------------
+    def set_picture(self, picture: PictureSettings) -> None:
+        self._require("set_picture")
+        picture = picture.normalized()
+        supported = self.get_capabilities().picture_adjustments
+        for name, (default, _low, _high) in PICTURE_RANGES.items():
+            if name not in supported and getattr(picture, name) != default:
+                raise PlaybackError(ErrorCode.UNSUPPORTED, f"{name} is not supported by {self.name}")
+        self._do_set_picture(picture)
+
+    def set_video_geometry(self, aspect: str, crop: str, zoom: float) -> None:
+        self._require("set_video_geometry")
+        caps = self.get_capabilities()
+        if aspect not in ASPECT_RATIOS or crop not in ASPECT_RATIOS or zoom not in ZOOM_LEVELS:
+            raise PlaybackError(ErrorCode.INVALID_ARGUMENT, "unknown aspect, crop or zoom value")
+        for value, default, supported, what in (
+            (aspect, "", caps.supports_aspect_ratio, "aspect ratio"),
+            (crop, "", caps.supports_crop, "crop"),
+            (zoom, 0.0, caps.supports_zoom, "zoom"),
+        ):
+            if value != default and not supported:
+                raise PlaybackError(ErrorCode.UNSUPPORTED, f"{what} is not supported by {self.name}")
+        self._do_set_video_geometry(aspect, crop, zoom)
+
+    def set_equalizer(self, equalizer: EqualizerSettings) -> None:
+        self._require("set_equalizer")
+        if not self.get_capabilities().supports_equalizer:
+            raise PlaybackError(ErrorCode.UNSUPPORTED, "the equalizer is not supported")
+        self._do_set_equalizer(equalizer.normalized())
+
+    def set_rotation(self, transform: VideoTransform) -> None:
+        self._require("set_rotation")
+        if self.get_capabilities().rotation != "live":
+            raise PlaybackError(ErrorCode.UNSUPPORTED, "this engine applies rotation only when created")
+        self._do_set_rotation(transform)
+
+    def frame_step(self, backward: bool = False) -> None:
+        self._require("frame_step")
+        caps = self.get_capabilities()
+        if not caps.supports_frame_step or (backward and not caps.supports_frame_back_step):
+            what = "stepping backward" if backward else "frame stepping"
+            raise PlaybackError(ErrorCode.UNSUPPORTED, f"{what} is not supported by {self.name}")
+        if self.state is PlaybackState.PLAYING:
+            self.pause()
+        self._do_frame_step(backward)
+
+    def take_snapshot(self, path: str) -> None:
+        self._require("take_snapshot")
+        if not self.get_capabilities().supports_snapshot:
+            raise PlaybackError(ErrorCode.UNSUPPORTED, "snapshots are not supported")
+        target = Path(path)
+        if target.suffix.lower() != ".png" or not target.parent.is_dir():
+            raise PlaybackError(
+                ErrorCode.INVALID_ARGUMENT, "snapshot path must be a .png in an existing folder"
+            )
+        info = self.get_media_info()
+        if info is not None and info.video_codec is None and info.audio_codec is not None:
+            raise PlaybackError(ErrorCode.UNSUPPORTED, "there is no picture to save (audio only)")
+        self._do_take_snapshot(str(target))
 
     def set_subtitle_style(self, style: SubtitleStyle) -> None:
         self._require("set_subtitle_style")

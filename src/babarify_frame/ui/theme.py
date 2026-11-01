@@ -37,7 +37,8 @@ MONO_STACK = '"Cascadia Mono", "Consolas", monospace'
 
 STYLESHEET = f"""
 * {{ font-family: {FONT_STACK}; font-size: {FONT_BODY}pt; color: {TEXT}; }}
-QMainWindow, QWidget#root {{ background: {BG}; }}
+QMainWindow, QWidget#root, QDialog {{ background: {BG}; }}
+QTabWidget > QWidget, QTabWidget QStackedWidget > QWidget {{ background: {BG}; }}
 QToolTip {{
     background: {SURFACE_RAISED}; color: {TEXT}; border: 1px solid {BORDER};
     padding: {XS}px {S}px; border-radius: {RADIUS_S}px;
@@ -130,6 +131,14 @@ QSlider::handle:horizontal {{ background: {TEXT}; width: 12px; margin: -5px 0; b
 QSlider::handle:horizontal:hover {{ background: {CYAN}; }}
 QSlider::handle:horizontal:disabled {{ background: {TEXT_DISABLED}; }}
 QSlider#seek::groove:horizontal {{ height: 5px; }}
+QSlider[boost="true"]::sub-page:horizontal {{ background: {AMBER}; }}
+QSlider::groove:vertical {{ width: 4px; background: {BORDER}; border-radius: 2px; }}
+QSlider::add-page:vertical {{ background: {ACCENT_GRADIENT}; border-radius: 2px; }}
+QSlider::add-page:vertical:disabled {{ background: {BORDER}; }}
+QSlider::handle:vertical {{ background: {TEXT}; height: 12px; margin: 0 -5px; border-radius: 6px; }}
+QSlider::handle:vertical:disabled {{ background: {TEXT_DISABLED}; }}
+QSlider::sub-page:horizontal:disabled {{ background: {BORDER}; }}
+QTabWidget::pane {{ border: 1px solid {BORDER}; border-radius: {RADIUS_S}px; top: -1px; }}
 
 /* Settings form */
 QComboBox, QSpinBox {{

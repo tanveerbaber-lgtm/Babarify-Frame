@@ -7,6 +7,8 @@ from dataclasses import dataclass, field, replace
 from enum import Enum
 from typing import Any
 
+from babarify_frame.core.enhancements import VideoTransform
+
 
 class PlaybackState(Enum):
     UNINITIALIZED = "uninitialized"
@@ -73,6 +75,18 @@ class EngineCapabilities:
     # What was configured, not what is in use: "requested" | "disabled" | "unavailable" | "unknown".
     # The decoder actually in use is reported per media by diagnostics()["decoder"].
     hardware_decoding: str = "unknown"
+    # Picture and sound (M7). Each flag says the control changes real output on this engine.
+    picture_adjustments: frozenset[str] = frozenset()  # subset of PICTURE_RANGES names
+    supports_aspect_ratio: bool = False
+    supports_crop: bool = False
+    supports_zoom: bool = False
+    rotation: str = "unsupported"  # "live", "restart" or "unsupported", like subtitle_style
+    supports_equalizer: bool = False
+    equalizer_presets: tuple[str, ...] = ()
+    equalizer_bands_hz: tuple[int, ...] = ()
+    supports_frame_step: bool = False
+    supports_frame_back_step: bool = False
+    supports_snapshot: bool = False
     notes: tuple[str, ...] = field(default=())
 
 
@@ -156,6 +170,7 @@ class EngineOptions:
 
     hardware_decoding: bool = True  # allow GPU decoding when the engine and hardware support it
     subtitle_style: SubtitleStyle = field(default_factory=SubtitleStyle)
+    video_transform: VideoTransform = VideoTransform.NONE  # rotation/flip (M7)
 
 
 @dataclass(frozen=True)

@@ -1,0 +1,185 @@
+{
+  "measure_s": 6.0,
+  "results": [
+    {
+      "file": "h264_1080p30_aac.mp4",
+      "decoding": "hardware",
+      "case": "baseline",
+      "cpu_pct": 1.8,
+      "dropped": 0,
+      "decoder": "hardware (D3D11VA)",
+      "state": "playing"
+    },
+    {
+      "file": "h264_1080p30_aac.mp4",
+      "decoding": "hardware",
+      "case": "picture adjust",
+      "cpu_pct": 6.8,
+      "dropped": 0,
+      "decoder": "hardware (D3D11VA)",
+      "state": "playing"
+    },
+    {
+      "file": "h264_1080p30_aac.mp4",
+      "decoding": "hardware",
+      "case": "equalizer",
+      "cpu_pct": 4.9,
+      "dropped": 0,
+      "decoder": "hardware (D3D11VA)",
+      "state": "playing"
+    },
+    {
+      "file": "h264_1080p30_aac.mp4",
+      "decoding": "hardware",
+      "case": "aspect 4:3 + zoom fit",
+      "cpu_pct": 11.2,
+      "dropped": 0,
+      "decoder": "hardware (D3D11VA)",
+      "state": "playing"
+    },
+    {
+      "file": "h264_1080p30_aac.mp4",
+      "decoding": "hardware",
+      "case": "rotate 90",
+      "cpu_pct": 36.5,
+      "dropped": 0,
+      "decoder": "hardware (D3D11VA)",
+      "state": "playing"
+    },
+    {
+      "file": "h264_1080p30_aac.mp4",
+      "decoding": "software",
+      "case": "baseline",
+      "cpu_pct": 29.1,
+      "dropped": 0,
+      "decoder": "software",
+      "state": "playing"
+    },
+    {
+      "file": "h264_1080p30_aac.mp4",
+      "decoding": "software",
+      "case": "picture adjust",
+      "cpu_pct": 37.4,
+      "dropped": 0,
+      "decoder": "software",
+      "state": "playing"
+    },
+    {
+      "file": "h264_1080p30_aac.mp4",
+      "decoding": "software",
+      "case": "equalizer",
+      "cpu_pct": 20.6,
+      "dropped": 0,
+      "decoder": "software",
+      "state": "playing"
+    },
+    {
+      "file": "h264_1080p30_aac.mp4",
+      "decoding": "software",
+      "case": "aspect 4:3 + zoom fit",
+      "cpu_pct": 20.3,
+      "dropped": 0,
+      "decoder": "software",
+      "state": "playing"
+    },
+    {
+      "file": "h264_1080p30_aac.mp4",
+      "decoding": "software",
+      "case": "rotate 90",
+      "cpu_pct": 40.6,
+      "dropped": 0,
+      "decoder": "software",
+      "state": "playing"
+    },
+    {
+      "file": "hevc_2160p30_aac.mkv",
+      "decoding": "hardware",
+      "case": "baseline",
+      "cpu_pct": 9.9,
+      "dropped": 0,
+      "decoder": "hardware (D3D11VA)",
+      "state": "playing"
+    },
+    {
+      "file": "hevc_2160p30_aac.mkv",
+      "decoding": "hardware",
+      "case": "picture adjust",
+      "cpu_pct": 11.5,
+      "dropped": 1,
+      "decoder": "hardware (D3D11VA)",
+      "state": "playing"
+    },
+    {
+      "file": "hevc_2160p30_aac.mkv",
+      "decoding": "hardware",
+      "case": "equalizer",
+      "cpu_pct": 8.3,
+      "dropped": 0,
+      "decoder": "hardware (D3D11VA)",
+      "state": "playing"
+    },
+    {
+      "file": "hevc_2160p30_aac.mkv",
+      "decoding": "hardware",
+      "case": "aspect 4:3 + zoom fit",
+      "cpu_pct": 4.9,
+      "dropped": 0,
+      "decoder": "hardware (D3D11VA)",
+      "state": "playing"
+    },
+    {
+      "file": "hevc_2160p30_aac.mkv",
+      "decoding": "hardware",
+      "case": "rotate 90",
+      "cpu_pct": 79.9,
+      "dropped": 126,
+      "decoder": "hardware (D3D11VA)",
+      "state": "playing"
+    },
+    {
+      "file": "hevc_2160p30_aac.mkv",
+      "decoding": "software",
+      "case": "baseline",
+      "cpu_pct": 82.5,
+      "dropped": 0,
+      "decoder": "software",
+      "state": "playing"
+    },
+    {
+      "file": "hevc_2160p30_aac.mkv",
+      "decoding": "software",
+      "case": "picture adjust",
+      "cpu_pct": 174.1,
+      "dropped": 6,
+      "decoder": "software",
+      "state": "playing"
+    },
+    {
+      "file": "hevc_2160p30_aac.mkv",
+      "decoding": "software",
+      "case": "equalizer",
+      "cpu_pct": 97.1,
+      "dropped": 0,
+      "decoder": "software",
+      "state": "playing"
+    },
+    {
+      "file": "hevc_2160p30_aac.mkv",
+      "decoding": "software",
+      "case": "aspect 4:3 + zoom fit",
+      "cpu_pct": 93.7,
+      "dropped": 0,
+      "decoder": "software",
+      "state": "playing"
+    },
+    {
+      "file": "hevc_2160p30_aac.mkv",
+      "decoding": "software",
+      "case": "rotate 90",
+      "cpu_pct": 199.9,
+      "dropped": 126,
+      "decoder": "software",
+      "state": "playing"
+    }
+  ]
+}

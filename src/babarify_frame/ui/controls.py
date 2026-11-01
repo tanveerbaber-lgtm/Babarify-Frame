@@ -203,6 +203,21 @@ class ControlBar(QFrame):
         self.volume.blockSignals(True)
         self.volume.setValue(level)
         self.volume.blockSignals(False)
+        self._mark_boost(level)
+
+    def set_volume_maximum(self, maximum: int) -> None:
+        """100, or up to 150 when volume boost is allowed (M7)."""
+        self.volume.setMaximum(maximum)
+        tip = "Volume (↑/↓)" if maximum <= 100 else "Volume (↑/↓) · above 100 % may distort loud passages"
+        self.volume.setToolTip(tip)
+        self._mark_boost(self.volume.value())
+
+    def _mark_boost(self, level: int) -> None:
+        boosted = level > 100
+        if self.volume.property("boost") != boosted:
+            self.volume.setProperty("boost", boosted)
+            self.volume.style().unpolish(self.volume)
+            self.volume.style().polish(self.volume)
 
     def set_rate(self, rate: float) -> None:
         self.speed_button.setText(rate_label(rate))

@@ -143,8 +143,10 @@ def test_resume_is_accurate_across_app_restarts(qtbot: QtBot, tmp_path: Path, ta
     # itself proves nothing. Wait for the first real time report after the jump: that is where
     # playback actually continues (plus at most one time-report interval of playing).
     qtbot.waitUntil(
-        lambda: win.controller.status().position_ms not in (0, saved.position_ms)
-        and win.controller.status().position_ms > saved.position_ms - 60_000,
+        lambda: (
+            win.controller.status().position_ms not in (0, saved.position_ms)
+            and win.controller.status().position_ms > saved.position_ms - 60_000
+        ),
         timeout=15_000,
     )
     first = win.controller.status().position_ms

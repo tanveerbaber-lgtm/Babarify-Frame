@@ -12,7 +12,7 @@ import os
 import sqlite3
 import threading
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from PySide6.QtCore import QPoint, QSize, Qt, QTimer, Signal
@@ -28,9 +28,22 @@ from PySide6.QtWidgets import (
 )
 
 from babarify_frame.configuration.preferences import Preferences, language_matches
+from babarify_frame.core.enhancements import (
+    PICTURE_RANGES,
+    EqualizerSettings,
+    PictureSettings,
+    VideoTransform,
+)
 from babarify_frame.core.errors import ErrorCode, PlaybackError
 from babarify_frame.core.events import ErrorOccurred, MediaInfoChanged, Notice, StateChanged
-from babarify_frame.core.models import EngineOptions, MediaInfo, PlaybackState, TrackInfo, TrackKind
+from babarify_frame.core.models import (
+    EngineCapabilities,
+    EngineOptions,
+    MediaInfo,
+    PlaybackState,
+    TrackInfo,
+    TrackKind,
+)
 from babarify_frame.library.database import LibraryDatabase
 from babarify_frame.library.history import SAVE_INTERVAL_MS, resume_position
 from babarify_frame.playback.contracts import PlaybackEngine
@@ -49,6 +62,15 @@ from babarify_frame.ui.subtitles import (
 from babarify_frame.ui.widgets import VideoSurface, format_time, glyph_icon
 
 log = logging.getLogger(__name__)
+
+
+def snapshot_folder() -> Path:
+    """Pictures\\Babarify Frame (BABARIFY_SNAPSHOT_DIR overrides it, e.g. for tests)."""
+    override = os.environ.get("BABARIFY_SNAPSHOT_DIR")
+    if override:
+        return Path(override)
+    return Path.home() / "Pictures" / "Babarify Frame"
+
 
 S = PlaybackState
 POSITION_REFRESH_MS = 100
@@ -81,6 +103,9 @@ class PlayerPage(QWidget):
     subtitle_file_requested = Signal()  # the window shows the file dialog
     fullscreen_requested = Signal()
     history_changed = Signal()  # a play was recorded or a position saved (M6)
+    picture_changed = Signal(object)  # PictureSettings (M7), for the window to persist
+    equalizer_changed = Signal(object)  # EqualizerSettings
+    enhancements_reset = Signal()  # the engine was (re)created: refresh controls from capabilities
 
     def __init__(
         self,
@@ -118,6 +143,10 @@ class PlayerPage(QWidget):
         self._resumed_from_history = False
         self._queue: list[str] = []
         self._queue_index = -1
+        # Picture and sound (M7)
+        self._transform = VideoTransform.NONE  # this session only; applied when the engine is created
+        self._geometry: tuple[str, str, float] = ("", "", 0.0)  # per file
+        self._ab: tuple[int | None, int | None] = (None, None)  # A-B repeat points, per file
         self.last_error = ""  # most recent playback error, for the Playback info panel
         self._media_name = ""
         self._state = S.UNINITIALIZED
@@ -219,7 +248,9 @@ class PlayerPage(QWidget):
         self._controller.set_video_output(int(self.video.winId()))
 
         options = EngineOptions(
-            hardware_decoding=self._prefs.hardware_decoding, subtitle_style=self._prefs.subtitle_style
+            hardware_decoding=self._prefs.hardware_decoding,
+            subtitle_style=self._prefs.subtitle_style,
+            video_transform=self._transform,
         )
 
         def work() -> None:
@@ -248,6 +279,8 @@ class PlayerPage(QWidget):
         self._controller.attach(result)
         self._run(lambda: self._controller.set_volume(self._prefs.volume))
         self._run(lambda: self._controller.set_muted(self._prefs.muted))
+        self._apply_enhancements()
+        self.enhancements_reset.emit()
         self.status_changed.emit(result.diagnostics().get("engine", result.name))
         self._show_message("info", "Nothing is playing", "Open a file from Home, or press Ctrl+O.")
         self._apply_state(S.READY)
@@ -295,6 +328,8 @@ class PlayerPage(QWidget):
                 self._resume_position = start
                 self._resumed_from_history = True
         self._media_name = Path(path).name if "://" not in path else path
+        self._geometry = ("", "", 0.0)  # aspect, crop and zoom belong to a file
+        self._ab = (None, None)
         self._tracks_applied = False
         self._embedded_subtitle_ids = set()
         self._external_subtitles = []
@@ -314,6 +349,10 @@ class PlayerPage(QWidget):
             self._controller.open(path, autoplay=autoplay)
         except PlaybackError as exc:
             self._show_error(exc)
+            return
+        caps = self.capabilities_or_none()
+        if caps is not None and caps.supports_aspect_ratio:
+            self._run(lambda: self._controller.engine.set_video_geometry("", "", 0.0))
 
     def toggle_play_pause(self) -> None:
         if self.has_media and self._state is not S.ERROR:
@@ -443,7 +482,15 @@ class PlayerPage(QWidget):
                 self.toggle_mute()
 
     def step_volume(self, delta: int) -> None:
-        self.set_volume(max(0, min(100, self.controls.volume.value() + delta)))
+        self.set_volume(max(0, min(self.volume_maximum, self.controls.volume.value() + delta)))
+
+    @property
+    def volume_maximum(self) -> int:
+        """100, or 150 with volume boost allowed (and supported by the engine)."""
+        if not self._prefs.allow_volume_boost:
+            return 100
+        caps = self.capabilities_or_none()
+        return min(150, caps.max_volume) if caps is not None else 100
 
     def toggle_mute(self) -> None:
         if not self.engine_is_ready:
@@ -460,16 +507,21 @@ class PlayerPage(QWidget):
     def volume_state(self) -> tuple[int, bool]:
         if self.engine_is_ready:
             status = self._controller.status()
-            return min(100, status.volume), status.muted
+            return min(100, status.volume), status.muted  # a boost is never remembered
         return self.controls.volume.value(), self._prefs.muted
 
     def set_preferences(self, prefs: Preferences) -> None:
+        boost_changed = prefs.allow_volume_boost != self._prefs.allow_volume_boost
         style_changed = prefs.subtitle_style != self._prefs.subtitle_style
         restart = self.engine_is_ready and (
             prefs.hardware_decoding != self._prefs.hardware_decoding
             or (style_changed and self._controller.capabilities().subtitle_style == "restart")
         )
         self._prefs = prefs
+        if boost_changed:
+            self.controls.set_volume_maximum(self.volume_maximum)
+            if self.controls.volume.value() > self.volume_maximum:
+                self.set_volume(self.volume_maximum)
         if restart:
             self.restart_engine()
         elif (
@@ -479,6 +531,150 @@ class PlayerPage(QWidget):
             and self._controller.capabilities().subtitle_style == "live"
         ):
             self._run(lambda: self._controller.set_subtitle_style(prefs.subtitle_style))
+
+    # ---------------------------------------------- picture and sound (M7)
+    def capabilities_or_none(self) -> EngineCapabilities | None:
+        return self._controller.capabilities() if self.engine_is_ready else None
+
+    @property
+    def transform(self) -> VideoTransform:
+        return self._transform
+
+    @property
+    def video_geometry(self) -> tuple[str, str, float]:
+        return self._geometry
+
+    def _supported_picture(self, picture: PictureSettings) -> PictureSettings:
+        """Unsupported adjustments fall back to their defaults instead of failing."""
+        caps = self.capabilities_or_none()
+        if caps is None:
+            return picture
+        values = {
+            name: getattr(picture, name) if name in caps.picture_adjustments else default
+            for name, (default, _low, _high) in PICTURE_RANGES.items()
+        }
+        return PictureSettings(**values)
+
+    def _apply_enhancements(self) -> None:
+        caps = self.capabilities_or_none()
+        if caps is None:
+            return
+        self.controls.set_volume_maximum(self.volume_maximum)
+        if caps.picture_adjustments:
+            self._run(
+                lambda: self._controller.engine.set_picture(self._supported_picture(self._prefs.picture))
+            )
+        if caps.supports_equalizer:
+            self._run(lambda: self._controller.engine.set_equalizer(self._prefs.equalizer))
+
+    def set_picture(self, picture: PictureSettings) -> None:
+        picture = self._supported_picture(picture.normalized())
+        self._prefs = replace(self._prefs, picture=picture)
+        if self.engine_is_ready:
+            self._run(lambda: self._controller.engine.set_picture(picture))
+        self.picture_changed.emit(picture)
+
+    def set_equalizer(self, equalizer: EqualizerSettings) -> None:
+        equalizer = equalizer.normalized()
+        self._prefs = replace(self._prefs, equalizer=equalizer)
+        caps = self.capabilities_or_none()
+        if caps is not None and caps.supports_equalizer:
+            self._run(lambda: self._controller.engine.set_equalizer(equalizer))
+        self.equalizer_changed.emit(equalizer)
+
+    def set_geometry(self, aspect: str, crop: str, zoom: float) -> None:
+        if not self.engine_is_ready:
+            return
+        try:
+            self._controller.engine.set_video_geometry(aspect, crop, zoom)
+        except PlaybackError as exc:
+            self.status_changed.emit(f"{exc.user_message.rstrip('.')}: {exc.detail}")
+            return
+        self._geometry = (aspect, crop, zoom)
+
+    def set_transform(self, transform: VideoTransform) -> None:
+        """Rotation/flip. Engines that apply it only when created are restarted at the same place."""
+        if transform is self._transform:
+            return
+        caps = self.capabilities_or_none()
+        self._transform = transform
+        if caps is None:
+            return
+        if caps.rotation == "live":
+            self._run(lambda: self._controller.engine.set_rotation(transform))
+        elif caps.rotation == "restart":
+            self.restart_engine()
+        else:
+            self._transform = VideoTransform.NONE
+            self.status_changed.emit("Rotation is not supported by this playback engine")
+
+    def frame_step(self, backward: bool = False) -> None:
+        if self._state not in (S.PLAYING, S.PAUSED):
+            return
+        try:
+            self._controller.engine.frame_step(backward)
+        except PlaybackError as exc:
+            self.status_changed.emit(f"{exc.user_message.rstrip('.')}: {exc.detail}")
+            return
+        self.status_changed.emit("Previous frame" if backward else "Next frame")
+
+    def take_snapshot(self, folder: Path | None = None) -> Path | None:
+        """Save the current frame as PNG in Pictures\\Babarify Frame (local, user-initiated)."""
+        if self._state not in (S.PLAYING, S.PAUSED, S.BUFFERING):
+            return None
+        target_dir = folder or snapshot_folder()
+        try:
+            target_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            self.status_changed.emit(f"Could not create {target_dir}: {exc.strerror}")
+            return None
+        status = self._controller.status()
+        stem = Path(self._media_name).stem if "://" not in self._media_name else "snapshot"
+        safe = "".join(c if c.isalnum() or c in " -_." else "_" for c in stem)[:80] or "snapshot"
+        stamp = format_time(status.position_ms).replace(":", "-")
+        path = target_dir / f"{safe} {stamp}.png"
+        index = 2
+        while path.exists():
+            path = target_dir / f"{safe} {stamp} ({index}).png"
+            index += 1
+        try:
+            self._controller.engine.take_snapshot(str(path))
+        except PlaybackError as exc:
+            self.status_changed.emit(f"{exc.user_message.rstrip('.')}: {exc.detail}")
+            return None
+        self.status_changed.emit(f"Snapshot saved: {path}")
+        return path
+
+    @property
+    def ab_loop(self) -> tuple[int | None, int | None]:
+        return self._ab
+
+    def ab_loop_step(self) -> None:
+        """First press sets A, second sets B (repeat starts), third clears."""
+        if self._state not in SEEKABLE:
+            return
+        position = self._controller.status().position_ms
+        a, b = self._ab
+        if a is None:
+            self._ab = (position, None)
+            self.status_changed.emit(f"Repeat: A at {format_time(position)} · press again to set B")
+        elif b is None:
+            if position <= a + 500:
+                self.status_changed.emit("B must be later than A")
+                return
+            self._ab = (a, position)
+            self.status_changed.emit(
+                f"Repeating {format_time(a)} to {format_time(position)} · press again to stop"
+            )
+            self.seek_to(a)
+        else:
+            self._ab = (None, None)
+            self.status_changed.emit("Repeat off")
+
+    def _check_ab_loop(self, position_ms: int) -> None:
+        a, b = self._ab
+        if a is not None and b is not None and position_ms >= b:
+            self.seek_to(a)
 
     # -------------------------------------------------- audio and subtitles
     @property
@@ -738,6 +934,10 @@ class PlayerPage(QWidget):
         elif state is S.PAUSED:
             self._save_history()
         elif state is S.ENDED:
+            a, b = self._ab
+            if a is not None and b is not None:  # B was at (or past) the end: keep repeating
+                QTimer.singleShot(0, lambda: self.seek_to(a))
+                return
             self._record_finished()
             if self._queue and self._queue_index < len(self._queue) - 1:
                 QTimer.singleShot(0, self.next_in_queue)
@@ -805,6 +1005,8 @@ class PlayerPage(QWidget):
             self._duration_ms = status.duration_ms
             self._apply_state(self._state)
         self.controls.set_position(status.position_ms, self._duration_ms)
+        if status.state is S.PLAYING:
+            self._check_ab_loop(status.position_ms)
         self._ticks += 1
         if status.state is S.PLAYING and self._ticks % STATUS_REFRESH_TICKS == 0:
             self._show_engine_status()

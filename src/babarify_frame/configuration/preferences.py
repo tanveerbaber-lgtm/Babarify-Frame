@@ -20,6 +20,12 @@ from dataclasses import asdict, dataclass, field, fields, replace
 from pathlib import Path
 from typing import Any
 
+from babarify_frame.core.enhancements import (
+    MAX_PROFILES,
+    EnhancementProfile,
+    EqualizerSettings,
+    PictureSettings,
+)
 from babarify_frame.core.models import SubtitleStyle
 
 log = logging.getLogger(__name__)
@@ -105,6 +111,11 @@ class Preferences:
     remember_history: bool = True  # local only; Settings → Privacy can clear it
     resume_playback: bool = True
     library_sort: str = "name"  # a SortOrder value
+    # Picture and sound (M7)
+    picture: PictureSettings = field(default_factory=PictureSettings)
+    equalizer: EqualizerSettings = field(default_factory=EqualizerSettings)
+    profiles: tuple[EnhancementProfile, ...] = ()
+    allow_volume_boost: bool = False  # volume above 100 % (up to 150 %); never remembered
     window: WindowGeometry | None = field(default=None)
 
     @classmethod
@@ -115,7 +126,13 @@ class Preferences:
         default = cls()
         values: dict[str, Any] = {}
         for f in fields(cls):
-            if f.name not in data or f.name in ("window", "subtitle_style"):
+            if f.name not in data or f.name in (
+                "window",
+                "subtitle_style",
+                "picture",
+                "equalizer",
+                "profiles",
+            ):
                 continue
             raw = data[f.name]
             current = getattr(default, f.name)
@@ -133,7 +150,23 @@ class Preferences:
                 values[f.name] = raw
         prefs = replace(default, **values)
         style = SubtitleStyle.from_dict(data.get("subtitle_style"))
-        return replace(prefs, window=_geometry(data.get("window")), subtitle_style=style).normalized()
+        raw_profiles = data.get("profiles")
+        profiles = tuple(
+            p
+            for p in (
+                EnhancementProfile.from_dict(item)
+                for item in (raw_profiles if isinstance(raw_profiles, list) else [])
+            )
+            if p is not None
+        )
+        return replace(
+            prefs,
+            window=_geometry(data.get("window")),
+            subtitle_style=style,
+            picture=PictureSettings.from_dict(data.get("picture")),
+            equalizer=EqualizerSettings.from_dict(data.get("equalizer")),
+            profiles=profiles,
+        ).normalized()
 
     def normalized(self) -> Preferences:
         return replace(
@@ -144,14 +177,29 @@ class Preferences:
             preferred_audio_language=_language(self.preferred_audio_language),
             preferred_subtitle_language=_language(self.preferred_subtitle_language),
             library_sort=self.library_sort if self.library_sort in LIBRARY_SORTS else "name",
+            picture=self.picture.normalized(),
+            equalizer=self.equalizer.normalized(),
+            profiles=_unique_profiles(self.profiles),
             subtitle_style=self.subtitle_style.normalized(),
         )
 
     def to_dict(self) -> dict[str, Any]:
         data = asdict(self)
         data["subtitle_style"] = self.subtitle_style.to_dict()
+        data["picture"] = self.picture.to_dict()
+        data["equalizer"] = self.equalizer.to_dict()
+        data["profiles"] = [p.to_dict() for p in self.profiles]
         data["schema"] = SCHEMA_VERSION
         return data
+
+
+def _unique_profiles(profiles: tuple[EnhancementProfile, ...]) -> tuple[EnhancementProfile, ...]:
+    """Last profile with a given name wins (case-insensitive); at most MAX_PROFILES."""
+    by_name: dict[str, EnhancementProfile] = {}
+    for profile in profiles:
+        by_name.pop(profile.name.casefold(), None)  # a re-saved profile counts as the newest
+        by_name[profile.name.casefold()] = profile
+    return tuple(by_name.values())[-MAX_PROFILES:]
 
 
 def _language(code: str) -> str:
