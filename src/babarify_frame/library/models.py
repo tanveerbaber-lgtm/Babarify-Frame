@@ -103,6 +103,27 @@ class PlaylistItem:
 
 
 @dataclass(frozen=True)
+class Transcript:
+    """Machine-generated subtitles made for a file (M9), indexed for spoken-word search."""
+
+    id: int
+    path: str
+    srt_path: str
+    language: str
+    model: str
+    cue_count: int
+    created_at: float
+
+
+@dataclass(frozen=True)
+class SpokenHit:
+    path: str
+    title: str
+    start_ms: int
+    text: str  # the matching cue, with the matched words in [brackets]
+
+
+@dataclass(frozen=True)
 class Bookmark:
     """A user's named point in a file (M8). Kept per file, by path_key, like history."""
 

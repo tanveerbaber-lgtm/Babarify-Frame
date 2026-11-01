@@ -381,6 +381,19 @@ class PlayerPage(QWidget):
         if caps is not None and caps.supports_aspect_ratio:
             self._run(lambda: self._controller.engine.set_video_geometry("", "", 0.0))
 
+    def open_at(self, path: str, position_ms: int) -> None:
+        """Open a file and start at a given time (e.g. a spoken-word search result, M9)."""
+        self._resume_position = max(0, position_ms)
+        self.open_path(path)
+
+    @property
+    def current_uri(self) -> str | None:
+        return self._current_uri if self.has_media else None
+
+    @property
+    def media_name(self) -> str:
+        return self._media_name
+
     def toggle_play_pause(self) -> None:
         if self.has_media and self._state is not S.ERROR:
             self._run(self._controller.toggle_play_pause)

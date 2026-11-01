@@ -25,3 +25,6 @@ desktop.ini
 # Generated benchmark media and raw results
 tests/fixtures/media/generated/
 tools/engine-benchmark/results/raw/
+
+# Local AI models (M9): downloaded on demand, never committed
+.models/

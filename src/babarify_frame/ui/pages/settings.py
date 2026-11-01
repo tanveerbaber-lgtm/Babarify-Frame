@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QComboBox,
     QFormLayout,
     QFrame,
+    QHBoxLayout,
     QLabel,
     QPushButton,
     QScrollArea,
@@ -21,6 +22,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from babarify_frame.ai.models import MODELS, ModelStatus
 from babarify_frame.configuration.preferences import LANGUAGES, SEEK_STEPS_S, Preferences
 from babarify_frame.core.models import SubtitlePosition, SubtitleStyle
 from babarify_frame.ui import theme
@@ -67,6 +69,10 @@ def _label(text: str, name: str) -> QLabel:
 class SettingsPage(QWidget):
     preferences_changed = Signal(object)  # Preferences
     clear_history_requested = Signal()
+    # Local AI (M9): the window does the work and reports back with set_ai_status()
+    download_model_requested = Signal(str)
+    delete_model_requested = Signal(str)
+    delete_generated_requested = Signal()
 
     def __init__(
         self,
@@ -210,11 +216,13 @@ class SettingsPage(QWidget):
         path_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         privacy_box.addWidget(path_label)
 
+        ai = self._build_ai_card()
+
         self.reset_button = QPushButton("Reset to defaults")
         self.reset_button.setAccessibleName("Reset settings to defaults")
         self.reset_button.clicked.connect(self._reset)
 
-        for widget in (playback, subtitles, fullscreen, privacy):
+        for widget in (playback, subtitles, fullscreen, privacy, ai):
             column.addWidget(widget)
         column.addWidget(self.reset_button, alignment=Qt.AlignmentFlag.AlignLeft)
         column.addStretch(1)
@@ -234,6 +242,8 @@ class SettingsPage(QWidget):
         self.subtitles_auto.toggled.connect(self._changed)
         self.remember_history.toggled.connect(self._changed)
         self.resume_playback.toggled.connect(self._changed)
+        self.ai_enabled.toggled.connect(self._changed)
+        self.ai_model.currentIndexChanged.connect(self._changed)
         for combo in (
             self.audio_language,
             self.subtitle_language,
@@ -244,6 +254,75 @@ class SettingsPage(QWidget):
         ):
             combo.currentIndexChanged.connect(self._changed)
         self.subtitle_size.valueChanged.connect(self._changed)
+
+    def _build_ai_card(self) -> QFrame:
+        self.ai_enabled = QCheckBox("Turn on AI features (they run on this PC)")
+        self.ai_model = QComboBox()
+        self.ai_model.setAccessibleName("Speech model")
+        for name, model in MODELS.items():
+            self.ai_model.addItem(f"{model.label} · {model.size / 1e6:.0f} MB", name)
+        self.ai_model_status = _label("", "muted")
+        self.ai_download = QPushButton("Download…")
+        self.ai_download.clicked.connect(
+            lambda: self.download_model_requested.emit(self.ai_model.currentData())
+        )
+        self.ai_delete_model = QPushButton("Delete model")
+        self.ai_delete_model.clicked.connect(
+            lambda: self.delete_model_requested.emit(self.ai_model.currentData())
+        )
+        buttons = QWidget()
+        row = QHBoxLayout(buttons)
+        row.setContentsMargins(0, 0, 0, 0)
+        row.addWidget(self.ai_download)
+        row.addWidget(self.ai_delete_model)
+        row.addWidget(self.ai_model_status, stretch=1)
+        self.ai_generated = _label("", "muted")
+        self.ai_delete_generated = QPushButton("Delete all generated subtitles…")
+        self.ai_delete_generated.clicked.connect(self.delete_generated_requested)
+        self.ai_delete_generated.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        card = self._card(
+            "AI features",
+            [
+                ("", self.ai_enabled),
+                ("Speech model", self.ai_model),
+                ("", buttons),
+                ("", self.ai_generated),
+                ("", self.ai_delete_generated),
+            ],
+        )
+        box = card.layout()
+        assert isinstance(box, QVBoxLayout)
+        box.addWidget(
+            _label(
+                "Generate subtitles from speech (Audio & Subtitles → Generate subtitles) and search what "
+                "is said in them. Everything runs on this PC with open-source Whisper models "
+                "(MIT licence); media, sound and subtitles are never uploaded. The only network use is "
+                "downloading a model, after you confirm. Generated subtitles are marked "
+                "machine-generated and kept in Babarify's own folder, not next to your files.",
+                "caption",
+            )
+        )
+        return card
+
+    def set_ai_status(
+        self, statuses: dict[str, ModelStatus], generated: int, generated_bytes: int, busy: str = ""
+    ) -> None:
+        """Model and generated-subtitle state, refreshed by the window."""
+        name = str(self.ai_model.currentData())
+        state = statuses.get(name, ModelStatus.MISSING)
+        text = {
+            ModelStatus.INSTALLED: "Installed",
+            ModelStatus.MISSING: "Not downloaded",
+            ModelStatus.DAMAGED: "Damaged: delete and download again",
+        }[state]
+        self.ai_model_status.setText(busy or text)
+        self.ai_download.setEnabled(not busy and state is not ModelStatus.INSTALLED)
+        self.ai_delete_model.setEnabled(not busy and state is not ModelStatus.MISSING)
+        self.ai_generated.setText(
+            f"Generated subtitles: {generated} file{'s' if generated != 1 else ''}"
+            + (f" ({generated_bytes / 1024:.0f} KB)" if generated else "")
+        )
+        self.ai_delete_generated.setEnabled(generated > 0)
 
     def _language_combo(self, accessible: str) -> QComboBox:
         combo = QComboBox()
@@ -291,6 +370,8 @@ class SettingsPage(QWidget):
         self.remember_history.setChecked(prefs.remember_history)
         self.resume_playback.setChecked(prefs.resume_playback)
         self.resume_playback.setEnabled(prefs.remember_history)
+        self.ai_enabled.setChecked(prefs.ai_enabled)
+        self.ai_model.setCurrentIndex(max(0, self.ai_model.findData(prefs.ai_model)))
         _select(self.audio_language, prefs.preferred_audio_language, prefs.preferred_audio_language)
         _select(self.subtitle_language, prefs.preferred_subtitle_language, prefs.preferred_subtitle_language)
         style = prefs.subtitle_style
@@ -321,6 +402,8 @@ class SettingsPage(QWidget):
             subtitles_auto=self.subtitles_auto.isChecked(),
             remember_history=self.remember_history.isChecked(),
             resume_playback=self.resume_playback.isChecked(),
+            ai_enabled=self.ai_enabled.isChecked(),
+            ai_model=str(self.ai_model.currentData()),
             preferred_audio_language=str(self.audio_language.currentData()),
             preferred_subtitle_language=str(self.subtitle_language.currentData()),
             subtitle_style=SubtitleStyle(

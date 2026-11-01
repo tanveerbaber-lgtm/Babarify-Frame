@@ -1,0 +1,35 @@
+{
+  "cpu": 8,
+  "speech": [
+    {
+      "model": "tiny",
+      "exit": 0,
+      "wall_s": 5.4,
+      "wer": 0.0,
+      "first_cue_s": 2.77,
+      "cues": 7,
+      "audio_s": 35.2,
+      "speed_x": 6.5
+    },
+    {
+      "model": "base",
+      "exit": 0,
+      "wall_s": 11.6,
+      "wer": 0.0,
+      "first_cue_s": 2.77,
+      "cues": 7,
+      "audio_s": 35.2,
+      "speed_x": 3.0
+    }
+  ],
+  "playback": {
+    "alone": {
+      "advance_ratio": 0.968,
+      "dropped": 0
+    },
+    "while_transcribing": {
+      "advance_ratio": 1.0,
+      "dropped": 0
+    }
+  }
+}

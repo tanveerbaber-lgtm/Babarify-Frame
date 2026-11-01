@@ -1,4 +1,5 @@
-"""SQLite store for library folders, media, history and playlists (M6), and bookmarks (M8).
+"""SQLite store for library folders, media, history and playlists (M6), bookmarks (M8) and
+the index of machine-generated subtitles (M9).
 
 Design rules:
 * Local only: one file in the user's app-data folder; nothing is uploaded.
@@ -34,6 +35,8 @@ from babarify_frame.library.models import (
     Playlist,
     PlaylistItem,
     SortOrder,
+    SpokenHit,
+    Transcript,
     path_key,
 )
 
@@ -103,6 +106,19 @@ MIGRATIONS: tuple[tuple[str, ...], ...] = (
             label TEXT NOT NULL,
             created_at REAL NOT NULL)""",
         "CREATE INDEX bookmarks_media ON bookmarks(path_key, position_ms)",
+    ),
+    (  # 4: machine-generated subtitles and their spoken-word index (M9)
+        """CREATE TABLE transcripts(
+            id INTEGER PRIMARY KEY,
+            path_key TEXT NOT NULL UNIQUE,
+            path TEXT NOT NULL,
+            title TEXT NOT NULL,
+            srt_path TEXT NOT NULL,
+            language TEXT NOT NULL,
+            model TEXT NOT NULL,
+            cue_count INTEGER NOT NULL,
+            created_at REAL NOT NULL)""",
+        "CREATE VIRTUAL TABLE transcript_cues USING fts5(text, transcript_id UNINDEXED, start_ms UNINDEXED)",
     ),
 )
 SCHEMA_VERSION = len(MIGRATIONS)
@@ -674,6 +690,79 @@ class LibraryDatabase:
     def clear_bookmarks(self, path: str) -> None:
         with self._transaction() as conn:
             conn.execute("DELETE FROM bookmarks WHERE path_key = ?", (path_key(path),))
+
+    # ------------------------------------------------- generated subtitles (M9)
+    def save_transcript(
+        self,
+        path: str,
+        title: str,
+        srt_path: str,
+        language: str,
+        model: str,
+        cues: Sequence[tuple[int, str]],
+    ) -> Transcript:
+        """Store (or replace) the generated subtitles of a file and index their text."""
+        now, key = time.time(), path_key(path)
+        with self._transaction() as conn:
+            old = conn.execute("SELECT id FROM transcripts WHERE path_key = ?", (key,)).fetchone()
+            if old is not None:
+                conn.execute("DELETE FROM transcript_cues WHERE transcript_id = ?", (old[0],))
+                conn.execute("DELETE FROM transcripts WHERE id = ?", (old[0],))
+            cur = conn.execute(
+                """INSERT INTO transcripts(path_key, path, title, srt_path, language, model, cue_count,
+                   created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (key, path, title[:300], srt_path, language[:16], model[:32], len(cues), now),
+            )
+            tid = int(cur.lastrowid or 0)
+            conn.executemany(
+                "INSERT INTO transcript_cues(text, transcript_id, start_ms) VALUES (?, ?, ?)",
+                [(text[:1000], tid, int(start)) for start, text in cues],
+            )
+        return Transcript(tid, path, srt_path, language, model, len(cues), now)
+
+    def transcript_for(self, path: str) -> Transcript | None:
+        rows = self._query("SELECT * FROM transcripts WHERE path_key = ?", (path_key(path),))
+        return self._transcript(rows[0]) if rows else None
+
+    @staticmethod
+    def _transcript(r: sqlite3.Row) -> Transcript:
+        return Transcript(
+            r["id"], r["path"], r["srt_path"], r["language"], r["model"], r["cue_count"], r["created_at"]
+        )
+
+    def transcripts(self) -> list[Transcript]:
+        return [self._transcript(r) for r in self._query("SELECT * FROM transcripts ORDER BY created_at")]
+
+    def search_spoken(self, query: str, limit: int = 100) -> list[SpokenHit]:
+        """Cues containing every word of ``query`` (prefix match on the last word). The query is
+        untrusted: it is reduced to words and quoted, so FTS syntax in it has no effect."""
+        words = [w for w in "".join(c if c.isalnum() else " " for c in query.lower()).split() if w][:12]
+        if not words:
+            return []
+        match = " ".join(f'"{w}"' for w in words[:-1]) + f' "{words[-1]}"*'
+        rows = self._query(
+            """SELECT t.path, t.title, c.start_ms, snippet(transcript_cues, 0, '[', ']', '…', 16) AS text
+               FROM transcript_cues c JOIN transcripts t ON t.id = c.transcript_id
+               WHERE transcript_cues MATCH ? ORDER BY t.title COLLATE NOCASE, c.start_ms LIMIT ?""",
+            (match.strip(), limit),
+        )
+        return [SpokenHit(r["path"], r["title"], int(r["start_ms"]), r["text"]) for r in rows]
+
+    def delete_transcript(self, path: str) -> Transcript | None:
+        old = self.transcript_for(path)
+        if old is not None:
+            with self._transaction() as conn:
+                conn.execute("DELETE FROM transcript_cues WHERE transcript_id = ?", (old.id,))
+                conn.execute("DELETE FROM transcripts WHERE id = ?", (old.id,))
+        return old
+
+    def delete_all_transcripts(self) -> list[Transcript]:
+        """Forget every generated subtitle; returns them so their files can be deleted."""
+        old = self.transcripts()
+        with self._transaction() as conn:
+            conn.execute("DELETE FROM transcript_cues")
+            conn.execute("DELETE FROM transcripts")
+        return old
 
 
 def _local_exists(path: str) -> bool:

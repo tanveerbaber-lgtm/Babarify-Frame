@@ -50,6 +50,9 @@ History stays on this PC and can be turned off or cleared in *Settings → Priva
 Network streams (http, https, HLS, internet radio, rtsp) open with **Ctrl+N** or by dropping a
 link; Babarify fetches web streams itself and never follows a redirect or playlist entry to a
 local file or another program. Point at the seek bar for a preview picture (local videos).
+Optional local AI (*Settings → AI features*, off by default): generate subtitles from speech and
+search what is said. It runs on this PC only; nothing is uploaded. Install with
+`pip install -e .[ai]`; the speech model (75–148 MB) is downloaded in the app after you confirm.
 
 | Key | Action |
 |---|---|
@@ -65,6 +68,8 @@ local file or another program. Point at the seek bar for a preview picture (loca
 | Ctrl+→ / Ctrl+← | Next / previous chapter (also *Playback → Chapters*) |
 | Ctrl+B / Ctrl+Shift+B | Add a bookmark / list bookmarks |
 | Ctrl+Shift+I | Media information (tracks, tags, chapters) |
+| Ctrl+Shift+G | Generate subtitles from speech (local AI, when turned on) |
+| Ctrl+Shift+F | Search spoken words in generated subtitles |
 | Ctrl+I | Playback info (decoder, frames, engine log) |
 | Ctrl+L | Library |
 | N / P | Next / previous in playlist |

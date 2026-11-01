@@ -18,8 +18,11 @@ dependencies = [
 # Engine bindings. Native engine libraries are NOT installed by pip; see README.
 vlc = ["python-vlc>=3.0.20123"]
 mpv = ["mpv>=1.0.7"]
+# Optional local AI (M9): speech-to-text subtitles. Models are downloaded in the app, on request.
+ai = ["faster-whisper==1.2.1"]
 dev = [
     "python-vlc>=3.0.20123",
+    "faster-whisper==1.2.1",
     "mpv>=1.0.7",
     "psutil>=6.0",
     "pytest>=8.3",
@@ -62,7 +65,7 @@ mypy_path = "src"
 packages = ["babarify_frame"]
 
 [[tool.mypy.overrides]]
-module = ["vlc", "mpv", "psutil"]
+module = ["vlc", "mpv", "psutil", "faster_whisper"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

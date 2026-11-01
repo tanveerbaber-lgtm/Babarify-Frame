@@ -20,6 +20,7 @@ from dataclasses import asdict, dataclass, field, fields, replace
 from pathlib import Path
 from typing import Any
 
+from babarify_frame.ai.models import DEFAULT_MODEL, MODELS, SPEECH_LANGUAGES
 from babarify_frame.core.enhancements import (
     MAX_PROFILES,
     EnhancementProfile,
@@ -118,6 +119,10 @@ class Preferences:
     allow_volume_boost: bool = False  # volume above 100 % (up to 150 %); never remembered
     # Advanced media (M8)
     seek_previews: bool = True  # pictures when hovering over the seek bar (local video files)
+    # Local AI (M9): off until the user switches it on; nothing is uploaded
+    ai_enabled: bool = False
+    ai_model: str = "base"  # an ai.models.MODELS key
+    ai_language: str = ""  # an ai.models.SPEECH_LANGUAGES key; "" = detect
     window: WindowGeometry | None = field(default=None)
 
     @classmethod
@@ -179,6 +184,8 @@ class Preferences:
             preferred_audio_language=_language(self.preferred_audio_language),
             preferred_subtitle_language=_language(self.preferred_subtitle_language),
             library_sort=self.library_sort if self.library_sort in LIBRARY_SORTS else "name",
+            ai_model=self.ai_model if self.ai_model in MODELS else DEFAULT_MODEL,
+            ai_language=self.ai_language if self.ai_language in SPEECH_LANGUAGES else "",
             picture=self.picture.normalized(),
             equalizer=self.equalizer.normalized(),
             profiles=_unique_profiles(self.profiles),

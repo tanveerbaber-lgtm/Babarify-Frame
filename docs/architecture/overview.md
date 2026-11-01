@@ -1,4 +1,4 @@
-# Babarify Frame — Architecture Overview (M8)
+# Babarify Frame — Architecture Overview (M9)
 
 This describes the code as it exists at the end of Milestone 4. The product-level
 architecture and roadmap are in the
@@ -264,6 +264,34 @@ Every address (typed, dropped, from history or inside a playlist) is untrusted.
   can switch it off. The seek bar draws chapter starts (grey) and bookmarks (amber).
 - `ui/media_info.py` (Ctrl+Shift+I): general facts, tags, every track and the chapters;
   values are HTML-escaped and shortened, and can be copied as text.
+
+## Local AI: generated subtitles and spoken-word search (M9)
+
+Off until *Settings → AI features* is switched on; local only (owner decision).
+
+- `ai/models.py`: the speech models (faster-whisper conversions of Whisper, MIT), each pinned
+  to a Hugging Face revision with the size and SHA-256 of every file. Models live in
+  `%LOCALAPPDATA%\Babarify\Frame\models` (`BABARIFY_MODELS_DIR`). A model is downloaded only
+  after the user confirms a dialog naming its size, source, revision and licence; files go to a
+  staging folder and are installed only if every checksum matches.
+- `ai/worker.py` runs as its own process (`python -m babarify_frame.ai.worker`) at
+  below-normal priority with half the cores, so the speech engine (CTranslate2, onnxruntime)
+  can neither crash nor slow playback; Cancel ends the process. It decodes the audio with
+  libVLC (transcode to 16 kHz mono WAV: no second media parser, about 200× real time), runs
+  faster-whisper offline (`HF_HUB_OFFLINE`) with the voice-activity filter and word timings,
+  and reports JSON lines (stage, progress, language, done/error). PyAV, which faster-whisper
+  would use for decoding, is never called (its current version is incompatible anyway).
+- `ai/subtitles.py`: cues rebuilt from word timings (sentence ends, ≤ 84 characters, ≤ 7 s,
+  pauses over 0.7 s, two lines, no overlap), SRT output, file names
+  `<name>.<language>.machine-generated.srt` in `<config>\subtitles\<hash of path_key>\`,
+  never next to the media.
+- Library schema v4: `transcripts` (one per file) and the FTS5 table `transcript_cues`.
+  `search_spoken` reduces the query to quoted words (prefix match on the last), so FTS syntax
+  typed by the user has no effect. *Delete all generated subtitles* removes files and index.
+- UI (`ui/ai.py`): *Audio & Subtitles → Generate subtitles (local AI)* (Ctrl+Shift+G) with
+  language (or automatic detection), model, time estimate, progress and Stop; the result is
+  added to the subtitle tracks. *View → Search spoken words* (Ctrl+Shift+F) opens a result
+  1 s before the words. Switching AI off hides both and stops a running job.
 
 ## Capability reporting
 
