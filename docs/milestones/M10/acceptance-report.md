@@ -24,8 +24,7 @@ repository or the Python environment. A run on a genuinely fresh PC is the first
 scenario (§6).
 
 The final release is built from the committed tree (the build refuses uncommitted changes).
-§2 shows the trial build's checksums; they are replaced with the final ones when M10 is
-accepted and committed.
+§2 records the final build's checksums (built from the accepted commit).
 
 ## Acceptance criteria (plan §8, M10)
 
@@ -68,13 +67,20 @@ After all M10 changes: ruff (check and format) clean, strict mypy clean, full de
 **563 passed**, 72 skipped (mpv opt-in, missing optional media), 0 failed, no crash
 (`-X faulthandler`).
 
-## 2. Release artifacts (trial build, uncommitted tree; replaced by the final build)
+## 2. Release artifacts (final build from commit `a307656`, clean tree)
 
 | File | Size | SHA-256 |
 |---|---|---|
-| BabarifyFrame-0.9.0-setup.exe | 120.7 MB | `250a976f74e990478479d6c3f73fdcc4d9752d8034764fb3d3ea17b6ea46dbc0` |
-| BabarifyFrame-0.9.0-source.zip | 14.6 MB | `9eff3e3c975ece2091dcaad719b4aedac1afbdbb5253cc055134e7c6f32ddc43` |
-| BabarifyFrame-0.9.0-manifest.json | 0.1 MB | `81974775f070adbcb970b881980ef07b653c3b4edd5fddfac67f9e83a37ad5f4` |
+| BabarifyFrame-0.9.0-setup.exe | 120.7 MB | `5ebdffe13a43d2411635e89d8499c5fe138cfaf906e77d0737cc86efe8737467` |
+| BabarifyFrame-0.9.0-source.zip | 14.6 MB | `01f03c9a90af5416ee67f91d23f06a88d58ca646ff4ee6705a05f4b1b5ccb4a7` |
+| BabarifyFrame-0.9.0-manifest.json | 0.1 MB | `978186f4ba40df55e07da7bc53ef52456ced9e68ccec541eb7df2ed0cb76adf0` |
+
+This exact installer passed the release check again after the build: install, clean-environment
+playback, AI worker, repair install (same version over itself), uninstall
+([`evidence/release_check_final.json`](evidence/release_check_final.json)). The upgrade and
+rollback evidence (0.9.0 ↔ 0.9.1) is from the trial build of the same code
+([`evidence/release_check.json`](evidence/release_check.json)). The artifacts are in
+`release/0.9.0/` on the build PC (not in git); the checksums above are the record.
 
 Installed size: 186 MB without the AI component, 430 MB with it (685 files). The AI component
 is about 240 MB (CTranslate2, onnxruntime, PyAV, numpy).
