@@ -16,6 +16,8 @@ import sys
 from importlib import metadata
 from pathlib import Path
 
+from packaging.requirements import Requirement
+
 RUNTIME_ROOTS = ("PySide6-Essentials", "python-vlc", "huggingface-hub", "faster-whisper")
 # Build and development tools are never bundled even if a root depends on them.
 NOT_BUNDLED = {"pip", "setuptools", "wheel", "pyinstaller", "pyinstaller-hooks-contrib", "altgraph", "pefile"}
@@ -38,13 +40,12 @@ def closure(roots: tuple[str, ...] = RUNTIME_ROOTS) -> list[metadata.Distributio
         except metadata.PackageNotFoundError:
             continue
         seen[name] = dist
-        for req in dist.requires or []:
-            if "extra ==" in req:
+        for text in dist.requires or []:
+            req = Requirement(text)
+            # Only requirements that apply here: Windows, this Python, no extras.
+            if req.marker is not None and not req.marker.evaluate({"extra": ""}):
                 continue
-            marker = req.split(";", 1)[1] if ";" in req else ""
-            if "sys_platform" in marker and "win32" not in marker and "!=" not in marker:
-                continue
-            todo.append(re.split(r"[\s;<>=!~\[(]", req, maxsplit=1)[0])
+            todo.append(req.name)
     return sorted(seen.values(), key=lambda d: _norm(d.metadata["Name"]))
 
 

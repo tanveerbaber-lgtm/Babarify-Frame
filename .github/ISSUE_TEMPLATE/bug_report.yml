@@ -1,0 +1,89 @@
+name: Problem report
+description: Something does not work as it should in Babarify Frame.
+title: "[Problem] "
+labels: ["beta", "needs-triage", "bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for testing Babarify Frame. Please **do not include anything private**
+        (names of personal files, addresses of private streams, screenshots of private media).
+        In the app, *Help → Report a problem* prepares the technical details for you to paste below.
+  - type: input
+    id: version
+    attributes:
+      label: Babarify Frame version
+      description: Help → About, or the first line of the report text.
+      placeholder: "0.9.1"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Installing, updating or uninstalling
+        - Playing a file (video or sound)
+        - Audio tracks or subtitles
+        - Picture & Sound
+        - Library, history or playlists
+        - Network streams
+        - Chapters, bookmarks, previews, media information
+        - Local AI (generated subtitles, spoken-word search)
+        - Settings
+        - Accessibility (keyboard, screen reader, contrast)
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: How bad is it?
+      description: See the definitions in docs/beta/TRIAGE.md.
+      options:
+        - "S1 – crash, data loss, security or privacy problem, cannot install"
+        - "S2 – a main task does not work and there is no workaround"
+        - "S3 – something is wrong but there is a workaround"
+        - "S4 – cosmetic, wording, minor annoyance"
+    validations:
+      required: true
+  - type: dropdown
+    id: reproducibility
+    attributes:
+      label: Does it happen again?
+      options:
+        - Every time
+        - Often (more than half the time)
+        - Sometimes
+        - It happened once
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: What did you do?
+      description: Step by step, as exactly as you can.
+      placeholder: |
+        1. Opened a .mkv file from Home
+        2. Pressed V to show subtitles
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Technical details
+      description: Paste the text from *Help → Report a problem* (it contains no file names unless you ticked that box).
+      render: text
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy
+      options:
+        - label: I checked that this report contains nothing I want to keep private.
+          required: true

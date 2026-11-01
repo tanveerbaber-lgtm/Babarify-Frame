@@ -48,7 +48,7 @@ from babarify_frame import PRODUCT_NAME, TAGLINE, __version__
 from babarify_frame.ai import models as ai_models
 from babarify_frame.configuration.preferences import Preferences, PreferencesStore, WindowGeometry
 from babarify_frame.core.enhancements import EqualizerSettings
-from babarify_frame.core.models import SUBTITLE_EXTENSIONS, PlaybackState
+from babarify_frame.core.models import SUBTITLE_EXTENSIONS, MediaInfo, PlaybackState
 from babarify_frame.core.network import is_network_uri
 from babarify_frame.library.database import LibraryDatabase
 from babarify_frame.library.models import HistoryEntry
@@ -75,6 +75,7 @@ from babarify_frame.ui.pages.home import SHORTCUTS, HomePage
 from babarify_frame.ui.pages.library import LibraryPage
 from babarify_frame.ui.pages.player import VOLUME_STEP, PlayerPage
 from babarify_frame.ui.pages.settings import SettingsPage
+from babarify_frame.ui.report import ReportDialog
 from babarify_frame.ui.subtitles import SUBTITLE_FILTER
 from babarify_frame.ui.widgets import format_time, glyph_icon
 
@@ -281,6 +282,7 @@ class MainWindow(QMainWindow):
             self.audio_earlier_action,
             self.audio_later_action,
         )
+        self.report_action = self._action("&Report a problem…", [], self.show_report)
         about_action = QAction(f"&About {PRODUCT_NAME}", self)
         about_action.triggered.connect(self._show_about)
         self._playback_actions = (
@@ -349,6 +351,7 @@ class MainWindow(QMainWindow):
         view_menu.addAction(self.spoken_search_action)
         help_menu = menus.addMenu("&Help")
         help_menu.addAction(shortcuts_action)
+        help_menu.addAction(self.report_action)
         help_menu.addAction(about_action)
 
     def _connect_pages(self) -> None:
@@ -697,6 +700,22 @@ class MainWindow(QMainWindow):
         self.settings.set_ai_status(
             statuses, len(transcripts), generated_size(transcripts), busy, installed=ai_installed()
         )
+
+    def show_report(self) -> ReportDialog:
+        """Help → Report a problem (M11): text to copy into the issue form; nothing is sent."""
+
+        def gather() -> tuple[dict[str, str], MediaInfo | None, str, str]:
+            p = self.player
+            if not p.engine_is_ready:
+                return {"Engine": "not started"}, None, "", p.last_error
+            diag = dict(p.controller.engine.diagnostics())
+            diag.pop("log_errors", None)
+            info = p.controller.media_info() if p.has_media else None
+            return diag, info, p.media_name, p.last_error
+
+        dialog = ReportDialog(gather, self)
+        dialog.show()
+        return dialog
 
     def show_media_info(self) -> MediaInfoDialog:
         if self._media_info_dialog is None:

@@ -840,7 +840,7 @@ Use the following checklist as the project status source of truth. Mark a milest
 - [x] M8 — Advanced Media and Network Features — **PASS**, accepted by the owner 2026-11-01 ([report](docs/milestones/M8/acceptance-report.md))
 - [x] M9 — Intelligent and Optional AI Features — **PASS**, accepted by the owner 2026-11-01 ([report](docs/milestones/M9/acceptance-report.md))
 - [x] M10 — Windows Packaging, Security, and Release — **PASS**, accepted by the owner 2026-11-01 ([report](docs/milestones/M10/acceptance-report.md))
-- [ ] M11 — Public Beta and User Feedback
+- [~] M11 — Public Beta and User Feedback — **CONDITIONAL**, accepted by the owner 2026-11-01: beta 0.9.1 prepared; PASS once the beta has run ([report](docs/milestones/M11/acceptance-report.md))
 - [ ] M12 — Android Feasibility and Shared Architecture
 - [ ] M13 — Android Implementation
 - [ ] M14 — iOS Feasibility and Shared Architecture
@@ -850,8 +850,8 @@ Use the following checklist as the project status source of truth. Mark a milest
 ### Current status
 
 **Project planning baseline:** Defined in this document.  
-**Implementation status:** M1 accepted as CONDITIONAL, M2 as PASS, M3 as CONDITIONAL, M4 as PASS (2026-10-27), M5 as CONDITIONAL, M6 as PASS (2026-10-31), M7 as PASS (2026-11-01), M8 as PASS (2026-11-01), M9 as PASS (2026-11-01), M10 as PASS (2026-11-01). Playback engine: libVLC, provisional ([ADR-0001](docs/decisions/ADR-0001-playback-engine.md)).  
-**Next action:** M11 — Public Beta and User Feedback (first: install 0.9.0 on a fresh PC; publish the source archive; decide on `pip-audit` and signing). Open from M5: committed subtitle render check (`tools/subtitle_render_check.py`).
+**Implementation status:** M1 accepted as CONDITIONAL, M2 as PASS, M3 as CONDITIONAL, M4 as PASS (2026-10-27), M5 as CONDITIONAL, M6 as PASS (2026-10-31), M7 as PASS (2026-11-01), M8 as PASS (2026-11-01), M9 as PASS (2026-11-01), M10 as PASS (2026-11-01), M11 as CONDITIONAL (2026-11-01, beta prepared). Playback engine: libVLC, provisional ([ADR-0001](docs/decisions/ADR-0001-playback-engine.md)).  
+**Next action:** run the 0.9.1 beta (owner actions in the [M11 report](docs/milestones/M11/acceptance-report.md) §5), triage feedback with `tools/triage_summary.py`, then decide M11 PASS and the 1.0 release from that evidence. Open from M5: committed subtitle render check (`tools/subtitle_render_check.py`).
 
 ---
 

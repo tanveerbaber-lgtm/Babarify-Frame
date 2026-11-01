@@ -12,7 +12,9 @@ BG = "#070B15"  # window background
 SURFACE = "#0E1628"  # panels, control bar
 SURFACE_RAISED = "#16213A"  # hover, cards
 SURFACE_PRESSED = "#1E2B48"
-BORDER = "#22304D"
+BORDER = "#22304D"  # decorative edges (cards, menus, separators)
+# Edges that identify a control (WCAG 2.1 1.4.11: at least 3:1 against every surface; M11 review).
+CONTROL_BORDER = "#5E7096"
 TEXT = "#E6EDF7"
 TEXT_MUTED = "#8A9AB5"
 TEXT_DISABLED = "#4A5875"
@@ -95,7 +97,7 @@ QFrame#messagePage {{
 
 /* Buttons */
 QPushButton {{
-    background: {SURFACE_RAISED}; border: 1px solid {BORDER}; border-radius: {RADIUS_M}px;
+    background: {SURFACE_RAISED}; border: 1px solid {CONTROL_BORDER}; border-radius: {RADIUS_M}px;
     padding: {S}px {L}px;
 }}
 QPushButton:hover {{ background: {SURFACE_PRESSED}; }}
@@ -124,7 +126,7 @@ QPushButton:focus, QToolButton:focus, QComboBox:focus, QCheckBox:focus, QSpinBox
 QFrame#controlBar {{ background: {SURFACE}; border-top: 1px solid {BORDER}; }}
 
 /* Sliders */
-QSlider::groove:horizontal {{ height: 4px; background: {BORDER}; border-radius: 2px; }}
+QSlider::groove:horizontal {{ height: 4px; background: {CONTROL_BORDER}; border-radius: 2px; }}
 QSlider::sub-page:horizontal {{ background: {ACCENT_GRADIENT}; border-radius: 2px; }}
 QSlider::sub-page:horizontal:disabled {{ background: {BORDER}; }}
 QSlider::handle:horizontal {{ background: {TEXT}; width: 12px; margin: -5px 0; border-radius: 6px; }}
@@ -132,7 +134,7 @@ QSlider::handle:horizontal:hover {{ background: {CYAN}; }}
 QSlider::handle:horizontal:disabled {{ background: {TEXT_DISABLED}; }}
 QSlider#seek::groove:horizontal {{ height: 5px; }}
 QSlider[boost="true"]::sub-page:horizontal {{ background: {AMBER}; }}
-QSlider::groove:vertical {{ width: 4px; background: {BORDER}; border-radius: 2px; }}
+QSlider::groove:vertical {{ width: 4px; background: {CONTROL_BORDER}; border-radius: 2px; }}
 QSlider::add-page:vertical {{ background: {ACCENT_GRADIENT}; border-radius: 2px; }}
 QSlider::add-page:vertical:disabled {{ background: {BORDER}; }}
 QSlider::handle:vertical {{ background: {TEXT}; height: 12px; margin: 0 -5px; border-radius: 6px; }}
@@ -142,30 +144,30 @@ QTabWidget::pane {{ border: 1px solid {BORDER}; border-radius: {RADIUS_S}px; top
 
 /* Settings form */
 QComboBox, QSpinBox {{
-    background: {SURFACE_RAISED}; border: 1px solid {BORDER}; border-radius: {RADIUS_S}px;
+    background: {SURFACE_RAISED}; border: 1px solid {CONTROL_BORDER}; border-radius: {RADIUS_S}px;
     padding: {XS}px {S}px; min-width: 120px;
 }}
 QComboBox QAbstractItemView {{ background: {SURFACE}; border: 1px solid {BORDER}; selection-background-color: {SURFACE_PRESSED}; }}
 QCheckBox {{ spacing: {S}px; }}
-QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 1px solid {BORDER}; background: {SURFACE_RAISED}; }}
+QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 1px solid {CONTROL_BORDER}; background: {SURFACE_RAISED}; }}
 QCheckBox::indicator:checked {{ background: {GREEN}; border-color: {GREEN}; }}
 QScrollArea {{ background: transparent; border: none; }}
 QScrollBar:vertical {{ background: transparent; width: 10px; }}
-QScrollBar::handle:vertical {{ background: {BORDER}; border-radius: 5px; min-height: 30px; }}
+QScrollBar::handle:vertical {{ background: {CONTROL_BORDER}; border-radius: 5px; min-height: 30px; }}
 QScrollBar:horizontal {{ background: transparent; height: 10px; }}
-QScrollBar::handle:horizontal {{ background: {BORDER}; border-radius: 5px; min-width: 30px; }}
+QScrollBar::handle:horizontal {{ background: {CONTROL_BORDER}; border-radius: 5px; min-width: 30px; }}
 QScrollBar::add-line, QScrollBar::sub-line {{ height: 0; width: 0; }}
 
 /* Library and history (M6) */
 QLineEdit {{
-    background: {SURFACE_RAISED}; border: 1px solid {BORDER}; border-radius: {RADIUS_S}px;
+    background: {SURFACE_RAISED}; border: 1px solid {CONTROL_BORDER}; border-radius: {RADIUS_S}px;
     padding: {XS}px {S}px; color: {TEXT}; selection-background-color: {BLUE};
 }}
 QLineEdit:focus {{ border: 2px solid {CYAN}; }}
 QListView, QListWidget {{
     background: {BG}; border: none; color: {TEXT}; outline: none;
 }}
-QListWidget {{ background: {SURFACE}; border: 1px solid {BORDER}; border-radius: {RADIUS_S}px; padding: {XS}px; }}
+QListWidget {{ background: {SURFACE}; border: 1px solid {CONTROL_BORDER}; border-radius: {RADIUS_S}px; padding: {XS}px; }}
 QListWidget::item {{ padding: {S}px {M}px; border-radius: {RADIUS_S}px; }}
 QListWidget::item:hover {{ background: {SURFACE_RAISED}; }}
 QListWidget::item:selected {{ background: {SURFACE_PRESSED}; color: {TEXT}; }}

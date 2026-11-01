@@ -1,0 +1,20 @@
+{
+ "problems": [],
+ "contrast": {
+  "text on page": 16.69,
+  "text on panel": 15.31,
+  "text on raised card": 13.58,
+  "muted text on page": 6.9,
+  "muted text on panel": 6.33,
+  "muted text on raised card": 5.61,
+  "cyan accent on page": 10.88,
+  "amber warning on panel": 8.4,
+  "red error on page": 7.11,
+  "green on panel": 7.92,
+  "play icon on blue": 5.2,
+  "focus ring (cyan) vs panel": 9.98,
+  "control border vs page (non-text)": 3.97,
+  "control border vs panel (non-text)": 3.64,
+  "control border vs raised fill (non-text)": 3.23
+ }
+}

@@ -17,6 +17,9 @@ COMMON_EXCLUDES = [
     "tkinter", "unittest", "pydoc", "pytest", "mypy", "ruff", "IPython", "matplotlib",
     "mpv",  # the opt-in development engine is not shipped
     "PyInstaller",
+    # Present in the development environment only (pip-audit and its dependencies, M11);
+    # optional imports would otherwise pull them into the release.
+    "certifi", "charset_normalizer", "tomli", "requests", "pip_audit",
 ]  # fmt: skip
 
 app = Analysis(
