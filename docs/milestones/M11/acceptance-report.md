@@ -109,7 +109,17 @@ itself. It is a current, pure-Python version-parsing library that handles no unt
 here. Only package names and versions were sent. libVLC 3.0.24 is not covered by pip-audit:
 watch VideoLAN's security advisories (RELEASING.md).
 
-## 5. Owner actions to start the beta
+## 5. Starting the beta
+
+**Started 2026-11-02.** Done with the owner's approval: the repository is public (history scanned
+first: no secrets or credential files in any commit); triage labels created; private vulnerability
+reporting enabled; [v0.9.1 published as a pre-release](https://github.com/tanveerbaber-lgtm/Babarify-Frame/releases/tag/v0.9.1)
+(tag at the built commit, installer, source archive, manifest, checksums). Verified without a
+GitHub login: the downloaded installer matches its SHA-256; the guide, scenarios, known issues,
+privacy notice, private reporting page and VLC source link all open. No tester has reported yet,
+so the condition for PASS stands.
+
+Remaining: fresh-PC scenarios (item 5) and inviting testers. The original checklist:
 
 1. Give testers access: make the repository public, or invite them as collaborators.
 2. Create the triage labels (once):

@@ -48,7 +48,8 @@ def summarise(issues: list[dict[str, object]]) -> dict[str, object]:
         "open_by_reproducibility": dict(by_repro),
         "needs_triage": [f"#{i['number']} {i['title']}" for i in untriaged],
         "release_blockers": [f"#{i['number']} {i['title']}" for i in blockers],
-        "ready": not blockers and not untriaged,
+        # No reports is no evidence, not a clean result (M11: readiness is decided from evidence).
+        "ready": bool(issues) and not blockers and not untriaged,
     }
 
 

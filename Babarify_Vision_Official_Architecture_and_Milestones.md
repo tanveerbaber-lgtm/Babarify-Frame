@@ -851,7 +851,7 @@ Use the following checklist as the project status source of truth. Mark a milest
 
 **Project planning baseline:** Defined in this document.  
 **Implementation status:** M1 accepted as CONDITIONAL, M2 as PASS, M3 as CONDITIONAL, M4 as PASS (2026-10-27), M5 as CONDITIONAL, M6 as PASS (2026-10-31), M7 as PASS (2026-11-01), M8 as PASS (2026-11-01), M9 as PASS (2026-11-01), M10 as PASS (2026-11-01), M11 as CONDITIONAL (2026-11-01, beta prepared). Playback engine: libVLC, provisional ([ADR-0001](docs/decisions/ADR-0001-playback-engine.md)).  
-**Next action:** run the 0.9.1 beta (owner actions in the [M11 report](docs/milestones/M11/acceptance-report.md) §5), triage feedback with `tools/triage_summary.py`, then decide M11 PASS and the 1.0 release from that evidence. Open from M5: committed subtitle render check (`tools/subtitle_render_check.py`).
+**Next action:** the 0.9.1 beta is public ([release](https://github.com/tanveerbaber-lgtm/Babarify-Frame/releases/tag/v0.9.1)): run the fresh-PC scenarios, invite testers, triage feedback with `tools/triage_summary.py`, then decide M11 PASS and the 1.0 release from that evidence. Open from M5: committed subtitle render check (`tools/subtitle_render_check.py`).
 
 ---
 
