@@ -841,7 +841,7 @@ Use the following checklist as the project status source of truth. Mark a milest
 - [x] M9 — Intelligent and Optional AI Features — **PASS**, accepted by the owner 2026-11-01 ([report](docs/milestones/M9/acceptance-report.md))
 - [x] M10 — Windows Packaging, Security, and Release — **PASS**, accepted by the owner 2026-11-01 ([report](docs/milestones/M10/acceptance-report.md))
 - [~] M11 — Public Beta and User Feedback — **CONDITIONAL**, accepted by the owner 2026-11-01: beta 0.9.1 prepared; PASS once the beta has run ([report](docs/milestones/M11/acceptance-report.md))
-- [ ] M12 — Android Feasibility and Shared Architecture
+- [x] M12 — Android Feasibility and Shared Architecture — **PASS**, accepted by the owner 2026-11-02: native Kotlin with libVLC, evidence from one phone ([report](docs/milestones/M12/acceptance-report.md))
 - [ ] M13 — Android Implementation
 - [ ] M14 — iOS Feasibility and Shared Architecture
 - [ ] M15 — iOS Implementation
@@ -850,8 +850,8 @@ Use the following checklist as the project status source of truth. Mark a milest
 ### Current status
 
 **Project planning baseline:** Defined in this document.  
-**Implementation status:** M1 accepted as CONDITIONAL, M2 as PASS, M3 as CONDITIONAL, M4 as PASS (2026-10-27), M5 as CONDITIONAL, M6 as PASS (2026-10-31), M7 as PASS (2026-11-01), M8 as PASS (2026-11-01), M9 as PASS (2026-11-01), M10 as PASS (2026-11-01), M11 as CONDITIONAL (2026-11-01, beta prepared). Playback engine: libVLC, provisional ([ADR-0001](docs/decisions/ADR-0001-playback-engine.md)).  
-**Next action:** the 0.9.1 beta is public ([release](https://github.com/tanveerbaber-lgtm/Babarify-Frame/releases/tag/v0.9.1)): run the fresh-PC scenarios, invite testers, triage feedback with `tools/triage_summary.py`, then decide M11 PASS and the 1.0 release from that evidence. Open from M5: committed subtitle render check (`tools/subtitle_render_check.py`).
+**Implementation status:** M1 accepted as CONDITIONAL, M2 as PASS, M3 as CONDITIONAL, M4 as PASS (2026-10-27), M5 as CONDITIONAL, M6 as PASS (2026-10-31), M7 as PASS (2026-11-01), M8 as PASS (2026-11-01), M9 as PASS (2026-11-01), M10 as PASS (2026-11-01), M11 as CONDITIONAL (2026-11-01, beta prepared), M12 as PASS (2026-11-02). Playback engine: libVLC, provisional ([ADR-0001](docs/decisions/ADR-0001-playback-engine.md)). Android direction: native Kotlin with libVLC ([ADR-0002](docs/decisions/ADR-0002-android-strategy.md)).  
+**Next action:** the 0.9.1 beta is public ([release](https://github.com/tanveerbaber-lgtm/Babarify-Frame/releases/tag/v0.9.1)): run the fresh-PC scenarios, invite testers, triage feedback with `tools/triage_summary.py`, then decide M11 PASS and the 1.0 release from that evidence. M13 (Android implementation) can start when the owner asks; it first needs the owner's answers on size, distribution and supported devices ([requirements](docs/milestones/M12/mobile-requirements.md)). Open from M5: committed subtitle render check (`tools/subtitle_render_check.py`).
 
 ---
 

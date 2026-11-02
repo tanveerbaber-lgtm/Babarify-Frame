@@ -1,0 +1,4785 @@
+{
+ "device": {
+  "ro.product.model": "SM-A336E",
+  "ro.build.version.release": "16",
+  "ro.build.version.sdk": "36",
+  "ro.soc.model": "s5e8825"
+ },
+ "media3": {
+  "files": {
+   "h264_1080p30_aac.mp4": {
+    "first_frame_ms": 275,
+    "video_decoder": [
+     "c2.exynos.h264.decoder"
+    ],
+    "audio_decoder": [
+     "c2.android.aac.decoder"
+    ],
+    "errors": [],
+    "tracks": [
+     "video/avc supported=true selected=true lang=und",
+     "audio/mp4a-latm supported=true selected=true lang=und"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10194,
+     "dropped_frames": 0
+    },
+    "duration_ms": 30000,
+    "positions_ms": [
+     0,
+     58,
+     542,
+     1033,
+     1542,
+     2042,
+     2542,
+     3038,
+     3546,
+     4041,
+     4543,
+     5047,
+     5551,
+     6046,
+     6552,
+     7053,
+     7554,
+     8053,
+     8558,
+     9055,
+     9555,
+     10058
+    ],
+    "advanced_ms": 10058,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1001933863
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10194,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.aac.decoder",
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 167,
+     "distinct": 11
+    },
+    "verdict": "plays"
+   },
+   "c_h264_aac_1080p60.mp4": {
+    "first_frame_ms": 334,
+    "video_decoder": [
+     "c2.exynos.h264.decoder"
+    ],
+    "audio_decoder": [
+     "c2.android.aac.decoder"
+    ],
+    "errors": [],
+    "tracks": [
+     "video/avc supported=true selected=true lang=und",
+     "audio/mp4a-latm supported=true selected=true lang=und"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 8007,
+     "dropped_frames": 0
+    },
+    "duration_ms": 8000,
+    "positions_ms": [
+     0,
+     9,
+     482,
+     989,
+     1491,
+     1990,
+     2494,
+     2992,
+     3498,
+     3996,
+     4498,
+     4997,
+     5498,
+     6004,
+     6499,
+     7005,
+     7506,
+     8007,
+     8007,
+     8007,
+     8007
+    ],
+    "advanced_ms": 8007,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1001967380
+     },
+     {
+      "event": "ended",
+      "position_ms": 8007,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 8007,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.aac.decoder",
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 167,
+     "distinct": 12
+    },
+    "verdict": "plays"
+   },
+   "e_h264_720p120.mp4": {
+    "first_frame_ms": 210,
+    "video_decoder": [
+     "c2.exynos.h264.decoder"
+    ],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video/avc supported=true selected=true lang=und"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 6003,
+     "dropped_frames": 0
+    },
+    "duration_ms": 6000,
+    "positions_ms": [
+     0,
+     311,
+     813,
+     1310,
+     1811,
+     2310,
+     2813,
+     3316,
+     3818,
+     4318,
+     4819,
+     5323,
+     5824,
+     6003,
+     6003,
+     6003,
+     6003,
+     6003,
+     6003,
+     6003,
+     6003
+    ],
+    "advanced_ms": 6003,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1001979729
+     },
+     {
+      "event": "ended",
+      "position_ms": 6003,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 6003,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 167,
+     "distinct": 17
+    },
+    "verdict": "plays"
+   },
+   "c_h264_aac_720p.mkv": {
+    "first_frame_ms": 318,
+    "video_decoder": [
+     "c2.exynos.h264.decoder"
+    ],
+    "audio_decoder": [
+     "c2.android.aac.decoder"
+    ],
+    "errors": [],
+    "tracks": [
+     "video/avc supported=true selected=true lang=und",
+     "audio/mp4a-latm supported=true selected=true lang=und"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 8028,
+     "dropped_frames": 0
+    },
+    "duration_ms": 8021,
+    "positions_ms": [
+     0,
+     10,
+     484,
+     982,
+     1484,
+     1989,
+     2493,
+     2993,
+     3490,
+     3994,
+     4497,
+     4995,
+     5498,
+     5996,
+     6500,
+     6992,
+     7503,
+     7998,
+     8028,
+     8028,
+     8028
+    ],
+    "advanced_ms": 8028,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1001992086
+     },
+     {
+      "event": "ended",
+      "position_ms": 8028,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 8028,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.aac.decoder",
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 167,
+     "distinct": 16
+    },
+    "verdict": "plays"
+   },
+   "c_h264_aac_portrait_1080x1920.mp4": {
+    "first_frame_ms": 285,
+    "video_decoder": [
+     "c2.exynos.h264.decoder"
+    ],
+    "audio_decoder": [
+     "c2.android.aac.decoder"
+    ],
+    "errors": [],
+    "tracks": [
+     "video/avc supported=true selected=true lang=und",
+     "audio/mp4a-latm supported=true selected=true lang=und"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 8006,
+     "dropped_frames": 0
+    },
+    "duration_ms": 8000,
+    "positions_ms": [
+     0,
+     22,
+     510,
+     1009,
+     1513,
+     2015,
+     2515,
+     3014,
+     3517,
+     4017,
+     4511,
+     5019,
+     5516,
+     6016,
+     6518,
+     7020,
+     7517,
+     8006,
+     8006,
+     8006,
+     8006
+    ],
+    "advanced_ms": 8006,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1002004537
+     },
+     {
+      "event": "ended",
+      "position_ms": 8006,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 8006,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.aac.decoder",
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 171,
+     "distinct": 11
+    },
+    "verdict": "plays"
+   },
+   "e_rotated_90_h264.mp4": {
+    "first_frame_ms": 206,
+    "video_decoder": [
+     "c2.exynos.h264.decoder"
+    ],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video/avc supported=true selected=true lang=und"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 6001,
+     "dropped_frames": 0
+    },
+    "duration_ms": 6000,
+    "positions_ms": [
+     0,
+     322,
+     825,
+     1323,
+     1825,
+     2325,
+     2823,
+     3320,
+     3830,
+     4328,
+     4825,
+     5333,
+     5832,
+     6001,
+     6001,
+     6001,
+     6001,
+     6001,
+     6001,
+     6001,
+     6001,
+     6001
+    ],
+    "advanced_ms": 6001,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1002016705
+     },
+     {
+      "event": "ended",
+      "position_ms": 6001,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 6001,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 175,
+     "distinct": 20
+    },
+    "verdict": "plays"
+   },
+   "c_h264_ac3_720p.ts": {
+    "first_frame_ms": 408,
+    "video_decoder": [
+     "c2.exynos.h264.decoder"
+    ],
+    "audio_decoder": [
+     "c2.dolby.eac3.decoder.ac3"
+    ],
+    "errors": [],
+    "tracks": [
+     "video/avc supported=true selected=true lang=null",
+     "audio/ac3 supported=true selected=true lang=null"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 8008,
+     "dropped_frames": 0
+    },
+    "duration_ms": 7920,
+    "positions_ms": [
+     0,
+     34,
+     417,
+     909,
+     1406,
+     1911,
+     2404,
+     2913,
+     3416,
+     3916,
+     4418,
+     4915,
+     5420,
+     5918,
+     6421,
+     6919,
+     7423,
+     7925,
+     8008,
+     8008,
+     8008
+    ],
+    "advanced_ms": 8008,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1002029186
+     },
+     {
+      "event": "ended",
+      "position_ms": 8008,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 8008,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.dolby.eac3.decoder",
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 167,
+     "distinct": 16
+    },
+    "verdict": "plays"
+   },
+   "c_hevc10_aac_1080p.mp4": {
+    "first_frame_ms": null,
+    "video_decoder": [
+     "c2.exynos.hevc.decoder"
+    ],
+    "audio_decoder": [
+     "c2.android.aac.decoder"
+    ],
+    "errors": [
+     "ERROR_CODE_DECODING_FAILED"
+    ],
+    "tracks": [
+     "video/hevc supported=false selected=true lang=und",
+     "audio/mp4a-latm supported=true selected=true lang=und"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 0,
+     "dropped_frames": 0
+    },
+    "duration_ms": 8000,
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "advanced_ms": 0,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1002041632
+     },
+     {
+      "event": "stopped",
+      "position_ms": 0,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.aac.decoder",
+     "c2.exynos.hevc.decoder"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "hevc_2160p30_aac.mkv": {
+    "first_frame_ms": 338,
+    "video_decoder": [
+     "c2.exynos.hevc.decoder"
+    ],
+    "audio_decoder": [
+     "c2.android.aac.decoder"
+    ],
+    "errors": [],
+    "tracks": [
+     "video/hevc supported=true selected=true lang=und",
+     "audio/mp4a-latm supported=true selected=true lang=und"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10178,
+     "dropped_frames": 0
+    },
+    "duration_ms": 20021,
+    "positions_ms": [
+     0,
+     55,
+     498,
+     971,
+     1470,
+     1970,
+     2472,
+     2974,
+     3469,
+     3974,
+     4475,
+     4976,
+     5480,
+     5971,
+     6473,
+     6976,
+     7475,
+     7978,
+     8481,
+     8980,
+     9487,
+     9980
+    ],
+    "advanced_ms": 9980,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1002053908
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10178,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.aac.decoder",
+     "c2.exynos.hevc.decoder"
+    ],
+    "picture": {
+     "max_lightness": 167,
+     "distinct": 12
+    },
+    "verdict": "plays"
+   },
+   "vp9_1080p30_opus.webm": {
+    "first_frame_ms": 255,
+    "video_decoder": [
+     "c2.android.vp9.decoder"
+    ],
+    "audio_decoder": [
+     "c2.android.opus.decoder"
+    ],
+    "errors": [],
+    "tracks": [
+     "video/x-vnd.on2.vp9 supported=true selected=true lang=und",
+     "audio/opus supported=true selected=true lang=und"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10176,
+     "dropped_frames": 0
+    },
+    "duration_ms": 20008,
+    "positions_ms": [
+     0,
+     120,
+     602,
+     1105,
+     1600,
+     2101,
+     2607,
+     3106,
+     3609,
+     4107,
+     4612,
+     5112,
+     5615,
+     6115,
+     6612,
+     7114,
+     7614,
+     8118,
+     8618,
+     9121,
+     9622,
+     10114
+    ],
+    "advanced_ms": 10114,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1002066388
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10176,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.opus.decoder",
+     "c2.android.vp9.decoder"
+    ],
+    "picture": {
+     "max_lightness": 167,
+     "distinct": 12
+    },
+    "verdict": "plays"
+   },
+   "av1_1080p30_opus.mkv": {
+    "first_frame_ms": 336,
+    "video_decoder": [
+     "c2.android.av1-dav1d.decoder"
+    ],
+    "audio_decoder": [
+     "c2.android.opus.decoder"
+    ],
+    "errors": [],
+    "tracks": [
+     "video/av01 supported=true selected=true lang=und",
+     "audio/opus supported=true selected=true lang=und"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10024,
+     "dropped_frames": 0
+    },
+    "duration_ms": 20008,
+    "positions_ms": [
+     0,
+     45,
+     500,
+     1001,
+     1505,
+     2006,
+     2496,
+     3002,
+     3506,
+     4002,
+     4504,
+     5006,
+     5507,
+     6009,
+     6506,
+     7016,
+     7515,
+     8017,
+     8515,
+     9017,
+     9514
+    ],
+    "advanced_ms": 9514,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1002078763
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10024,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.av1-dav1d.decoder",
+     "c2.android.opus.decoder"
+    ],
+    "picture": {
+     "max_lightness": 167,
+     "distinct": 13
+    },
+    "verdict": "plays"
+   },
+   "c_vp8_vorbis_720p.webm": {
+    "first_frame_ms": 289,
+    "video_decoder": [
+     "c2.exynos.vp8.decoder"
+    ],
+    "audio_decoder": [
+     "c2.android.vorbis.decoder"
+    ],
+    "errors": [],
+    "tracks": [
+     "video/x-vnd.on2.vp8 supported=true selected=true lang=und",
+     "audio/vorbis supported=true selected=true lang=und"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 8020,
+     "dropped_frames": 0
+    },
+    "duration_ms": 8003,
+    "positions_ms": [
+     0,
+     128,
+     606,
+     1105,
+     1608,
+     2110,
+     2613,
+     3108,
+     3615,
+     4115,
+     4617,
+     5115,
+     5619,
+     6121,
+     6620,
+     7122,
+     7615,
+     8020,
+     8020,
+     8020,
+     8020
+    ],
+    "advanced_ms": 8020,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1002091234
+     },
+     {
+      "event": "ended",
+      "position_ms": 8020,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 8020,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.vorbis.decoder",
+     "c2.exynos.vp8.decoder"
+    ],
+    "picture": {
+     "max_lightness": 167,
+     "distinct": 12
+    },
+    "verdict": "plays"
+   },
+   "c_mpeg2_mp2_576p.mpg": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [
+     "c2.sec.mp3.decoder.mpeg-L2"
+    ],
+    "errors": [],
+    "tracks": [
+     "video/mpeg2 supported=false selected=false lang=null",
+     "audio/mpeg-L2 supported=true selected=true lang=null"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 8432,
+     "dropped_frames": 0
+    },
+    "duration_ms": 8425,
+    "positions_ms": [
+     0,
+     84,
+     581,
+     1125,
+     1681,
+     1961,
+     2515,
+     3071,
+     3633,
+     4188,
+     4467,
+     5025,
+     5579,
+     6129,
+     6684,
+     6964,
+     7504,
+     8200,
+     8432,
+     8432,
+     8432
+    ],
+    "advanced_ms": 8432,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1002103702
+     },
+     {
+      "event": "ended",
+      "position_ms": 8432,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 8432,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.sec.mp3.decoder"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "no picture"
+   },
+   "e_interlaced_mpeg2_1080i.ts": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video/mpeg2 supported=false selected=false lang=null"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 6015,
+     "dropped_frames": 0
+    },
+    "duration_ms": 5920,
+    "positions_ms": [
+     0,
+     2,
+     2,
+     1003,
+     1003,
+     2006,
+     2006,
+     3008,
+     3008,
+     4010,
+     4010,
+     5013,
+     5013,
+     6015,
+     6015,
+     6015,
+     6015,
+     6015,
+     6015,
+     6015,
+     6015
+    ],
+    "advanced_ms": 6015,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1002116030
+     },
+     {
+      "event": "ended",
+      "position_ms": 6015,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 6015,
+      "was_playing": true
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "no picture"
+   },
+   "c_mpeg4_mp3_480p.avi": {
+    "first_frame_ms": 350,
+    "video_decoder": [
+     "c2.sec.mpeg4.decoder"
+    ],
+    "audio_decoder": [
+     "c2.sec.mp3.decoder.mpeg"
+    ],
+    "errors": [],
+    "tracks": [
+     "video/mp4v-es supported=true selected=true lang=null",
+     "audio/mpeg supported=true selected=true lang=null"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 8046,
+     "dropped_frames": 0
+    },
+    "duration_ms": 8040,
+    "positions_ms": [
+     0,
+     37,
+     529,
+     1024,
+     1526,
+     2024,
+     2524,
+     3032,
+     3534,
+     4030,
+     4527,
+     5035,
+     5532,
+     6030,
+     6536,
+     7040,
+     7541,
+     8035,
+     8046,
+     8046,
+     8046,
+     8046
+    ],
+    "advanced_ms": 8046,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1002128366
+     },
+     {
+      "event": "ended",
+      "position_ms": 8046,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 8046,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.sec.mp3.decoder",
+     "c2.sec.mpeg4.decoder"
+    ],
+    "picture": {
+     "max_lightness": 170,
+     "distinct": 16
+    },
+    "verdict": "plays"
+   },
+   "c_wmv2_wmav2_480p.wmv": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [
+     "ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED"
+    ],
+    "tracks": [],
+    "stats": {
+     "event": "stats",
+     "position_ms": 0,
+     "dropped_frames": 0
+    },
+    "duration_ms": 0,
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "advanced_ms": 0,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1002140885
+     },
+     {
+      "event": "stopped",
+      "position_ms": 0,
+      "was_playing": true
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "c_theora_vorbis_480p.ogv": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [
+     "ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED"
+    ],
+    "tracks": [],
+    "stats": {
+     "event": "stats",
+     "position_ms": 0,
+     "dropped_frames": 0
+    },
+    "duration_ms": 0,
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "advanced_ms": 0,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1002153182
+     },
+     {
+      "event": "stopped",
+      "position_ms": 0,
+      "was_playing": true
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "multitrack_720p.mkv": {
+    "first_frame_ms": 278,
+    "video_decoder": [
+     "c2.exynos.h264.decoder"
+    ],
+    "audio_decoder": [
+     "c2.android.aac.decoder"
+    ],
+    "errors": [],
+    "tracks": [
+     "video/avc supported=true selected=true lang=und",
+     "audio/mp4a-latm supported=true selected=true lang=en",
+     "audio/ac3 supported=true selected=false lang=fr",
+     "application/x-media3-cues supported=true selected=true lang=en",
+     "application/x-media3-cues supported=true selected=false lang=fr"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10008,
+     "dropped_frames": 0
+    },
+    "duration_ms": 20021,
+    "positions_ms": [
+     0,
+     82,
+     559,
+     1068,
+     1561,
+     2070,
+     2567,
+     3073,
+     3565,
+     4066,
+     4570,
+     5074,
+     5576,
+     6075,
+     6579,
+     7076,
+     7574,
+     8078,
+     8578,
+     9074,
+     9577
+    ],
+    "advanced_ms": 9577,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1002165298
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10008,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.aac.decoder",
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 167,
+     "distinct": 14
+    },
+    "verdict": "plays"
+   },
+   "e_mkv_no_cues.mkv": {
+    "first_frame_ms": 234,
+    "video_decoder": [
+     "c2.exynos.h264.decoder"
+    ],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video/avc supported=true selected=true lang=und"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 9978,
+     "dropped_frames": 0
+    },
+    "duration_ms": 9977,
+    "positions_ms": [
+     0,
+     327,
+     829,
+     1325,
+     1830,
+     2328,
+     2831,
+     3333,
+     3836,
+     4337,
+     4839,
+     5333,
+     5844,
+     6344,
+     6847,
+     7346,
+     7841,
+     8349,
+     8843,
+     9350,
+     9853
+    ],
+    "advanced_ms": 9853,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1002177680
+     },
+     {
+      "event": "ended",
+      "position_ms": 9978,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 9978,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 167,
+     "distinct": 13
+    },
+    "verdict": "plays"
+   },
+   "e_corrupt_midstream.ts": {
+    "first_frame_ms": 468,
+    "video_decoder": [
+     "c2.exynos.h264.decoder"
+    ],
+    "audio_decoder": [
+     "c2.android.aac.decoder"
+    ],
+    "errors": [],
+    "tracks": [
+     "video/avc supported=true selected=true lang=null",
+     "audio/mp4a-latm supported=true selected=true lang=null"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10079,
+     "dropped_frames": 8
+    },
+    "duration_ms": 9900,
+    "positions_ms": [
+     0,
+     0,
+     304,
+     788,
+     1289,
+     1778,
+     2286,
+     2796,
+     3297,
+     4158,
+     4662,
+     5152,
+     5659,
+     6160,
+     6661,
+     7161,
+     7666,
+     8169,
+     8671,
+     9171,
+     9672,
+     10079
+    ],
+    "advanced_ms": 10079,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1005259229
+     },
+     {
+      "event": "ended",
+      "position_ms": 10079,
+      "dropped_frames": 8
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10079,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.aac.decoder",
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 167,
+     "distinct": 13
+    },
+    "verdict": "plays"
+   },
+   "truncated.mp4": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [
+     "ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE"
+    ],
+    "tracks": [],
+    "stats": {
+     "event": "stats",
+     "position_ms": 0,
+     "dropped_frames": 0
+    },
+    "duration_ms": 0,
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "advanced_ms": 0,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1005272083
+     },
+     {
+      "event": "stopped",
+      "position_ms": 0,
+      "was_playing": true
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "not_media.mp4": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [
+     "ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED"
+    ],
+    "tracks": [],
+    "stats": {
+     "event": "stats",
+     "position_ms": 0,
+     "dropped_frames": 0
+    },
+    "duration_ms": 0,
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "advanced_ms": 0,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1005284522
+     },
+     {
+      "event": "stopped",
+      "position_ms": 0,
+      "was_playing": true
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "e_empty.mp4": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [
+     "ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED"
+    ],
+    "tracks": [],
+    "stats": {
+     "event": "stats",
+     "position_ms": 0,
+     "dropped_frames": 0
+    },
+    "duration_ms": 0,
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "advanced_ms": 0,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1005296988
+     },
+     {
+      "event": "stopped",
+      "position_ms": 0,
+      "was_playing": true
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "c_audio_aac.m4a": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [
+     "c2.android.aac.decoder"
+    ],
+    "errors": [],
+    "tracks": [
+     "audio/mp4a-latm supported=true selected=true lang=und"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10010,
+     "dropped_frames": 0
+    },
+    "duration_ms": 10000,
+    "positions_ms": [
+     0,
+     49,
+     558,
+     1087,
+     1390,
+     1955,
+     2529,
+     3091,
+     3377,
+     3940,
+     4508,
+     5071,
+     5361,
+     5925,
+     6488,
+     7056,
+     7600,
+     7902,
+     8463,
+     9017,
+     9531
+    ],
+    "advanced_ms": 9531,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1005309496
+     },
+     {
+      "event": "ended",
+      "position_ms": 10010,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10010,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.aac.decoder"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "c_audio_mp3.mp3": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [
+     "c2.sec.mp3.decoder.mpeg"
+    ],
+    "errors": [],
+    "tracks": [
+     "audio/mpeg supported=true selected=true lang=null"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10012,
+     "dropped_frames": 0
+    },
+    "duration_ms": 9999,
+    "positions_ms": [
+     0,
+     82,
+     558,
+     1088,
+     1647,
+     2197,
+     2473,
+     3024,
+     3564,
+     4122,
+     4672,
+     5224,
+     5499,
+     6050,
+     6606,
+     7157,
+     7705,
+     8231,
+     8533,
+     9084,
+     9598
+    ],
+    "advanced_ms": 9598,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1005322031
+     },
+     {
+      "event": "ended",
+      "position_ms": 10012,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10012,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.sec.mp3.decoder"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "c_audio_flac.flac": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [
+     "c2.sec.flac.decoder"
+    ],
+    "errors": [],
+    "tracks": [
+     "audio/flac supported=true selected=true lang=null"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10008,
+     "dropped_frames": 0
+    },
+    "duration_ms": 10000,
+    "positions_ms": [
+     0,
+     74,
+     551,
+     1090,
+     1654,
+     2201,
+     2498,
+     3059,
+     3623,
+     4184,
+     4711,
+     5030,
+     5591,
+     6152,
+     6716,
+     6999,
+     7560,
+     8116,
+     8680,
+     9227,
+     9487
+    ],
+    "advanced_ms": 9487,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1005334199
+     },
+     {
+      "event": "ended",
+      "position_ms": 10008,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10008,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.sec.flac.decoder"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "c_audio_opus.opus": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [
+     "c2.android.opus.decoder"
+    ],
+    "errors": [],
+    "tracks": [
+     "audio/opus supported=true selected=true lang=null"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10016,
+     "dropped_frames": 0
+    },
+    "duration_ms": 10006,
+    "positions_ms": [
+     0,
+     79,
+     555,
+     1096,
+     1661,
+     2203,
+     2514,
+     3078,
+     3645,
+     4210,
+     4493,
+     5065,
+     5629,
+     6186,
+     6466,
+     7035,
+     7600,
+     8165,
+     8719,
+     8995,
+     9520
+    ],
+    "advanced_ms": 9520,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1005346376
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10016,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.opus.decoder"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "c_audio_vorbis.ogg": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [
+     "c2.android.vorbis.decoder"
+    ],
+    "errors": [],
+    "tracks": [
+     "audio/vorbis supported=true selected=true lang=null"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10020,
+     "dropped_frames": 0
+    },
+    "duration_ms": 10000,
+    "positions_ms": [
+     0,
+     74,
+     553,
+     1100,
+     1666,
+     2217,
+     2520,
+     3086,
+     3649,
+     4217,
+     4499,
+     5064,
+     5623,
+     6196,
+     6728,
+     7038,
+     7599,
+     8165,
+     8725,
+     9003,
+     9538
+    ],
+    "advanced_ms": 9538,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1005358699
+     },
+     {
+      "event": "ended",
+      "position_ms": 10020,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10020,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.vorbis.decoder"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "c_audio_ac3_51.ac3": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [
+     "c2.dolby.eac3.decoder.ac3"
+    ],
+    "errors": [],
+    "tracks": [
+     "audio/ac3 supported=true selected=true lang=null"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10000,
+     "dropped_frames": 0
+    },
+    "duration_ms": 9994,
+    "positions_ms": [
+     0,
+     173,
+     738,
+     1030,
+     1592,
+     2149,
+     2715,
+     2997,
+     3563,
+     4125,
+     4692,
+     5245,
+     5542,
+     6107,
+     6677,
+     7245,
+     7526,
+     8094,
+     8663,
+     9206,
+     9706
+    ],
+    "advanced_ms": 9706,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1005371104
+     },
+     {
+      "event": "ended",
+      "position_ms": 10000,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10000,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.dolby.eac3.decoder"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "c_audio_pcm.wav": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "audio/raw supported=true selected=true lang=null"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10001,
+     "dropped_frames": 0
+    },
+    "duration_ms": 10000,
+    "positions_ms": [
+     0,
+     309,
+     793,
+     1293,
+     1794,
+     2295,
+     2795,
+     3296,
+     3796,
+     4297,
+     4798,
+     5298,
+     5799,
+     6300,
+     6801,
+     7302,
+     7803,
+     8304,
+     8804,
+     9304,
+     9856
+    ],
+    "advanced_ms": 9856,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1005383458
+     },
+     {
+      "event": "ended",
+      "position_ms": 10001,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10001,
+      "was_playing": true
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "s_sidecar_720p.mp4+s_ext.srt": {
+    "first_frame_ms": 207,
+    "video_decoder": [
+     "c2.exynos.h264.decoder"
+    ],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video/avc supported=true selected=true lang=und",
+     "application/x-media3-cues supported=true selected=true lang=null"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10029,
+     "dropped_frames": 0
+    },
+    "duration_ms": 10000,
+    "positions_ms": [
+     0,
+     351,
+     853,
+     1350,
+     1854,
+     2354,
+     2855,
+     3352,
+     3853,
+     4355,
+     4856,
+     5361,
+     5856,
+     6366,
+     6858,
+     7363,
+     7863,
+     8368,
+     8864,
+     9371,
+     9872
+    ],
+    "advanced_ms": 9872,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1005395804
+     },
+     {
+      "event": "ended",
+      "position_ms": 10029,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10029,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "no picture"
+   },
+   "s_sidecar_720p.mp4+s_ext.ass": {
+    "first_frame_ms": 209,
+    "video_decoder": [
+     "c2.exynos.h264.decoder"
+    ],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video/avc supported=true selected=true lang=und",
+     "application/x-media3-cues supported=true selected=true lang=null"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10021,
+     "dropped_frames": 0
+    },
+    "duration_ms": 10000,
+    "positions_ms": [
+     0,
+     347,
+     848,
+     1349,
+     1850,
+     2345,
+     2853,
+     3351,
+     3853,
+     4355,
+     4850,
+     5351,
+     5853,
+     6358,
+     6860,
+     7354,
+     7859,
+     8357,
+     8862,
+     9365,
+     9867
+    ],
+    "advanced_ms": 9867,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1005407961
+     },
+     {
+      "event": "ended",
+      "position_ms": 10021,
+      "dropped_frames": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10021,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "no picture"
+   }
+  },
+  "lifecycle": {
+   "seek": {
+    "first_frame_ms": 279,
+    "video_decoder": [
+     "c2.exynos.h264.decoder"
+    ],
+    "audio_decoder": [
+     "c2.android.aac.decoder"
+    ],
+    "errors": [],
+    "tracks": [
+     "video/avc supported=true selected=true lang=und",
+     "audio/mp4a-latm supported=true selected=true lang=und"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 26226,
+     "dropped_frames": 0
+    },
+    "duration_ms": 30000,
+    "positions_ms": [
+     0,
+     49,
+     529,
+     1024,
+     1532,
+     2022,
+     2533,
+     3024,
+     20000,
+     20124,
+     20586,
+     21089,
+     21587,
+     22091,
+     22589,
+     23093,
+     23588,
+     24087,
+     24596,
+     25097,
+     25596,
+     26095
+    ],
+    "advanced_ms": 26095,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1005643852
+     },
+     {
+      "event": "seek",
+      "to_ms": 20000
+     },
+     {
+      "event": "stopped",
+      "position_ms": 26226,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.aac.decoder",
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 168,
+     "distinct": 11
+    }
+   },
+   "rotate": {
+    "first_frame_ms": 356,
+    "video_decoder": [
+     "c2.exynos.h264.decoder",
+     "c2.exynos.h264.decoder"
+    ],
+    "audio_decoder": [
+     "c2.android.aac.decoder",
+     "c2.android.aac.decoder"
+    ],
+    "errors": [],
+    "tracks": [
+     "video/avc supported=true selected=true lang=und",
+     "audio/mp4a-latm supported=true selected=true lang=und"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10657,
+     "dropped_frames": 0
+    },
+    "duration_ms": 30000,
+    "positions_ms": [
+     0,
+     50,
+     513,
+     1022,
+     1515,
+     2020,
+     2520,
+     3023,
+     3525,
+     4028,
+     4561,
+     4561,
+     4561,
+     4561,
+     4657,
+     5124,
+     5626,
+     6122,
+     6622,
+     7125,
+     7621,
+     8130,
+     8629,
+     9125,
+     9634,
+     10129,
+     10657
+    ],
+    "advanced_ms": 10657,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1005656299
+     },
+     {
+      "event": "rotate",
+      "position_ms": 4474
+     },
+     {
+      "event": "stopped",
+      "position_ms": 4561,
+      "was_playing": true
+     },
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 4561,
+      "clock_ms": 1005661481
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10657,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.aac.decoder",
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 175,
+     "distinct": 12
+    }
+   },
+   "background_resume": {
+    "first_frame_ms": 287,
+    "video_decoder": [
+     "c2.exynos.h264.decoder",
+     "c2.exynos.h264.decoder"
+    ],
+    "audio_decoder": [
+     "c2.android.aac.decoder",
+     "c2.android.aac.decoder"
+    ],
+    "errors": [],
+    "tracks": [
+     "video/avc supported=true selected=true lang=und",
+     "audio/mp4a-latm supported=true selected=true lang=und"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10796,
+     "dropped_frames": 0
+    },
+    "duration_ms": 30000,
+    "positions_ms": [
+     0,
+     87,
+     556,
+     1059,
+     1565,
+     2061,
+     2559,
+     3068,
+     3570,
+     4068,
+     4571,
+     5063,
+     5565,
+     6074,
+     6241,
+     6241,
+     6241,
+     6241,
+     6360,
+     6812,
+     7300,
+     7806,
+     8304,
+     8807,
+     9309,
+     9806,
+     10312
+    ],
+    "advanced_ms": 10312,
+    "events": [
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 0,
+      "clock_ms": 1005670564
+     },
+     {
+      "event": "stopped",
+      "position_ms": 6241,
+      "was_playing": true
+     },
+     {
+      "event": "open",
+      "engine": "media3",
+      "start_ms": 6241,
+      "clock_ms": 1005682322
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10796,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.aac.decoder",
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 175,
+     "distinct": 13
+    },
+    "audio_while_away": false
+   }
+  }
+ },
+ "vlc": {
+  "files": {
+   "h264_1080p30_aac.mp4": {
+    "first_frame_ms": 125,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 9904,
+     "dropped_frames": 0,
+     "displayed_frames": 297,
+     "decoded_video": 632
+    },
+    "duration_ms": 30000,
+    "positions_ms": [
+     0,
+     151,
+     651,
+     1152,
+     1403,
+     1902,
+     2651,
+     2902,
+     3402,
+     3902,
+     4403,
+     4901,
+     5402,
+     6153,
+     6652,
+     6902,
+     7652,
+     8151,
+     8402,
+     9151,
+     9651
+    ],
+    "advanced_ms": 9651,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005714740
+     },
+     {
+      "event": "stopped",
+      "position_ms": 9904,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 166,
+     "distinct": 12
+    },
+    "verdict": "plays"
+   },
+   "c_h264_aac_1080p60.mp4": {
+    "first_frame_ms": 114,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 7704,
+     "dropped_frames": 0,
+     "displayed_frames": 464,
+     "decoded_video": 961
+    },
+    "duration_ms": 8000,
+    "positions_ms": [
+     0,
+     151,
+     651,
+     903,
+     1653,
+     2152,
+     2402,
+     3152,
+     3651,
+     3902,
+     4401,
+     5154,
+     5653,
+     6151,
+     6500,
+     7102,
+     7403,
+     7704,
+     7704,
+     7704,
+     7704
+    ],
+    "advanced_ms": 7704,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005726997
+     },
+     {
+      "event": "ended",
+      "position_ms": 7704,
+      "dropped_frames": 0,
+      "displayed_frames": 464,
+      "decoded_video": 958
+     },
+     {
+      "event": "stopped",
+      "position_ms": 7704,
+      "was_playing": false
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 166,
+     "distinct": 10
+    },
+    "verdict": "plays"
+   },
+   "e_h264_720p120.mp4": {
+    "first_frame_ms": 116,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 5704,
+     "dropped_frames": 175,
+     "displayed_frames": 528,
+     "decoded_video": 1441
+    },
+    "duration_ms": 6000,
+    "positions_ms": [
+     0,
+     0,
+     400,
+     1151,
+     1401,
+     1903,
+     2401,
+     3151,
+     3652,
+     4151,
+     4801,
+     5102,
+     5704,
+     5704,
+     5704,
+     5704,
+     5704,
+     5704,
+     5704,
+     5704,
+     5704
+    ],
+    "advanced_ms": 5704,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005739486
+     },
+     {
+      "event": "ended",
+      "position_ms": 5704,
+      "dropped_frames": 170,
+      "displayed_frames": 513,
+      "decoded_video": 1403
+     },
+     {
+      "event": "stopped",
+      "position_ms": 5704,
+      "was_playing": false
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 166,
+     "distinct": 13
+    },
+    "verdict": "plays"
+   },
+   "c_h264_aac_720p.mkv": {
+    "first_frame_ms": 143,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 7901,
+     "dropped_frames": 0,
+     "displayed_frames": 183,
+     "decoded_video": 401
+    },
+    "duration_ms": 8021,
+    "positions_ms": [
+     0,
+     213,
+     741,
+     1258,
+     1536,
+     2090,
+     2602,
+     3136,
+     3690,
+     4202,
+     4736,
+     5013,
+     5542,
+     6058,
+     6702,
+     7003,
+     7604,
+     7901,
+     7901,
+     7901,
+     7901
+    ],
+    "advanced_ms": 7901,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005751753
+     },
+     {
+      "event": "ended",
+      "position_ms": 7901,
+      "dropped_frames": 0,
+      "displayed_frames": 183,
+      "decoded_video": 401
+     },
+     {
+      "event": "stopped",
+      "position_ms": 7901,
+      "was_playing": false
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 166,
+     "distinct": 11
+    },
+    "verdict": "plays"
+   },
+   "c_h264_aac_portrait_1080x1920.mp4": {
+    "first_frame_ms": 108,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 7903,
+     "dropped_frames": 0,
+     "displayed_frames": 223,
+     "decoded_video": 481
+    },
+    "duration_ms": 8000,
+    "positions_ms": [
+     0,
+     0,
+     651,
+     902,
+     1403,
+     2152,
+     2651,
+     2902,
+     3401,
+     4151,
+     4652,
+     5152,
+     5652,
+     5902,
+     6701,
+     7001,
+     7603,
+     7903,
+     7903,
+     7903,
+     7903
+    ],
+    "advanced_ms": 7903,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005764187
+     },
+     {
+      "event": "ended",
+      "position_ms": 7903,
+      "dropped_frames": 0,
+      "displayed_frames": 223,
+      "decoded_video": 481
+     },
+     {
+      "event": "stopped",
+      "position_ms": 7903,
+      "was_playing": false
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 166,
+     "distinct": 11
+    },
+    "verdict": "plays"
+   },
+   "e_rotated_90_h264.mp4": {
+    "first_frame_ms": 98,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 5703,
+     "dropped_frames": 0,
+     "displayed_frames": 133,
+     "decoded_video": 301
+    },
+    "duration_ms": 6000,
+    "positions_ms": [
+     0,
+     0,
+     650,
+     1151,
+     1651,
+     2151,
+     2651,
+     3151,
+     3651,
+     4151,
+     4801,
+     5102,
+     5703,
+     5703,
+     5703,
+     5703,
+     5703,
+     5703,
+     5703,
+     5703,
+     5703,
+     5703
+    ],
+    "advanced_ms": 5703,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005776460
+     },
+     {
+      "event": "ended",
+      "position_ms": 5703,
+      "dropped_frames": 0,
+      "displayed_frames": 133,
+      "decoded_video": 301
+     },
+     {
+      "event": "stopped",
+      "position_ms": 5703,
+      "was_playing": false
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 170,
+     "distinct": 12
+    },
+    "verdict": "plays"
+   },
+   "c_h264_ac3_720p.ts": {
+    "first_frame_ms": 127,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 7920,
+     "dropped_frames": 0,
+     "displayed_frames": 182,
+     "decoded_video": 400
+    },
+    "duration_ms": 8660,
+    "positions_ms": [
+     0,
+     80,
+     720,
+     1040,
+     1680,
+     2000,
+     2640,
+     3280,
+     3600,
+     4240,
+     4560,
+     5200,
+     5520,
+     6160,
+     6722,
+     7022,
+     7623,
+     7920,
+     7920,
+     7920,
+     7920
+    ],
+    "advanced_ms": 7920,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005789148
+     },
+     {
+      "event": "ended",
+      "position_ms": 7920,
+      "dropped_frames": 0,
+      "displayed_frames": 182,
+      "decoded_video": 400
+     },
+     {
+      "event": "stopped",
+      "position_ms": 7920,
+      "was_playing": false
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 166,
+     "distinct": 12
+    },
+    "verdict": "plays"
+   },
+   "c_hevc10_aac_1080p.mp4": {
+    "first_frame_ms": 172,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 7702,
+     "dropped_frames": 0,
+     "displayed_frames": 201,
+     "decoded_video": 481
+    },
+    "duration_ms": 8000,
+    "positions_ms": [
+     0,
+     151,
+     652,
+     1151,
+     1651,
+     2151,
+     2656,
+     3156,
+     3653,
+     4151,
+     4651,
+     5151,
+     5651,
+     6151,
+     6500,
+     7101,
+     7702,
+     7702,
+     7702,
+     7702,
+     7702
+    ],
+    "advanced_ms": 7702,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005801468
+     },
+     {
+      "event": "ended",
+      "position_ms": 7702,
+      "dropped_frames": 0,
+      "displayed_frames": 201,
+      "decoded_video": 481
+     },
+     {
+      "event": "stopped",
+      "position_ms": 7702,
+      "was_playing": false
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 167,
+     "distinct": 13
+    },
+    "verdict": "plays"
+   },
+   "hevc_2160p30_aac.mkv": {
+    "first_frame_ms": 139,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10006,
+     "dropped_frames": 0,
+     "displayed_frames": 299,
+     "decoded_video": 636
+    },
+    "duration_ms": 20021,
+    "positions_ms": [
+     0,
+     154,
+     682,
+     938,
+     1472,
+     2005,
+     2538,
+     3072,
+     3605,
+     4138,
+     4672,
+     5205,
+     5483,
+     6016,
+     6549,
+     7082,
+     7616,
+     8150,
+     8682,
+     9216,
+     9472,
+     10006
+    ],
+    "advanced_ms": 10006,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005813883
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10006,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.exynos.hevc.decoder"
+    ],
+    "picture": {
+     "max_lightness": 166,
+     "distinct": 9
+    },
+    "verdict": "plays"
+   },
+   "vp9_1080p30_opus.webm": {
+    "first_frame_ms": 114,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10040,
+     "dropped_frames": 0,
+     "displayed_frames": 301,
+     "decoded_video": 618
+    },
+    "duration_ms": 20008,
+    "positions_ms": [
+     0,
+     161,
+     674,
+     1201,
+     1721,
+     2240,
+     2761,
+     3274,
+     3540,
+     4061,
+     4574,
+     5101,
+     5621,
+     6140,
+     6661,
+     7174,
+     7701,
+     8221,
+     8740,
+     9261,
+     9774
+    ],
+    "advanced_ms": 9774,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005826466
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10040,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.android.vp9.decoder"
+    ],
+    "picture": {
+     "max_lightness": 166,
+     "distinct": 11
+    },
+    "verdict": "plays"
+   },
+   "av1_1080p30_opus.mkv": {
+    "first_frame_ms": 101,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10240,
+     "dropped_frames": 0,
+     "displayed_frames": 308,
+     "decoded_video": 633
+    },
+    "duration_ms": 20008,
+    "positions_ms": [
+     0,
+     101,
+     621,
+     1140,
+     1661,
+     2174,
+     2701,
+     3221,
+     3726,
+     4261,
+     4774,
+     5301,
+     5822,
+     6340,
+     6601,
+     7121,
+     7640,
+     8162,
+     8674,
+     9201,
+     9721
+    ],
+    "advanced_ms": 9721,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005838967
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10240,
+      "was_playing": true
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 166,
+     "distinct": 11
+    },
+    "verdict": "plays"
+   },
+   "c_vp8_vorbis_720p.webm": {
+    "first_frame_ms": 105,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 7865,
+     "dropped_frames": 0,
+     "displayed_frames": 185,
+     "decoded_video": 401
+    },
+    "duration_ms": 8003,
+    "positions_ms": [
+     0,
+     186,
+     719,
+     1274,
+     1551,
+     2063,
+     2596,
+     3151,
+     3663,
+     4196,
+     4751,
+     5263,
+     5519,
+     6074,
+     6664,
+     7265,
+     7565,
+     7865,
+     7865,
+     7865,
+     7865
+    ],
+    "advanced_ms": 7865,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005851306
+     },
+     {
+      "event": "ended",
+      "position_ms": 7865,
+      "dropped_frames": 0,
+      "displayed_frames": 185,
+      "decoded_video": 401
+     },
+     {
+      "event": "stopped",
+      "position_ms": 7865,
+      "was_playing": false
+     }
+    ],
+    "codecs": [
+     "c2.exynos.vp8.decoder"
+    ],
+    "picture": {
+     "max_lightness": 167,
+     "distinct": 13
+    },
+    "verdict": "plays"
+   },
+   "c_mpeg2_mp2_576p.mpg": {
+    "first_frame_ms": 138,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 7895,
+     "dropped_frames": 0,
+     "displayed_frames": 182,
+     "decoded_video": 402
+    },
+    "duration_ms": 7992,
+    "positions_ms": [
+     0,
+     10,
+     530,
+     1090,
+     1650,
+     2250,
+     2490,
+     3050,
+     3650,
+     4170,
+     4730,
+     5010,
+     5570,
+     6130,
+     6392,
+     6693,
+     7294,
+     7895,
+     7895,
+     7895,
+     7895,
+     7895
+    ],
+    "advanced_ms": 7895,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005863558
+     },
+     {
+      "event": "ended",
+      "position_ms": 7895,
+      "dropped_frames": 0,
+      "displayed_frames": 182,
+      "decoded_video": 402
+     },
+     {
+      "event": "stopped",
+      "position_ms": 7895,
+      "was_playing": false
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 170,
+     "distinct": 14
+    },
+    "verdict": "plays"
+   },
+   "e_interlaced_mpeg2_1080i.ts": {
+    "first_frame_ms": 124,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 5920,
+     "dropped_frames": 0,
+     "displayed_frames": 132,
+     "decoded_video": 300
+    },
+    "duration_ms": 6660,
+    "positions_ms": [
+     0,
+     160,
+     800,
+     1120,
+     1760,
+     2400,
+     2720,
+     3360,
+     3680,
+     4320,
+     4621,
+     5223,
+     5824,
+     5920,
+     5920,
+     5920,
+     5920,
+     5920,
+     5920,
+     5920,
+     5920
+    ],
+    "advanced_ms": 5920,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005876130
+     },
+     {
+      "event": "ended",
+      "position_ms": 5920,
+      "dropped_frames": 0,
+      "displayed_frames": 132,
+      "decoded_video": 300
+     },
+     {
+      "event": "stopped",
+      "position_ms": 5920,
+      "was_playing": false
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 166,
+     "distinct": 11
+    },
+    "verdict": "plays"
+   },
+   "c_mpeg4_mp3_480p.avi": {
+    "first_frame_ms": 136,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 7752,
+     "dropped_frames": 0,
+     "displayed_frames": 193,
+     "decoded_video": 401
+    },
+    "duration_ms": 8000,
+    "positions_ms": [
+     0,
+     150,
+     675,
+     1175,
+     1701,
+     2226,
+     2500,
+     3026,
+     3575,
+     4101,
+     4626,
+     5176,
+     5701,
+     6226,
+     6550,
+     7151,
+     7452,
+     7752,
+     7752,
+     7752,
+     7752
+    ],
+    "advanced_ms": 7752,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005888379
+     },
+     {
+      "event": "ended",
+      "position_ms": 7752,
+      "dropped_frames": 0,
+      "displayed_frames": 193,
+      "decoded_video": 401
+     },
+     {
+      "event": "stopped",
+      "position_ms": 7752,
+      "was_playing": false
+     }
+    ],
+    "codecs": [
+     "c2.sec.mpeg4.decoder"
+    ],
+    "picture": {
+     "max_lightness": 170,
+     "distinct": 11
+    },
+    "verdict": "plays"
+   },
+   "c_wmv2_wmav2_480p.wmv": {
+    "first_frame_ms": 81,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 7702,
+     "dropped_frames": 0,
+     "displayed_frames": 182,
+     "decoded_video": 399
+    },
+    "duration_ms": 8043,
+    "positions_ms": [
+     0,
+     200,
+     800,
+     1401,
+     1701,
+     2301,
+     2901,
+     3201,
+     3800,
+     4400,
+     4700,
+     5300,
+     5900,
+     6200,
+     6801,
+     7401,
+     7702,
+     7702,
+     7702,
+     7702,
+     7702
+    ],
+    "advanced_ms": 7702,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005901004
+     },
+     {
+      "event": "ended",
+      "position_ms": 7702,
+      "dropped_frames": 0,
+      "displayed_frames": 182,
+      "decoded_video": 399
+     },
+     {
+      "event": "stopped",
+      "position_ms": 7702,
+      "was_playing": false
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 170,
+     "distinct": 14
+    },
+    "verdict": "plays"
+   },
+   "c_theora_vorbis_480p.ogv": {
+    "first_frame_ms": 95,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 5431,
+     "dropped_frames": 0,
+     "displayed_frames": 185,
+     "decoded_video": 401
+    },
+    "duration_ms": 8000,
+    "positions_ms": [
+     0,
+     360,
+     360,
+     1321,
+     1321,
+     2281,
+     2281,
+     3241,
+     3241,
+     4201,
+     4201,
+     5161,
+     5431,
+     5431,
+     5431,
+     5431,
+     5431,
+     5431,
+     5431,
+     5431,
+     5431
+    ],
+    "advanced_ms": 5431,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005913261
+     },
+     {
+      "event": "ended",
+      "position_ms": 5431,
+      "dropped_frames": 0,
+      "displayed_frames": 185,
+      "decoded_video": 401
+     },
+     {
+      "event": "stopped",
+      "position_ms": 5431,
+      "was_playing": false
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 170,
+     "distinct": 15
+    },
+    "verdict": "plays"
+   },
+   "multitrack_720p.mkv": {
+    "first_frame_ms": 107,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio English tone - [English]",
+     "audio French tone - [French]",
+     "text Disable",
+     "text Track 1 - [English]",
+     "text Track 2 - [French]"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10005,
+     "dropped_frames": 0,
+     "displayed_frames": 250,
+     "decoded_video": 538
+    },
+    "duration_ms": 20021,
+    "positions_ms": [
+     0,
+     213,
+     741,
+     1258,
+     1813,
+     2090,
+     2602,
+     3136,
+     3690,
+     4202,
+     4736,
+     5290,
+     5802,
+     6058,
+     6613,
+     7142,
+     7658,
+     8213,
+     8725,
+     9237,
+     9749
+    ],
+    "advanced_ms": 9749,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005925672
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10005,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 166,
+     "distinct": 13
+    },
+    "verdict": "plays"
+   },
+   "e_mkv_no_cues.mkv": {
+    "first_frame_ms": 119,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 9769,
+     "dropped_frames": 0,
+     "displayed_frames": 283,
+     "decoded_video": 601
+    },
+    "duration_ms": 9967,
+    "positions_ms": [
+     0,
+     233,
+     766,
+     1300,
+     1567,
+     2100,
+     2633,
+     3167,
+     3700,
+     4233,
+     4767,
+     5300,
+     5567,
+     6100,
+     6633,
+     7167,
+     7700,
+     8233,
+     8567,
+     9168,
+     9769
+    ],
+    "advanced_ms": 9769,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005937997
+     },
+     {
+      "event": "ended",
+      "position_ms": 9769,
+      "dropped_frames": 0,
+      "displayed_frames": 283,
+      "decoded_video": 601
+     },
+     {
+      "event": "stopped",
+      "position_ms": 9769,
+      "was_playing": false
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 166,
+     "distinct": 11
+    },
+    "verdict": "plays"
+   },
+   "e_corrupt_midstream.ts": {
+    "first_frame_ms": 153,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 9900,
+     "dropped_frames": 2,
+     "displayed_frames": 202,
+     "decoded_video": 325
+    },
+    "duration_ms": 10667,
+    "positions_ms": [
+     0,
+     100,
+     700,
+     1300,
+     1600,
+     2200,
+     2700,
+     3300,
+     3600,
+     4200,
+     4800,
+     5100,
+     5700,
+     6300,
+     6600,
+     7200,
+     7800,
+     8100,
+     8701,
+     9303,
+     9603
+    ],
+    "advanced_ms": 9603,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005950161
+     },
+     {
+      "event": "stopped",
+      "position_ms": 9900,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 166,
+     "distinct": 10
+    },
+    "verdict": "plays"
+   },
+   "truncated.mp4": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [],
+    "stats": {
+     "event": "stats",
+     "position_ms": 0,
+     "dropped_frames": 0,
+     "displayed_frames": 0,
+     "decoded_video": 0
+    },
+    "duration_ms": 0,
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "advanced_ms": 0,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005962523
+     },
+     {
+      "event": "ended",
+      "position_ms": 0,
+      "dropped_frames": 0,
+      "displayed_frames": 0,
+      "decoded_video": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 0,
+      "was_playing": false
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "no progress"
+   },
+   "not_media.mp4": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [],
+    "stats": {
+     "event": "stats",
+     "position_ms": 0,
+     "dropped_frames": 0,
+     "displayed_frames": 0,
+     "decoded_video": 0
+    },
+    "duration_ms": 0,
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "advanced_ms": 0,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005974786
+     },
+     {
+      "event": "ended",
+      "position_ms": 0,
+      "dropped_frames": 0,
+      "displayed_frames": 0,
+      "decoded_video": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 0,
+      "was_playing": false
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "no progress"
+   },
+   "e_empty.mp4": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [
+     "EncounteredError"
+    ],
+    "tracks": [],
+    "stats": {
+     "event": "stats",
+     "position_ms": 0,
+     "dropped_frames": 0,
+     "displayed_frames": 0,
+     "decoded_video": 0
+    },
+    "duration_ms": 0,
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "advanced_ms": 0,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005987220
+     },
+     {
+      "event": "stopped",
+      "position_ms": 0,
+      "was_playing": false
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "c_audio_aac.m4a": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [],
+    "stats": {
+     "event": "stats",
+     "position_ms": 9702,
+     "dropped_frames": 0,
+     "displayed_frames": 0,
+     "decoded_video": 0
+    },
+    "duration_ms": 10000,
+    "positions_ms": [
+     0,
+     150,
+     650,
+     1150,
+     1650,
+     1901,
+     2651,
+     3150,
+     3400,
+     4151,
+     4650,
+     5150,
+     5650,
+     5901,
+     6400,
+     6900,
+     7651,
+     8150,
+     8801,
+     9101,
+     9702
+    ],
+    "advanced_ms": 9702,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1005999546
+     },
+     {
+      "event": "ended",
+      "position_ms": 9702,
+      "dropped_frames": 0,
+      "displayed_frames": 0,
+      "decoded_video": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 9702,
+      "was_playing": false
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "c_audio_mp3.mp3": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [],
+    "stats": {
+     "event": "stats",
+     "position_ms": 9733,
+     "dropped_frames": 0,
+     "displayed_frames": 0,
+     "decoded_video": 0
+    },
+    "duration_ms": 10057,
+    "positions_ms": [
+     0,
+     150,
+     673,
+     1222,
+     1744,
+     2293,
+     2841,
+     3364,
+     3913,
+     4173,
+     4722,
+     5271,
+     5793,
+     6342,
+     6864,
+     7413,
+     7674,
+     8223,
+     8832,
+     9132,
+     9733
+    ],
+    "advanced_ms": 9733,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1006011916
+     },
+     {
+      "event": "ended",
+      "position_ms": 9733,
+      "dropped_frames": 0,
+      "displayed_frames": 0,
+      "decoded_video": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 9733,
+      "was_playing": false
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "c_audio_flac.flac": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [],
+    "stats": {
+     "event": "stats",
+     "position_ms": 9786,
+     "dropped_frames": 0,
+     "displayed_frames": 0,
+     "decoded_video": 0
+    },
+    "duration_ms": 10000,
+    "positions_ms": [
+     0,
+     384,
+     640,
+     1152,
+     1664,
+     2176,
+     2688,
+     3200,
+     3712,
+     4224,
+     4736,
+     5248,
+     5760,
+     6272,
+     6784,
+     7296,
+     7808,
+     8320,
+     8885,
+     9185,
+     9786
+    ],
+    "advanced_ms": 9786,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1006024205
+     },
+     {
+      "event": "ended",
+      "position_ms": 9786,
+      "dropped_frames": 0,
+      "displayed_frames": 0,
+      "decoded_video": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 9786,
+      "was_playing": false
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "c_audio_opus.opus": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [],
+    "stats": {
+     "event": "stats",
+     "position_ms": 0,
+     "dropped_frames": 0,
+     "displayed_frames": 0,
+     "decoded_video": 0
+    },
+    "duration_ms": 9927,
+    "positions_ms": [
+     0,
+     320,
+     320,
+     1321,
+     1321,
+     2321,
+     2321,
+     3321,
+     3321,
+     4321,
+     4321,
+     5321,
+     5321,
+     6321,
+     6321,
+     7321,
+     7321,
+     8320,
+     0,
+     0,
+     0,
+     0
+    ],
+    "advanced_ms": 0,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1006036537
+     },
+     {
+      "event": "ended",
+      "position_ms": 0,
+      "dropped_frames": 0,
+      "displayed_frames": 0,
+      "decoded_video": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 0,
+      "was_playing": false
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "no progress"
+   },
+   "c_audio_vorbis.ogg": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [],
+    "stats": {
+     "event": "stats",
+     "position_ms": 0,
+     "dropped_frames": 0,
+     "displayed_frames": 0,
+     "decoded_video": 0
+    },
+    "duration_ms": 10000,
+    "positions_ms": [
+     0,
+     418,
+     418,
+     1420,
+     1420,
+     2424,
+     2424,
+     3426,
+     3426,
+     4429,
+     4429,
+     5431,
+     5431,
+     6434,
+     6434,
+     6434,
+     7438,
+     0,
+     0,
+     0,
+     0
+    ],
+    "advanced_ms": 0,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1006049088
+     },
+     {
+      "event": "ended",
+      "position_ms": 0,
+      "dropped_frames": 0,
+      "displayed_frames": 0,
+      "decoded_video": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 0,
+      "was_playing": false
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "no progress"
+   },
+   "c_audio_ac3_51.ac3": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [],
+    "stats": {
+     "event": "stats",
+     "position_ms": 9586,
+     "dropped_frames": 0,
+     "displayed_frames": 0,
+     "decoded_video": 0
+    },
+    "duration_ms": 10016,
+    "positions_ms": [
+     0,
+     160,
+     672,
+     1184,
+     1696,
+     2208,
+     2720,
+     3232,
+     3744,
+     4256,
+     4768,
+     5280,
+     5792,
+     6304,
+     6816,
+     7328,
+     7840,
+     8352,
+     8685,
+     9286,
+     9586
+    ],
+    "advanced_ms": 9586,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1006061446
+     },
+     {
+      "event": "ended",
+      "position_ms": 9586,
+      "dropped_frames": 0,
+      "displayed_frames": 0,
+      "decoded_video": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 9586,
+      "was_playing": false
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "c_audio_pcm.wav": {
+    "first_frame_ms": null,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [],
+    "stats": {
+     "event": "stats",
+     "position_ms": 9802,
+     "dropped_frames": 0,
+     "displayed_frames": 0,
+     "decoded_video": 0
+    },
+    "duration_ms": 10000,
+    "positions_ms": [
+     0,
+     200,
+     800,
+     1400,
+     1900,
+     2450,
+     2750,
+     3300,
+     3850,
+     4450,
+     4950,
+     5250,
+     5800,
+     6400,
+     6700,
+     7250,
+     7800,
+     8350,
+     8901,
+     9201,
+     9802
+    ],
+    "advanced_ms": 9802,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1006073551
+     },
+     {
+      "event": "ended",
+      "position_ms": 9802,
+      "dropped_frames": 0,
+      "displayed_frames": 0,
+      "decoded_video": 0
+     },
+     {
+      "event": "stopped",
+      "position_ms": 9802,
+      "was_playing": false
+     }
+    ],
+    "codecs": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "s_sidecar_720p.mp4+s_ext.srt": {
+    "first_frame_ms": 108,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "text Disable",
+     "text Track 1 - [ext]"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 9703,
+     "dropped_frames": 0,
+     "displayed_frames": 233,
+     "decoded_video": 501
+    },
+    "duration_ms": 10000,
+    "positions_ms": [
+     0,
+     0,
+     650,
+     1150,
+     1400,
+     1901,
+     2400,
+     2901,
+     3401,
+     4150,
+     4650,
+     5150,
+     5400,
+     6151,
+     6650,
+     6900,
+     7400,
+     8151,
+     8801,
+     9102,
+     9703
+    ],
+    "advanced_ms": 9703,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1006087463
+     },
+     {
+      "event": "ended",
+      "position_ms": 9703,
+      "dropped_frames": 0,
+      "displayed_frames": 233,
+      "decoded_video": 501
+     },
+     {
+      "event": "stopped",
+      "position_ms": 9703,
+      "was_playing": false
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "no picture"
+   },
+   "s_sidecar_720p.mp4+s_ext.ass": {
+    "first_frame_ms": 113,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "text Disable",
+     "text Track 1 - [ext]"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 8703,
+     "dropped_frames": 0,
+     "displayed_frames": 218,
+     "decoded_video": 474
+    },
+    "duration_ms": 10000,
+    "positions_ms": [
+     0,
+     0,
+     400,
+     1151,
+     1650,
+     1900,
+     2401,
+     3150,
+     3401,
+     3901,
+     4400,
+     5150,
+     5650,
+     6150,
+     6651,
+     6901,
+     7652,
+     8151,
+     8703
+    ],
+    "advanced_ms": 8703,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1006099802
+     },
+     {
+      "event": "stopped",
+      "position_ms": 8703,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 254,
+     "distinct": 4
+    },
+    "verdict": "plays"
+   }
+  },
+  "lifecycle": {
+   "seek": {
+    "first_frame_ms": 106,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 25751,
+     "dropped_frames": 0,
+     "displayed_frames": 286,
+     "decoded_video": 744
+    },
+    "duration_ms": 30000,
+    "positions_ms": [
+     0,
+     151,
+     651,
+     1152,
+     1652,
+     2152,
+     2652,
+     3152,
+     20000,
+     20000,
+     20252,
+     20503,
+     21002,
+     21501,
+     22252,
+     22502,
+     23252,
+     23751,
+     24002,
+     24502,
+     25000
+    ],
+    "advanced_ms": 25000,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1006111771
+     },
+     {
+      "event": "seek",
+      "to_ms": 20000
+     },
+     {
+      "event": "stopped",
+      "position_ms": 25751,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 166,
+     "distinct": 10
+    }
+   },
+   "rotate": {
+    "first_frame_ms": 109,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 10652,
+     "dropped_frames": 0,
+     "displayed_frames": 180,
+     "decoded_video": 538
+    },
+    "duration_ms": 30000,
+    "positions_ms": [
+     0,
+     0,
+     651,
+     1152,
+     1652,
+     1903,
+     2403,
+     3153,
+     3652,
+     4154,
+     0,
+     0,
+     4642,
+     4901,
+     5151,
+     5651,
+     6401,
+     6901,
+     7402,
+     7901,
+     8151,
+     8902,
+     9401,
+     9901,
+     10401
+    ],
+    "advanced_ms": 10401,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1006123984
+     },
+     {
+      "event": "rotate",
+      "position_ms": 4652
+     },
+     {
+      "event": "stopped",
+      "position_ms": 4652,
+      "was_playing": true
+     },
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 4652,
+      "clock_ms": 1006129160
+     },
+     {
+      "event": "stopped",
+      "position_ms": 10652,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 167,
+     "distinct": 10
+    }
+   },
+   "background_resume": {
+    "first_frame_ms": 113,
+    "video_decoder": [],
+    "audio_decoder": [],
+    "errors": [],
+    "tracks": [
+     "video Disable",
+     "video Track 1",
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "stats": {
+     "event": "stats",
+     "position_ms": 11151,
+     "dropped_frames": 0,
+     "displayed_frames": 150,
+     "decoded_video": 523
+    },
+    "duration_ms": 30000,
+    "positions_ms": [
+     0,
+     151,
+     651,
+     1152,
+     1653,
+     2152,
+     2653,
+     3152,
+     3402,
+     4152,
+     4652,
+     5151,
+     5651,
+     6151,
+     0,
+     0,
+     0,
+     6141,
+     6652,
+     6903,
+     7402,
+     8151,
+     8651,
+     9151,
+     9651,
+     10151,
+     10651
+    ],
+    "advanced_ms": 10651,
+    "events": [
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 0,
+      "clock_ms": 1006138184
+     },
+     {
+      "event": "stopped",
+      "position_ms": 6151,
+      "was_playing": true
+     },
+     {
+      "event": "open",
+      "engine": "libvlc",
+      "start_ms": 6151,
+      "clock_ms": 1006149939
+     },
+     {
+      "event": "stopped",
+      "position_ms": 11151,
+      "was_playing": true
+     }
+    ],
+    "codecs": [
+     "c2.exynos.h264.decoder"
+    ],
+    "picture": {
+     "max_lightness": 166,
+     "distinct": 13
+    },
+    "audio_while_away": false
+   }
+  }
+ }
+}

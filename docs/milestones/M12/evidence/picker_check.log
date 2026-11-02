@@ -1,0 +1,14 @@
+﻿11-02 08:40:07.537 I/BabarifyProbe(19643): {"event":"picked","scheme":"content"}
+11-02 08:40:07.564 I/BabarifyProbe(19643): {"event":"open","engine":"media3","start_ms":0,"clock_ms":1011024643}
+11-02 08:40:07.736 I/BabarifyProbe(19643): {"event":"tracks","tracks":["video\/avc supported=true selected=true lang=und","audio\/mp4a-latm supported=true selected=true lang=und"]}
+11-02 08:40:07.811 I/BabarifyProbe(19643): {"event":"video_decoder","name":"c2.exynos.h264.decoder"}
+11-02 08:40:07.865 I/BabarifyProbe(19643): {"event":"audio_decoder","name":"c2.android.aac.decoder"}
+11-02 08:40:07.908 I/BabarifyProbe(19643): {"event":"first_frame","after_ms":344}
+11-02 08:40:18.069 I/BabarifyProbe(19643): {"event":"stopped","position_ms":9850,"was_playing":true}
+11-02 08:40:18.069 I/BabarifyProbe(19643): {"event":"stats","position_ms":9850,"dropped_frames":0}
+11-02 08:40:24.872 I/BabarifyProbe(19897): {"event":"picked","scheme":"content"}
+11-02 08:40:24.897 I/BabarifyProbe(19897): {"event":"open","engine":"libvlc","start_ms":0,"clock_ms":1011041976}
+11-02 08:40:24.996 I/BabarifyProbe(19897): {"event":"first_frame","after_ms":84}
+11-02 08:40:24.997 I/BabarifyProbe(19897): {"event":"tracks","tracks":["video Disable","video Track 1","audio Disable","audio Track 1"]}
+11-02 08:40:32.635 I/BabarifyProbe(19897): {"event":"stopped","position_ms":7151,"was_playing":true}
+11-02 08:40:32.637 I/BabarifyProbe(19897): {"event":"stats","position_ms":7151,"dropped_frames":0,"displayed_frames":174,"decoded_video":382}
