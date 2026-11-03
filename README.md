@@ -10,7 +10,7 @@
 > reports for [M1](docs/milestones/M1/), [M2](docs/milestones/M2/) and [M3](docs/milestones/M3/).
 
 - No ads, no account, no telemetry by default.
-- First platform: Windows 10/11 64-bit. Android and iOS come after dedicated feasibility milestones.
+- First platform: Windows 10/11 64-bit. An Android version (10 or later) is built in `android/player` but not yet released. iOS comes after a dedicated feasibility milestone.
 - Playback engine: **libVLC** (provisional, [ADR-0001](docs/decisions/ADR-0001-playback-engine.md));
   mpv is kept as a maintained alternative.
 

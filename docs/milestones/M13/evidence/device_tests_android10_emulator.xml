@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="18" failures="0" errors="0" skipped="0" time="0.000" timestamp="2026-11-03T05:29:02" hostname="localhost">
+  <testsuite name="com.babarify.frame.PlayerFlowsTest" tests="18" failures="0" errors="0" skipped="0" time="131.178" timestamp="2026-11-03T05:29:02" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="leavingReleasesTheEngineAndReturningContinues" classname="com.babarify.frame.PlayerFlowsTest" time="26.384" />
+    <testcase name="aFinishedFileComesBackAtItsStart" classname="com.babarify.frame.PlayerFlowsTest" time="12.803" />
+    <testcase name="controlsStayClearOfTheSystemBars" classname="com.babarify.frame.PlayerFlowsTest" time="6.349" />
+    <testcase name="rotationKeepsTheSameEngineAndPosition" classname="com.babarify.frame.PlayerFlowsTest" time="3.428" />
+    <testcase name="licencesAreShipped" classname="com.babarify.frame.PlayerFlowsTest" time="0.061" />
+    <testcase name="tracksAreListedAndCanBeChosen" classname="com.babarify.frame.PlayerFlowsTest" time="1.800" />
+    <testcase name="playingAddsToRecentAndResumes" classname="com.babarify.frame.PlayerFlowsTest" time="7.872" />
+    <testcase name="aDamagedFileIsNotAddedToRecent" classname="com.babarify.frame.PlayerFlowsTest" time="1.400" />
+    <testcase name="seekButtonsMoveThePosition" classname="com.babarify.frame.PlayerFlowsTest" time="4.113" />
+    <testcase name="aPausedFileStaysPausedAfterReturning" classname="com.babarify.frame.PlayerFlowsTest" time="4.926" />
+    <testcase name="theFirstFileShowsPreparingThenPlays" classname="com.babarify.frame.PlayerFlowsTest" time="15.049" />
+    <testcase name="aPickedSubtitleFileBecomesATrack" classname="com.babarify.frame.PlayerFlowsTest" time="3.211" />
+    <testcase name="theAppRequestsNoPermissionsAndHasNoInternet" classname="com.babarify.frame.PlayerFlowsTest" time="0.045" />
+    <testcase name="damagedAndUnreadableFilesShowAMessage" classname="com.babarify.frame.PlayerFlowsTest" time="4.442" />
+    <testcase name="otherAddressTypesAreRefused" classname="com.babarify.frame.PlayerFlowsTest" time="1.220" />
+    <testcase name="audioOnlyFilesAdvance" classname="com.babarify.frame.PlayerFlowsTest" time="20.947" />
+    <testcase name="leavingDuringTheFirstFileDoesNotFreezeTheScreen" classname="com.babarify.frame.PlayerFlowsTest" time="14.309" />
+    <testcase name="aFilePickedFromHomeStartsPlaying" classname="com.babarify.frame.PlayerFlowsTest" time="2.819" />
+  </testsuite>
+</testsuites>

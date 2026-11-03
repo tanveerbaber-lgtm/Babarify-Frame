@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Stands in for a real document provider: tests reach files through content: as users do. -->
+        <provider
+            android:name="com.babarify.frame.TestMediaProvider"
+            android:authorities="com.babarify.frame.test.media"
+            android:exported="true"
+            tools:ignore="ExportedContentProvider"
+            xmlns:tools="http://schemas.android.com/tools" />
+    </application>
+</manifest>

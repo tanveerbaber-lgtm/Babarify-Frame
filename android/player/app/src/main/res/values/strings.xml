@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Babarify Frame</string>
+    <string name="open_file">Open a file</string>
+    <string name="recent">Recent</string>
+    <string name="no_recent">Files you play appear here. They stay on this phone.</string>
+    <string name="settings">Settings</string>
+    <string name="about">About and licences</string>
+    <string name="about_title">Babarify Frame %1$s</string>
+    <string name="about_body">Free software under the GNU General Public License, version 3 or later. No account, no ads, no telemetry: nothing about what you play leaves this phone.\n\nSource code: https://github.com/tanveerbaber-lgtm/Babarify-Frame\n\nLicences of this app and its components follow.</string>
+    <string name="forget_question">Remove this file from Recent? The file itself is not deleted.</string>
+    <string name="remove">Remove</string>
+    <string name="hardware_decoding">Use hardware decoding</string>
+    <string name="resume_playback">Continue files where you stopped</string>
+    <string name="clear_recent">Clear Recent</string>
+
+    <string name="video">Video</string>
+    <string name="seek">Position in the file</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="back_10">−10 s</string>
+    <string name="forward_10">+10 s</string>
+    <string name="audio">Audio</string>
+    <string name="subtitles">Subtitles</string>
+    <string name="volume">Volume</string>
+    <string name="track_off">Off</string>
+    <string name="no_tracks">Nothing to choose in this file.</string>
+    <string name="add_subtitle_file">Add file</string>
+    <string name="untitled">Untitled</string>
+    <string name="preparing">Preparing the player. The first time can take about 30 seconds.</string>
+
+    <!-- Same meaning as USER_MESSAGES in the desktop app's core/errors.py. -->
+    <string name="error_media_not_found">The file could not be found, or this app no longer has permission to open it. Open it again from your files.</string>
+    <string name="error_media_open_failed">This file could not be played. It may be damaged or use an unsupported format.</string>
+    <string name="error_engine_failure">The playback engine reported an unexpected error.</string>
+    <string name="error_subtitle">That file can\'t be used as subtitles.</string>
+</resources>

@@ -70,3 +70,20 @@ Windows SDK's `signtool.exe` is available on the development PC.
   them for at least three years.
 - Qt/PySide6 (LGPL v3) stay separate DLLs in `_internal\PySide6`, replaceable by the user.
 - Excluded for legal reasons: DVD/Blu-ray access (CSS/AACS), ARIB conditional access.
+
+## Android (M13)
+
+Android 10 or later, published on GitHub as APKs for `arm64-v8a` and `armeabi-v7a`.
+
+1. Update `versionName` and `versionCode` in `android/player/app/build.gradle.kts`.
+2. Run the device tests on the supported devices: `gradlew connectedDebugAndroidTest` in `android/player`.
+3. Set `BABARIFY_KEYSTORE`, `BABARIFY_KEY_ALIAS`, `BABARIFY_KEYSTORE_PASSWORD` and
+   `BABARIFY_KEY_PASSWORD`, then, from a clean commit, run `python tools/build_android_release.py`.
+4. Test the signed APK on a real phone before publishing.
+
+- **The signing key never goes in the repository.** Losing it means people can't update without
+  reinstalling, so it needs its own backup.
+- `THIRD_PARTY_NOTICES.txt` under `android/player/app/src/main/assets/licenses/` must match
+  `gradlew :app:dependencies --configuration releaseRuntimeClasspath`.
+- Keep the libVLC source matching the release available for as long as it is distributed
+  (VideoLAN tag `libvlc-<version>` in `vlc-android`; see the M13 report for what remains open).

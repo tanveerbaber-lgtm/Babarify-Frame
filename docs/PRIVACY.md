@@ -43,3 +43,10 @@ subtitles are never uploaded. Generated subtitles are marked *machine-generated*
 ## Contact
 
 Questions about privacy: open an issue in the project's repository.
+
+## Android
+
+The Android app requests no permissions, including internet, so it cannot send anything anywhere.
+It reads only the files you open. Recent files and your place in them stay on the phone, are excluded
+from backup and device transfer, and can be cleared in Settings. A subtitle file you add is copied
+into the app's private cache so the player can read it. Uninstalling removes all of this.

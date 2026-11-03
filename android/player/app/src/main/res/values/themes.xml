@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colours from the desktop theme (ui/theme.py). -->
+    <color name="background">#070B15</color>
+    <color name="surface">#0E1628</color>
+    <color name="surface_raised">#16213A</color>
+    <color name="surface_translucent">#D90E1628</color>
+    <color name="text">#E6EDF7</color>
+    <color name="text_muted">#A3B1C9</color>
+    <color name="accent">#3B82F6</color>
+    <color name="on_accent">#04101F</color>
+
+    <style name="Theme.Babarify" parent="android:Theme.Material.NoActionBar">
+        <item name="android:colorBackground">@color/background</item>
+        <item name="android:windowBackground">@color/background</item>
+        <item name="android:colorPrimary">@color/surface</item>
+        <item name="android:colorAccent">@color/accent</item>
+        <item name="android:colorButtonNormal">@color/surface_raised</item>
+        <item name="android:textColorPrimary">@color/text</item>
+        <item name="android:textColorSecondary">@color/text_muted</item>
+    </style>
+
+    <style name="Text.Title" parent="">
+        <item name="android:textColor">@color/text</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Text.Body" parent="">
+        <item name="android:textColor">@color/text</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="Text.Muted" parent="">
+        <item name="android:textColor">@color/text_muted</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="ControlButton" parent="android:Widget.Material.Button.Borderless">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/text</item>
+    </style>
+</resources>

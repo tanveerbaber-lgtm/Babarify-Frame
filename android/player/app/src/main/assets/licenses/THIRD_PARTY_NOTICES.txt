@@ -1,0 +1,23 @@
+Babarify Frame for Android includes the following components.
+
+libVLC for Android 3.7.7 (org.videolan.android:libvlc-all)
+  (c) the VideoLAN team and the authors of its bundled libraries.
+  Declared licence: LGPL-2.1. The library also contains code under the GNU GPL, version 2 or
+  later, and other free licences, including FFmpeg, x264, libass, FreeType, FriBidi, HarfBuzz,
+  dav1d, GnuTLS and libmatroska. The combined app is distributed under the GNU GPL, version 3 or
+  later.
+  Source: https://code.videolan.org/videolan/vlc-android (tag libvlc-3.7.7)
+  and https://code.videolan.org/videolan/libvlcjni
+
+AndroidX Annotation 1.7.1, AndroidX Legacy Support v4 1.0.0 and its dependencies:
+  Arch Core, AsyncLayoutInflater, Collection, CoordinatorLayout, Core, CursorAdapter, CustomView,
+  DocumentFile, DrawerLayout, Fragment, Interpolator, Lifecycle, Loader, LocalBroadcastManager,
+  Media, Print, SlidingPaneLayout, SwipeRefreshLayout, VersionedParcelable, ViewPager
+  (c) The Android Open Source Project. Apache License 2.0.
+  Source: https://android.googlesource.com/platform/frameworks/support
+
+Kotlin Standard Library 2.2.10, JetBrains Annotations 13.0
+  (c) JetBrains s.r.o. and Kotlin contributors. Apache License 2.0.
+  Source: https://github.com/JetBrains/kotlin
+
+Licence texts follow.

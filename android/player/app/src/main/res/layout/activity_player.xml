@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <SurfaceView
+        android:id="@+id/videoSurface"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/video" />
+
+    <TextView
+        android:id="@+id/messageLabel"
+        style="@style/Text.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:padding="24dp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/surface_translucent"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/titleLabel"
+            style="@style/Text.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="middle"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="8dp"
+            android:singleLine="true" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
+
+            <TextView
+                android:id="@+id/positionLabel"
+                style="@style/Text.Muted"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <SeekBar
+                android:id="@+id/seekBar"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:contentDescription="@string/seek"
+                android:max="1000" />
+
+            <TextView
+                android:id="@+id/durationLabel"
+                style="@style/Text.Muted"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/backButton"
+                style="@style/ControlButton"
+                android:text="@string/back_10" />
+
+            <Button
+                android:id="@+id/playButton"
+                style="@style/ControlButton"
+                android:text="@string/pause" />
+
+            <Button
+                android:id="@+id/forwardButton"
+                style="@style/ControlButton"
+                android:text="@string/forward_10" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/audioButton"
+                style="@style/ControlButton"
+                android:text="@string/audio" />
+
+            <Button
+                android:id="@+id/subtitleButton"
+                style="@style/ControlButton"
+                android:text="@string/subtitles" />
+
+            <Button
+                android:id="@+id/volumeButton"
+                style="@style/ControlButton"
+                android:text="@string/volume" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>
