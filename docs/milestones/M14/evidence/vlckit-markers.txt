@@ -1,0 +1,15 @@
+binary: Pods/MobileVLCKit/MobileVLCKit.xcframework/ios-arm64_armv7_armv7s/MobileVLCKit.framework/MobileVLCKit
+x264: 21
+x265: 3
+libpostproc: 0
+liba52: 0
+libdca: 0
+libfaad: 0
+GNU General Public: 21
+GPL-2.0-only: 0
+GPL-2.0-or-later: 6
+GPL-3.0: 6
+version 2 only: 0
+LGPL-2.1-or-later: 6
+either version 2: 6
+either version 3: 3

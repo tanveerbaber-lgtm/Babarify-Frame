@@ -1,0 +1,7 @@
+build/
+Pods/
+Podfile.lock
+BabarifyProbe.xcodeproj/
+BabarifyProbe.xcworkspace/
+Generated-Info.plist
+probe-output/

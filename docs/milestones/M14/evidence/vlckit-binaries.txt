@@ -1,0 +1,4 @@
+ 99M	Pods/MobileVLCKit/MobileVLCKit.xcframework/ios-arm64_armv7_armv7s/MobileVLCKit.framework/MobileVLCKit
+449M	Pods/MobileVLCKit/MobileVLCKit.xcframework/ios-arm64_armv7_armv7s/dSYMs/MobileVLCKit.framework.dSYM/Contents/Resources/DWARF/MobileVLCKit
+ 83M	Pods/MobileVLCKit/MobileVLCKit.xcframework/ios-arm64_x86_64-simulator/MobileVLCKit.framework/MobileVLCKit
+338M	Pods/MobileVLCKit/MobileVLCKit.xcframework/ios-arm64_x86_64-simulator/dSYMs/MobileVLCKit.framework.dSYM/Contents/Resources/DWARF/MobileVLCKit

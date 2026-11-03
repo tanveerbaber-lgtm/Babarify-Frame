@@ -1,0 +1,79 @@
+name: iOS feasibility probe (M14)
+
+on:
+  push:
+    branches: [m14-ios-feasibility]
+    paths:
+      - "ios/**"
+      - ".github/workflows/ios-probe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: macos-15
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: ios/prototype
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show tools
+        run: |
+          sw_vers
+          xcodebuild -version
+          pod --version
+
+      - name: Generate the project
+        run: |
+          brew install xcodegen
+          xcodegen generate
+          pod install
+
+      - name: Build for the Simulator
+        run: |
+          DEVICE=$(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          devices = json.load(sys.stdin)['devices']
+          phones = [d for runtime, group in sorted(devices.items()) if 'iOS' in runtime for d in group if d['name'].startswith('iPhone')]
+          print(phones[-1]['udid'])
+          ")
+          echo "DEVICE=$DEVICE" >> "$GITHUB_ENV"
+          xcodebuild -workspace BabarifyProbe.xcworkspace -scheme BabarifyProbe \
+            -destination "id=$DEVICE" -derivedDataPath build -configuration Debug build \
+            | tail -n 40
+          test "${PIPESTATUS[0]}" -eq 0
+
+      - name: Install and run
+        run: |
+          xcrun simctl boot "$DEVICE"
+          xcrun simctl bootstatus "$DEVICE" -b
+          xcrun simctl install booted build/Build/Products/Debug-iphonesimulator/BabarifyProbe.app
+          python3 -m pip install --quiet --break-system-packages pillow
+          python3 run_probe.py --output probe-output
+
+      - name: Record dependency versions
+        if: always()
+        run: |
+          mkdir -p probe-output
+          cp Podfile.lock probe-output/ || true
+          xcodebuild -version > probe-output/xcode-version.txt || true
+          du -sh build/Build/Products/Debug-iphonesimulator/BabarifyProbe.app > probe-output/app-size.txt || true
+          find Pods/MobileVLCKit -maxdepth 3 \( -iname 'COPYING*' -o -iname 'LICENSE*' -o -iname 'NEWS*' \) > probe-output/vlckit-files.txt || true
+          for f in $(find Pods/MobileVLCKit -maxdepth 2 -iname 'COPYING*'); do head -n 3 "$f" >> probe-output/vlckit-files.txt; done
+          find Pods/MobileVLCKit -name MobileVLCKit -type f -exec du -h {} + > probe-output/vlckit-binaries.txt || true
+          BIN=$(find Pods/MobileVLCKit -name MobileVLCKit -type f -not -path '*simulator*' | head -n 1)
+          test -n "$BIN" || BIN=$(find Pods/MobileVLCKit -name MobileVLCKit -type f | head -n 1)
+          echo "binary: $BIN" > probe-output/vlckit-markers.txt
+          for m in x264 x265 libpostproc liba52 libdca libfaad "GNU General Public" "GPL-2.0-only" "GPL-2.0-or-later" "GPL-3.0" "version 2 only" "LGPL-2.1-or-later" "either version 2" "either version 3"; do
+            echo "$m: $(strings "$BIN" | grep -c -- "$m")" >> probe-output/vlckit-markers.txt
+          done
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: probe-output
+          path: ios/prototype/probe-output
