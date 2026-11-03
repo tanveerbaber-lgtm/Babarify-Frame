@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        android:id="@+id/navHome"
+        style="@style/NavTab">
+
+        <ImageView
+            style="@style/NavIcon"
+            android:src="@drawable/ic_home" />
+
+        <TextView
+            style="@style/NavLabel"
+            android:text="@string/nav_home" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/navLibrary"
+        style="@style/NavTab">
+
+        <ImageView
+            style="@style/NavIcon"
+            android:src="@drawable/ic_library" />
+
+        <TextView
+            style="@style/NavLabel"
+            android:text="@string/library" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/navPlaylists"
+        style="@style/NavTab">
+
+        <ImageView
+            style="@style/NavIcon"
+            android:src="@drawable/ic_playlist" />
+
+        <TextView
+            style="@style/NavLabel"
+            android:text="@string/playlists" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/navSettings"
+        style="@style/NavTab">
+
+        <ImageView
+            style="@style/NavIcon"
+            android:src="@drawable/ic_settings" />
+
+        <TextView
+            style="@style/NavLabel"
+            android:text="@string/settings" />
+    </LinearLayout>
+</merge>

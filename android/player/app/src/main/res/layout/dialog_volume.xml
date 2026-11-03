@@ -5,24 +5,29 @@
     android:orientation="vertical"
     android:padding="20dp">
 
-    <CheckBox
-        android:id="@+id/hardwareCheck"
+    <TextView
+        android:id="@+id/volumeNumber"
+        style="@style/Text.Title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="48dp"
-        android:text="@string/hardware_decoding" />
+        android:gravity="center" />
 
-    <CheckBox
-        android:id="@+id/resumeCheck"
+    <SeekBar
+        android:id="@+id/volumeSlider"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="48dp"
-        android:text="@string/resume_playback" />
+        android:layout_height="48dp"
+        android:contentDescription="@string/volume" />
+
+    <TextView
+        android:id="@+id/volumeHint"
+        style="@style/Text.Muted"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <Button
-        android:id="@+id/clearButton"
+        android:id="@+id/muteButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="48dp"
-        android:text="@string/clear_recent" />
+        android:text="@string/mute" />
 </LinearLayout>

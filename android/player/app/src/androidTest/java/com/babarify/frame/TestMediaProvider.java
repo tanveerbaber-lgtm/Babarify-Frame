@@ -6,24 +6,38 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
+import android.provider.DocumentsContract;
 import android.provider.OpenableColumns;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 /**
- * Serves this test package's media assets as {@code content:} addresses.
+ * Serves this test package's media assets as {@code content:} addresses, and as a small folder tree
+ * in the same address form Android's document providers use.
  *
  * <p>Java on purpose: Android runs this provider in the test package's own process, where the
  * Kotlin runtime is not available (it lives in the app under test).
  */
 public final class TestMediaProvider extends ContentProvider {
     public static final String MISSING = "missing.mp4";
+    public static final String AUTHORITY = "com.babarify.frame.test.media";
+    public static final String TREE_ROOT = "root";
+    private static final String SUBFOLDER = "sub";
+    private static final String[] ROOT_FILES = {
+        "long_60s.mp4", "c_audio_aac.m4a", "not_media.mp4", "s_ext.srt", ".hidden.mp4",
+    };
+    private static final String[] SUBFOLDER_FILES = {"s_sidecar_720p.mp4"};
 
     public static Uri uri(String name) {
-        return Uri.parse("content://com.babarify.frame.test.media/" + name);
+        return Uri.parse("content://" + AUTHORITY + "/" + name);
+    }
+
+    public static Uri tree() {
+        return DocumentsContract.buildTreeDocumentUri(AUTHORITY, TREE_ROOT);
     }
 
     @Override
@@ -55,9 +69,53 @@ public final class TestMediaProvider extends ContentProvider {
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] args, String order) {
+        List<String> segments = uri.getPathSegments();
+        if (segments.size() > 0 && "children".equals(segments.get(segments.size() - 1))) {
+            return children(segments.get(segments.size() - 2), projection);
+        }
         MatrixCursor cursor = new MatrixCursor(new String[] {OpenableColumns.DISPLAY_NAME});
-        cursor.addRow(new Object[] {uri.getLastPathSegment()});
+        String last = uri.getLastPathSegment();
+        cursor.addRow(new Object[] {TREE_ROOT.equals(last) ? "Test folder" : last});
         return cursor;
+    }
+
+    private Cursor children(String directory, String[] projection) {
+        MatrixCursor cursor = new MatrixCursor(projection);
+        if (TREE_ROOT.equals(directory)) {
+            for (String name : ROOT_FILES) {
+                addRow(cursor, projection, name, "application/octet-stream");
+            }
+            addRow(cursor, projection, SUBFOLDER, DocumentsContract.Document.MIME_TYPE_DIR);
+        } else if (SUBFOLDER.equals(directory)) {
+            for (String name : SUBFOLDER_FILES) {
+                addRow(cursor, projection, name, "application/octet-stream");
+            }
+        }
+        return cursor;
+    }
+
+    private void addRow(MatrixCursor cursor, String[] projection, String name, String mime) {
+        Object[] row = new Object[projection.length];
+        for (int i = 0; i < projection.length; i++) {
+            switch (projection[i]) {
+                case DocumentsContract.Document.COLUMN_DOCUMENT_ID:
+                case DocumentsContract.Document.COLUMN_DISPLAY_NAME:
+                    row[i] = name;
+                    break;
+                case DocumentsContract.Document.COLUMN_MIME_TYPE:
+                    row[i] = mime;
+                    break;
+                case DocumentsContract.Document.COLUMN_SIZE:
+                    row[i] = 1000L;
+                    break;
+                case DocumentsContract.Document.COLUMN_LAST_MODIFIED:
+                    row[i] = 1L;
+                    break;
+                default:
+                    row[i] = null;
+            }
+        }
+        cursor.addRow(row);
     }
 
     @Override

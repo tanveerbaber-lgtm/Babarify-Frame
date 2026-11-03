@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
 import android.view.WindowInsets
+import android.view.View
 import android.widget.Button
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
@@ -120,16 +121,14 @@ class PlayerFlowsTest {
             )) {
                 scenario.onActivity { it.requestedOrientation = orientation }
                 SystemClock.sleep(1_500)
-                scenario.onActivity { activity ->
-                    activity.controlsView.visibility = android.view.View.VISIBLE
-                }
+                scenario.onActivity { it.showControls() }
                 SystemClock.sleep(300)
                 scenario.onActivity { activity ->
                     val root = activity.window.decorView
                     val safe = safeArea(root)
-                    for (id in listOf(R.id.playButton, R.id.backButton, R.id.subtitleButton, R.id.volumeButton)) {
+                    for (id in listOf(R.id.closeButton, R.id.moreButton, R.id.playButton, R.id.backButton, R.id.subtitleButton, R.id.volumeButton, R.id.rotateButton)) {
                         val location = IntArray(2)
-                        val button = activity.findViewById<Button>(id)
+                        val button = activity.findViewById<android.view.View>(id)
                         button.getLocationInWindow(location)
                         val box = Rect(location[0], location[1], location[0] + button.width, location[1] + button.height)
                         assertTrue("$orientation: $box outside $safe", safe.contains(box))
@@ -160,7 +159,7 @@ class PlayerFlowsTest {
         for (name in listOf("truncated.mp4", "not_media.mp4", "e_empty.mp4", TestMediaProvider.MISSING)) {
             open(name).use { scenario ->
                 waitUntil("message for $name") { scenario.read { it.visibleMessage } != null }
-                val label = scenario.read { it.findViewById<Button>(R.id.playButton).text.toString() }
+                val label = scenario.read { it.findViewById<View>(R.id.playButton).contentDescription.toString() }
                 assertEquals(context.getString(R.string.play), label)
             }
         }
@@ -256,7 +255,7 @@ class PlayerFlowsTest {
     fun aPausedFileStaysPausedAfterReturning() {
         open("s_sidecar_720p.mp4").use { scenario ->
             scenario.waitForProgress()
-            scenario.onActivity { it.findViewById<Button>(R.id.playButton).performClick() }
+            scenario.onActivity { it.findViewById<View>(R.id.playButton).performClick() }
             waitUntil("paused") { scenario.read { it.playbackState } == PlaybackState.PAUSED }
             scenario.moveToState(Lifecycle.State.CREATED)
             scenario.moveToState(Lifecycle.State.RESUMED)
@@ -269,7 +268,7 @@ class PlayerFlowsTest {
     fun seekButtonsMoveThePosition() {
         open("s_sidecar_720p.mp4").use { scenario ->
             scenario.waitForProgress()
-            scenario.onActivity { it.findViewById<Button>(R.id.forwardButton).performClick() }
+            scenario.onActivity { it.findViewById<View>(R.id.forwardButton).performClick() }
             waitUntil("position moved forward", 5_000) { scenario.read { it.currentPositionMs } > 5_000 }
         }
     }
@@ -318,12 +317,20 @@ class PlayerFlowsTest {
     }
 
     @Test
-    fun theAppRequestsNoPermissionsAndHasNoInternet() {
+    fun theAppHasNoInternetOrStoragePermission() {
         val info = context.packageManager.getPackageInfo(
             context.packageName,
             android.content.pm.PackageManager.GET_PERMISSIONS,
         )
-        assertEquals(emptyList<String>(), info.requestedPermissions.orEmpty().toList())
+        // Only for sound the user chose to keep playing. Nothing else may ever join this list.
+        assertEquals(
+            setOf(
+                "android.permission.FOREGROUND_SERVICE",
+                "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+                "android.permission.WAKE_LOCK",
+            ),
+            info.requestedPermissions.orEmpty().toSet(),
+        )
     }
 
     @Test

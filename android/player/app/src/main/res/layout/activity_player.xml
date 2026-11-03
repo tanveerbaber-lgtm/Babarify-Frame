@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/playerRoot"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#000000">
+    android:layout_height="match_parent">
 
-    <SurfaceView
-        android:id="@+id/videoSurface"
+    <!-- A TextureView, because a colour filter, rotation and snapshots all work on it with hardware decoding. -->
+    <TextureView
+        android:id="@+id/videoView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:contentDescription="@string/video" />
+
+    <!-- Above the video, whose touch coordinates would turn with it. -->
+    <View
+        android:id="@+id/gestureLayer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/gesture_area" />
 
     <TextView
         android:id="@+id/messageLabel"
@@ -16,96 +24,202 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:layout_marginTop="120dp"
         android:gravity="center"
         android:padding="24dp"
         android:visibility="gone" />
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/gestureLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="96dp"
+        android:background="@drawable/bg_pill"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="10dp"
+        android:textColor="@color/text"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <!-- Touches between the controls fall through to the gesture layer. -->
+    <FrameLayout
         android:id="@+id/controls"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="@color/surface_translucent"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/titleLabel"
-            style="@style/Text.Body"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="middle"
-            android:paddingHorizontal="16dp"
-            android:paddingTop="8dp"
-            android:singleLine="true" />
+        android:layout_height="match_parent">
 
         <LinearLayout
+            android:id="@+id/topBar"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:background="@drawable/scrim_top"
             android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="16dp">
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/closeButton"
+                style="@style/IconButton"
+                android:layout_margin="4dp"
+                android:contentDescription="@string/close_player"
+                android:src="@drawable/ic_arrow_back" />
 
             <TextView
-                android:id="@+id/positionLabel"
-                style="@style/Text.Muted"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <SeekBar
-                android:id="@+id/seekBar"
+                android:id="@+id/titleLabel"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:contentDescription="@string/seek"
-                android:max="1000" />
+                android:ellipsize="middle"
+                android:singleLine="true"
+                android:textColor="@color/text"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/durationLabel"
-                style="@style/Text.Muted"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+            <ImageButton
+                android:id="@+id/pictureButton"
+                style="@style/IconButton"
+                android:contentDescription="@string/picture_in_picture"
+                android:src="@drawable/ic_pip"
+                android:visibility="gone" />
+
+            <ImageButton
+                android:id="@+id/moreButton"
+                style="@style/IconButton"
+                android:layout_marginEnd="4dp"
+                android:contentDescription="@string/more"
+                android:src="@drawable/ic_more" />
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
             android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/previousButton"
+                style="@style/IconButton"
+                android:contentDescription="@string/previous"
+                android:src="@drawable/ic_previous"
+                android:visibility="gone" />
 
             <Button
                 android:id="@+id/backButton"
-                style="@style/ControlButton"
-                android:text="@string/back_10" />
+                style="@style/TransportSeek"
+                android:background="@drawable/ic_seek_back" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/playButton"
-                style="@style/ControlButton"
-                android:text="@string/pause" />
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_marginHorizontal="12dp"
+                android:background="@drawable/bg_play"
+                android:contentDescription="@string/pause"
+                android:scaleType="fitCenter"
+                android:padding="16dp"
+                android:src="@drawable/ic_pause"
+                android:tint="@color/on_accent" />
 
             <Button
                 android:id="@+id/forwardButton"
-                style="@style/ControlButton"
-                android:text="@string/forward_10" />
+                style="@style/TransportSeek"
+                android:background="@drawable/ic_seek_forward" />
+
+            <ImageButton
+                android:id="@+id/nextButton"
+                style="@style/IconButton"
+                android:contentDescription="@string/next"
+                android:src="@drawable/ic_next"
+                android:visibility="gone" />
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/bottomBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_gravity="bottom"
+            android:background="@drawable/scrim_bottom"
+            android:orientation="vertical">
 
-            <Button
-                android:id="@+id/audioButton"
-                style="@style/ControlButton"
-                android:text="@string/audio" />
+            <ImageView
+                android:id="@+id/previewImage"
+                android:layout_width="160dp"
+                android:layout_height="90dp"
+                android:layout_gravity="center_horizontal"
+                android:contentDescription="@string/seek_preview"
+                android:scaleType="fitCenter"
+                android:visibility="gone" />
 
-            <Button
-                android:id="@+id/subtitleButton"
-                style="@style/ControlButton"
-                android:text="@string/subtitles" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp">
 
-            <Button
-                android:id="@+id/volumeButton"
-                style="@style/ControlButton"
-                android:text="@string/volume" />
+                <TextView
+                    android:id="@+id/positionLabel"
+                    style="@style/Text.Time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <SeekBar
+                    android:id="@+id/seekBar"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/seek"
+                    android:max="1000" />
+
+                <TextView
+                    android:id="@+id/durationLabel"
+                    style="@style/Text.Time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingHorizontal="4dp"
+                android:paddingBottom="4dp">
+
+                <ImageButton
+                    android:id="@+id/audioButton"
+                    style="@style/ToolIcon"
+                    android:contentDescription="@string/audio"
+                    android:src="@drawable/ic_audio" />
+
+                <ImageButton
+                    android:id="@+id/subtitleButton"
+                    style="@style/ToolIcon"
+                    android:contentDescription="@string/subtitles"
+                    android:src="@drawable/ic_subtitles" />
+
+                <Button
+                    android:id="@+id/speedButton"
+                    style="@style/ToolText" />
+
+                <Button
+                    android:id="@+id/volumeButton"
+                    style="@style/ToolText"
+                    android:drawablePadding="4dp" />
+
+                <ImageButton
+                    android:id="@+id/fitButton"
+                    style="@style/ToolIcon"
+                    android:contentDescription="@string/zoom"
+                    android:src="@drawable/ic_fit" />
+
+                <ImageButton
+                    android:id="@+id/rotateButton"
+                    style="@style/ToolIcon"
+                    android:contentDescription="@string/rotate_screen"
+                    android:src="@drawable/ic_rotate" />
+            </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
+    </FrameLayout>
 </FrameLayout>

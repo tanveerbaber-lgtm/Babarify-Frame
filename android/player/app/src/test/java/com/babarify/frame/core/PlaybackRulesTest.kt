@@ -76,4 +76,58 @@ class PlaybackRulesTest {
         assertNull(PlaybackRules.subtitleExtension("noextension"))
         assertNull(PlaybackRules.subtitleExtension(null))
     }
+
+    @Test
+    fun normalVolumeIs1To100AndBoostGoesTo200() {
+        assertEquals(1, PlaybackRules.clampVolume(0, allowBoost = false))
+        assertEquals(100, PlaybackRules.clampVolume(150, allowBoost = false))
+        assertEquals(150, PlaybackRules.clampVolume(150, allowBoost = true))
+        assertEquals(200, PlaybackRules.clampVolume(999, allowBoost = true))
+        assertEquals(100, PlaybackRules.rememberedVolume(200))
+        assertEquals(1, PlaybackRules.rememberedVolume(0))
+    }
+
+    @Test
+    fun trackLanguagesAreMatchedByWholeWords() {
+        assertTrue(PlaybackRules.languageMatches("fre", "Track 2 - [French]"))
+        assertTrue(PlaybackRules.languageMatches("eng", "English tone"))
+        assertTrue(PlaybackRules.languageMatches("eng", "Audio [en]"))
+        assertTrue(PlaybackRules.languageMatches("ger", "deu stereo"))
+        assertFalse(PlaybackRules.languageMatches("eng", "Track 1"))
+        assertFalse("part of a word is no match", PlaybackRules.languageMatches("eng", "Length"))
+        assertFalse(PlaybackRules.languageMatches("", "English"))
+    }
+
+    @Test
+    fun mediaIsToldApartFromOtherFiles() {
+        assertTrue(PlaybackRules.isMediaName("Film.MKV"))
+        assertTrue(PlaybackRules.isMediaName("song.flac"))
+        assertFalse(PlaybackRules.isMediaName("subtitle.srt"))
+        assertFalse(PlaybackRules.isMediaName("noextension"))
+        assertTrue(PlaybackRules.isVideoName("a.mp4"))
+        assertFalse(PlaybackRules.isVideoName("a.mp3"))
+    }
+
+    @Test
+    fun delaysStayInRange() {
+        assertEquals(60_000, PlaybackRules.clampDelay(999_999))
+        assertEquals(-60_000, PlaybackRules.clampDelay(-999_999))
+        assertEquals(50, PlaybackRules.clampDelay(50))
+    }
+
+    @Test
+    fun previousRestartsUnlessTheFileHasJustBegun() {
+        assertTrue(PlaybackRules.previousRestartsFile(10_000, hasPrevious = true))
+        assertFalse(PlaybackRules.previousRestartsFile(1_000, hasPrevious = true))
+        assertTrue(PlaybackRules.previousRestartsFile(1_000, hasPrevious = false))
+    }
+
+    @Test
+    fun chapterNavigation() {
+        val starts = listOf(0L, 10_000L, 20_000L)
+        assertEquals(1, PlaybackRules.chapterIndexAt(starts, 15_000))
+        assertEquals(1, PlaybackRules.previousChapterIndex(starts, 15_000))
+        assertEquals(0, PlaybackRules.previousChapterIndex(starts, 11_000))
+        assertEquals(0, PlaybackRules.previousChapterIndex(starts, 500))
+    }
 }
