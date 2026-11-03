@@ -63,7 +63,7 @@ final class AVPlayerEngine: Engine {
         player.seek(to: CMTime(value: CMTimeValue(toMs), timescale: 1000))
     }
 
-    func release() {
+    func shutDown() {
         statusObservation = nil
         player.pause()
         player.replaceCurrentItem(with: nil)

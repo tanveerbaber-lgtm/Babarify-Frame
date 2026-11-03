@@ -14,5 +14,5 @@ protocol Engine: AnyObject {
     func play()
     func pause()
     func seek(toMs: Int)
-    func release()
+    func shutDown()
 }

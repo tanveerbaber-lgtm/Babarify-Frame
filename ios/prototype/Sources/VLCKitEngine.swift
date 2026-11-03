@@ -36,7 +36,7 @@ final class VLCKitEngine: NSObject, Engine, VLCMediaPlayerDelegate {
         player.time = VLCTime(int: Int32(toMs))
     }
 
-    func release() {
+    func shutDown() {
         player.delegate = nil
         player.stop()
         player.drawable = nil
