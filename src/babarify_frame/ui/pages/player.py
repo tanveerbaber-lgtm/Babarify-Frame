@@ -56,7 +56,7 @@ from babarify_frame.playback.factory import EngineFactory
 from babarify_frame.playback.preview import FramePreview
 from babarify_frame.ui import theme
 from babarify_frame.ui.bridge import UiBridge
-from babarify_frame.ui.controls import ControlBar
+from babarify_frame.ui.controls import VOLUME_MIN, ControlBar
 from babarify_frame.ui.seek_preview import PreviewPopup, SeekPreview
 from babarify_frame.ui.subtitles import (
     DELAY_STEP_MS,
@@ -649,6 +649,7 @@ class PlayerPage(QWidget):
             self.seek_to(self._controller.status().position_ms + direction * step)
 
     def set_volume(self, level: int) -> None:
+        level = max(VOLUME_MIN, level)
         self.controls.set_volume(level)
         if self.engine_is_ready:
             self._run(lambda: self._controller.set_volume(level))
@@ -656,15 +657,18 @@ class PlayerPage(QWidget):
                 self.toggle_mute()
 
     def step_volume(self, delta: int) -> None:
-        self.set_volume(max(0, min(self.volume_maximum, self.controls.volume.value() + delta)))
+        self._show_controls()  # the number must be visible while the keys change it in fullscreen
+        value = self.controls.volume.value()
+        base = 0 if value == VOLUME_MIN else value  # so steps from the bottom go 1, 5, 10
+        self.set_volume(min(self.volume_maximum, base + delta))
 
     @property
     def volume_maximum(self) -> int:
-        """100, or 150 with volume boost allowed (and supported by the engine)."""
+        """100, or 200 with volume boost allowed (and supported by the engine)."""
         if not self._prefs.allow_volume_boost:
             return 100
         caps = self.capabilities_or_none()
-        return min(150, caps.max_volume) if caps is not None else 100
+        return min(200, caps.max_volume) if caps is not None else 100
 
     def toggle_mute(self) -> None:
         if not self.engine_is_ready:

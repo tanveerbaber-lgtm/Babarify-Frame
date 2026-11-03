@@ -37,7 +37,8 @@ def test_save_leaves_no_temp_files(tmp_path: Path) -> None:
     ("raw", "expected"),
     [
         ({"volume": 250}, {"volume": 100}),
-        ({"volume": -5}, {"volume": 0}),
+        ({"volume": -5}, {"volume": 1}),
+        ({"volume": 0}, {"volume": 1}),
         ({"volume": "loud"}, {"volume": 80}),
         ({"volume": True}, {"volume": 80}),
         ({"volume": float("nan")}, {"volume": 80}),

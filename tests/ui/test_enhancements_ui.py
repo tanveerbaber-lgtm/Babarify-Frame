@@ -225,10 +225,11 @@ def test_volume_boost_is_opt_in_capped_and_never_remembered(
     window.player.step_volume(5)
     assert window.controller.status().volume == 100  # no boost by default
     window.settings.allow_boost.setChecked(True)
-    assert window.player.controls.volume.maximum() == 150
-    for _ in range(20):
+    assert window.player.controls.volume.maximum() == 200
+    for _ in range(30):
         window.player.step_volume(5)
-    assert window.controller.status().volume == 150
+    assert window.controller.status().volume == 200
+    assert window.player.controls.volume_label.text() == "200"
     assert window.player.controls.volume.property("boost") is True
     assert "distort" in window.player.controls.volume.toolTip()
     window.close()
@@ -239,10 +240,11 @@ def test_volume_boost_is_opt_in_capped_and_never_remembered(
 def test_turning_boost_off_brings_volume_back(qtbot: QtBot, window: MainWindow) -> None:
     play(qtbot, window)
     window.settings.allow_boost.setChecked(True)
-    window.player.set_volume(140)
+    window.player.set_volume(180)
     window.settings.allow_boost.setChecked(False)
     assert window.controller.status().volume == 100
     assert window.player.controls.volume.maximum() == 100
+    assert window.player.controls.volume_label.text() == "100"
 
 
 # ------------------------------------------------------------- A-B, frames, snapshot

@@ -21,6 +21,7 @@ from babarify_frame.ui import theme
 from babarify_frame.ui.widgets import SeekSlider, format_time, glyph_icon, plain_text
 
 # Width (px) below which secondary controls are hidden, most dispensable first.
+VOLUME_MIN = 1  # silence is the mute button's job
 COMPACT_WIDTH = 760
 NARROW_WIDTH = 540
 
@@ -122,12 +123,15 @@ class ControlBar(QFrame):
         self.tracks_button.setMenu(self.tracks_menu)
         self.mute_button = self._button("volume", "Mute", "Mute (M)", self.mute_clicked)
         self.volume = QSlider(Qt.Orientation.Horizontal)
-        self.volume.setRange(0, 100)
+        self.volume.setRange(VOLUME_MIN, 100)
         self.volume.setFixedWidth(96)
         self.volume.setAccessibleName("Volume")
         self.volume.setToolTip("Volume (↑/↓)")
         self.volume.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.volume.valueChanged.connect(self.volume_changed)
+        self.volume_label = self._label(str(VOLUME_MIN), "time", "Volume level")
+        self.volume_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        self.volume_label.setMinimumWidth(self.volume_label.fontMetrics().horizontalAdvance("200"))
         self.fullscreen_button = self._button(
             "fullscreen", "Fullscreen", "Fullscreen (F)", self.fullscreen_clicked
         )
@@ -141,6 +145,7 @@ class ControlBar(QFrame):
             self.speed_button,
             self.mute_button,
             self.volume,
+            self.volume_label,
             self.fullscreen_button,
         ):
             row.addWidget(trailing)
@@ -204,10 +209,11 @@ class ControlBar(QFrame):
         self.volume.blockSignals(True)
         self.volume.setValue(level)
         self.volume.blockSignals(False)
+        self.volume_label.setText(str(self.volume.value()))
         self._mark_boost(level)
 
     def set_volume_maximum(self, maximum: int) -> None:
-        """100, or up to 150 when volume boost is allowed (M7)."""
+        """100, or up to 200 when volume boost is allowed (M7)."""
         self.volume.setMaximum(maximum)
         tip = "Volume (↑/↓)" if maximum <= 100 else "Volume (↑/↓) · above 100 % may distort loud passages"
         self.volume.setToolTip(tip)
@@ -240,6 +246,7 @@ class ControlBar(QFrame):
         narrow = width < NARROW_WIDTH
         self.stop_button.setVisible(not compact)
         self.volume.setVisible(not compact)
+        self.volume_label.setVisible(not compact)
         self.speed_button.setVisible(not narrow)
         self.back_button.setVisible(not narrow)
         self.forward_button.setVisible(not narrow)

@@ -96,7 +96,7 @@ class WindowGeometry:
 
 @dataclass(frozen=True)
 class Preferences:
-    volume: int = 80  # 0..100
+    volume: int = 80  # 1..100
     muted: bool = False
     remember_volume: bool = True
     seek_step_s: int = 10  # one of SEEK_STEPS_S
@@ -116,7 +116,7 @@ class Preferences:
     picture: PictureSettings = field(default_factory=PictureSettings)
     equalizer: EqualizerSettings = field(default_factory=EqualizerSettings)
     profiles: tuple[EnhancementProfile, ...] = ()
-    allow_volume_boost: bool = False  # volume above 100 % (up to 150 %); never remembered
+    allow_volume_boost: bool = False  # volume above 100 % (up to 200 %); never remembered
     # Advanced media (M8)
     seek_previews: bool = True  # pictures when hovering over the seek bar (local video files)
     # Local AI (M9): off until the user switches it on; nothing is uploaded
@@ -178,7 +178,7 @@ class Preferences:
     def normalized(self) -> Preferences:
         return replace(
             self,
-            volume=max(0, min(100, self.volume)),
+            volume=max(1, min(100, self.volume)),
             seek_step_s=self.seek_step_s if self.seek_step_s in SEEK_STEPS_S else 10,
             controls_hide_delay_ms=max(1000, min(10_000, self.controls_hide_delay_ms)),
             preferred_audio_language=_language(self.preferred_audio_language),

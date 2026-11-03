@@ -19,6 +19,12 @@ First Android version, for Android 10 or later. Built and tested, not yet publis
 A feasibility prototype only, with no version planned yet
 ([M14 report](docs/milestones/M14/acceptance-report.md)).
 
+## Windows (next version, not released)
+
+- New: the volume number is shown next to the volume slider. Normal volume runs from 1 to 100; the mute
+  button is how to silence it.
+- Changed: volume boost now goes up to 200 % (was 150 %). It's still off until you allow it in Settings.
+
 ## Windows 0.9.1 (2026-11-02, public beta)
 
 - New: *Help → Report a problem* prepares technical details for you to copy; nothing is sent.

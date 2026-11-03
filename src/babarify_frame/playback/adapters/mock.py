@@ -74,7 +74,7 @@ class MockEngine(EngineBase):
         return EngineCapabilities(
             engine_name="mock",
             engine_version="1",
-            max_volume=150,
+            max_volume=200,
             supports_audio_tracks=True,
             supports_subtitle_tracks=True,
             supports_embedding=True,

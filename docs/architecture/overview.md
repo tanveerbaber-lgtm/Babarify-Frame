@@ -213,7 +213,7 @@ Therefore:
   Picture values are always re-applied by switching the adjust filter off and on (R30).
 - `PlayerPage` owns per-file geometry (reset on open), session rotation, A-B repeat (checked
   on the 100 ms position poll), frame stepping and snapshots (`Pictures\Babarify Frame`).
-  Picture, equalizer and profiles persist in preferences. Volume boost (up to 150 %) is
+  Picture, equalizer and profiles persist in preferences. Volume boost (up to 200 %) is
   opt-in and never remembered.
 - `ui/enhancements.py`: the Picture & Sound panel (Ctrl+E), built from capabilities.
 

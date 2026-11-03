@@ -101,7 +101,7 @@ class SettingsPage(QWidget):
             self.seek_step.addItem(f"{step} seconds", step)
         self.seek_step.setAccessibleName("Seek step")
         self.remember_volume = QCheckBox("Remember volume and mute between sessions")
-        self.allow_boost = QCheckBox("Allow volume above 100 % (up to 150 %)")
+        self.allow_boost = QCheckBox("Allow volume above 100 % (up to 200 %)")
         self.allow_boost.setToolTip(
             "Boost makes quiet files louder but can distort loud passages. A boosted volume is "
             "never remembered: the next session starts at 100 % or less."

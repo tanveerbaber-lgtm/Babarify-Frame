@@ -199,6 +199,7 @@ def test_volume_mute_and_keys(window: MainWindow, qtbot: QtBot) -> None:
     assert status(window).volume == 40
     qtbot.keyClick(window, Qt.Key.Key_Down)
     assert status(window).volume == 35
+    assert window.player.controls.volume_label.text() == "35"
     qtbot.keyClick(window, Qt.Key.Key_M)
     assert status(window).muted is True
     assert window.player.controls.mute_button.accessibleName() == "Unmute"
@@ -287,6 +288,30 @@ class FakeCursor:
         return cls.position
 
 
+def test_normal_volume_runs_from_1_to_100(window: MainWindow) -> None:
+    window.show_page(window.player)
+    c = window.player.controls
+    assert (c.volume.minimum(), c.volume.maximum()) == (1, 100)
+    window.player.set_volume(5)
+    seen = []
+    for delta in (-5, -5, 5, 5):
+        window.player.step_volume(delta)
+        seen.append((status(window).volume, c.volume_label.text()))
+    assert seen == [(1, "1"), (1, "1"), (5, "5"), (10, "10")]
+    window.player.set_volume(100)
+    window.player.step_volume(5)
+    assert (status(window).volume, c.volume_label.text()) == (100, "100")
+
+
+def test_volume_keys_bring_back_hidden_controls(window: MainWindow, qtbot: QtBot) -> None:
+    window.show()
+    window.open_path("mock://clip")
+    window.player._hide_controls()
+    assert window.player.controls_hidden
+    window.player.step_volume(-5)
+    assert not window.player.controls_hidden
+
+
 def test_controls_auto_hide_while_playing(window: MainWindow, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(pages.player, "QCursor", FakeCursor)
     window.player.set_preferences(replace(Preferences(), controls_hide_delay_ms=1000))
@@ -329,6 +354,7 @@ def test_control_bar_breakpoints(
     c.apply_width(width)
     assert c.stop_button.isHidden() is not stop
     assert c.volume.isHidden() is not volume
+    assert c.volume_label.isHidden() is not volume
     assert c.speed_button.isHidden() is not speed
     assert c.back_button.isHidden() is not skip
     assert not c.play_button.isHidden() and not c.fullscreen_button.isHidden() and not c.seek.isHidden()
@@ -347,6 +373,7 @@ def test_saved_volume_is_applied_to_engine(qtbot: QtBot, store: PreferencesStore
     win = make_window(qtbot, store)
     assert status(win).volume == 33 and status(win).muted is True
     assert win.player.controls.volume.value() == 33
+    assert win.player.controls.volume_label.text() == "33"
     win.close()
 
 

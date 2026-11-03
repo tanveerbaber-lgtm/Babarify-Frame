@@ -92,13 +92,13 @@ def test_seek_validation(engine: MockEngine) -> None:
 
 def test_volume_validation(engine: MockEngine) -> None:
     engine.set_volume(0)
-    engine.set_volume(150)  # mock max_volume
-    assert engine.get_playback_state().volume == 150
-    for bad in (-1, 151, 50.0, True):
+    engine.set_volume(200)  # mock max_volume
+    assert engine.get_playback_state().volume == 200
+    for bad in (-1, 201, 50.0, True):
         with pytest.raises(PlaybackError) as exc:
             engine.set_volume(bad)  # type: ignore[arg-type]
         assert exc.value.code is ErrorCode.INVALID_ARGUMENT
-    assert engine.get_playback_state().volume == 150
+    assert engine.get_playback_state().volume == 200
 
 
 def test_mute(engine: MockEngine) -> None:
