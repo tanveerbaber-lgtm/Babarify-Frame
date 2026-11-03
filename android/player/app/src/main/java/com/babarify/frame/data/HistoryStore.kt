@@ -52,6 +52,12 @@ class HistoryStore(context: Context) :
 
     fun recent(limit: Int = RECENT_LIMIT): List<HistoryEntry> = query(null, null, limit)
 
+    /** When each file was last played, for sorting the library. */
+    fun lastPlayed(): Map<String, Long> =
+        readableDatabase.query("history", arrayOf("uri", "last_played_at"), null, null, null, null, null).use { c ->
+            buildMap { while (c.moveToNext()) put(c.getString(0), c.getLong(1)) }
+        }
+
     fun remove(uri: String) {
         writableDatabase.delete("history", "uri = ?", arrayOf(uri))
     }

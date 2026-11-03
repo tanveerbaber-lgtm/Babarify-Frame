@@ -46,7 +46,15 @@ Questions about privacy: open an issue in the project's repository.
 
 ## Android
 
-The Android app requests no permissions, including internet, so it cannot send anything anywhere.
-It reads only the files you open. Recent files and your place in them stay on the phone, are excluded
-from backup and device transfer, and can be cleared in Settings. A subtitle file you add is copied
-into the app's private cache so the player can read it. Uninstalling removes all of this.
+The Android app has no internet permission, so it cannot send anything anywhere, and no storage
+permission. It reads only the files you open and the folders you add to the library, and it never
+changes them. The library, playlists, bookmarks, settings, recent files and your place in them stay on
+the phone, are excluded from backup and device transfer, and can be cleared or removed in the app. A
+subtitle file you add is copied into the app's private cache so the player can read it. Uninstalling
+removes all of this, except snapshots you chose to take, which are saved in `Pictures/Babarify Frame`
+for you to keep.
+
+Its only permissions are for sound you ask to keep playing after leaving the player (*Settings → When
+you leave the player*, off by default): `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK` and
+`WAKE_LOCK`. While that sound plays, a notification shows the file's name and has a Stop button; the
+name also shows on the lock screen. By default, leaving the player stops playback.

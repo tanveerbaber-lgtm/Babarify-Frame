@@ -6,21 +6,21 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import android.widget.ArrayAdapter
 import android.widget.Button
-import android.widget.CheckBox
 import android.widget.ListView
 import android.widget.TextView
 import com.babarify.frame.R
+import com.babarify.frame.core.PlaybackRules
 import com.babarify.frame.data.HistoryEntry
 import com.babarify.frame.data.HistoryStore
-import com.babarify.frame.data.Preferences
+import com.babarify.frame.data.LibraryStore
 
 class HomeActivity : Activity() {
     private lateinit var history: HistoryStore
-    private lateinit var preferences: Preferences
+    private lateinit var library: LibraryStore
     private lateinit var recentList: ListView
     private lateinit var emptyLabel: TextView
+    private lateinit var adapter: MediaRowAdapter
     private var entries: List<HistoryEntry> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,15 +28,14 @@ class HomeActivity : Activity() {
         setContentView(R.layout.activity_home)
         applySystemBarPadding(findViewById(R.id.homeRoot))
         history = HistoryStore(this)
-        preferences = Preferences(this)
+        library = LibraryStore(this)
         recentList = findViewById(R.id.recentList)
         emptyLabel = findViewById(R.id.emptyLabel)
+        adapter = MediaRowAdapter(this)
+        recentList.adapter = adapter
 
         findViewById<Button>(R.id.openButton).setOnClickListener { openPicker() }
-        findViewById<Button>(R.id.settingsButton).setOnClickListener { showSettings() }
-        findViewById<Button>(R.id.aboutButton).setOnClickListener {
-            startActivity(Intent(this, AboutActivity::class.java))
-        }
+        BottomNav.attach(this, findViewById(R.id.bottomNav))
         recentList.setOnItemClickListener { _, _, position, _ -> play(Uri.parse(entries[position].uri)) }
         recentList.setOnItemLongClickListener { _, _, position, _ ->
             forget(entries[position].uri)
@@ -51,13 +50,30 @@ class HomeActivity : Activity() {
 
     override fun onDestroy() {
         history.close()
+        library.close()
         super.onDestroy()
     }
 
     private fun refreshRecent() {
         entries = history.recent()
-        recentList.adapter = ArrayAdapter(this, R.layout.item_recent, entries.map { it.title })
+        val pictures = library.thumbnailsByFile()
+        adapter.rows = entries.map {
+            MediaRow(it.title, detail(it), pictures[it.uri], progress(it), placeholderFor(it.title))
+        }
         emptyLabel.visibility = if (entries.isEmpty()) View.VISIBLE else View.GONE
+    }
+
+    private fun detail(entry: HistoryEntry): String {
+        if (entry.finished) return getString(R.string.finished)
+        val resume = PlaybackRules.resumePosition(entry.positionMs, entry.durationMs, false)
+        return if (resume > 0) getString(R.string.continue_at, PlaybackRules.formatTime(resume)) else ""
+    }
+
+    /** Only files you can continue get a bar. */
+    private fun progress(entry: HistoryEntry): Float? {
+        val duration = entry.durationMs ?: return null
+        if (entry.finished || PlaybackRules.resumePosition(entry.positionMs, duration, false) == 0L) return null
+        return entry.positionMs.toFloat() / duration
     }
 
     private fun openPicker() {
@@ -94,36 +110,11 @@ class HomeActivity : Activity() {
             .setMessage(R.string.forget_question)
             .setPositiveButton(R.string.remove) { _, _ ->
                 history.remove(uri)
-                releaseAccess(uri)
+                releaseFileAccess(this, uri)
                 refreshRecent()
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
-    }
-
-    private fun releaseAccess(uri: String) {
-        try {
-            contentResolver.releasePersistableUriPermission(Uri.parse(uri), Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        } catch (_: SecurityException) {
-            // There was no lasting permission to give back.
-        }
-    }
-
-    private fun showSettings() {
-        val view = layoutInflater.inflate(R.layout.dialog_settings, null)
-        val hardware = view.findViewById<CheckBox>(R.id.hardwareCheck)
-        val resume = view.findViewById<CheckBox>(R.id.resumeCheck)
-        hardware.isChecked = preferences.hardwareDecoding
-        resume.isChecked = preferences.resumePlayback
-        hardware.setOnCheckedChangeListener { _, on -> preferences.hardwareDecoding = on }
-        resume.setOnCheckedChangeListener { _, on -> preferences.resumePlayback = on }
-        view.findViewById<Button>(R.id.clearButton).setOnClickListener {
-            history.recent(Int.MAX_VALUE).forEach { releaseAccess(it.uri) }
-            history.clear()
-            refreshRecent()
-        }
-        AlertDialog.Builder(this).setTitle(R.string.settings).setView(view)
-            .setPositiveButton(android.R.string.ok, null).show()
     }
 
     private companion object {

@@ -4,7 +4,9 @@ import android.content.Context
 import android.net.Uri
 import android.os.ParcelFileDescriptor
 import android.util.Log
-import android.view.SurfaceView
+import android.view.TextureView
+import com.babarify.frame.core.ChapterInfo
+import com.babarify.frame.core.EqualizerSettings
 import com.babarify.frame.core.ErrorCode
 import com.babarify.frame.core.PlaybackRules
 import com.babarify.frame.core.PlaybackState
@@ -19,12 +21,12 @@ import org.videolan.libvlc.interfaces.IMedia
 
 /** Events arrive on the thread that created this engine, which must be the main thread. */
 class LibVlcEngine(
-    private val context: Context,
-    private val hardwareDecoding: Boolean,
+    context: Context,
+    private val options: EngineOptions,
     private val listener: EngineListener,
 ) : PlayerEngine {
-    // --no-lua matches the desktop engine's hardening (R34).
-    private val libVlc = LibVLC(context, arrayListOf("--no-lua"))
+    private val appContext = context.applicationContext
+    private val libVlc = LibVLC(appContext, arguments(options))
     private val player = MediaPlayer(libVlc)
     private var descriptor: ParcelFileDescriptor? = null
     private var seekTarget: Long? = null
@@ -38,6 +40,10 @@ class LibVlcEngine(
         get() = seekTarget ?: player.time.coerceAtLeast(0)
     override val durationMs: Long?
         get() = player.length.takeIf { it > 0 }
+    override val videoSize: Pair<Int, Int>?
+        get() = player.currentVideoTrack?.takeIf { it.width > 0 && it.height > 0 }?.let { it.width to it.height }
+    override val volume: Int
+        get() = player.volume
 
     init {
         player.setEventListener { event ->
@@ -69,11 +75,24 @@ class LibVlcEngine(
         listener.onStateChanged(new, error)
     }
 
-    override fun attach(surface: SurfaceView) {
+    override fun attachVideo(view: TextureView) {
         val vout = player.vlcVout
-        vout.setVideoView(surface)
+        if (vout.areViewsAttached()) vout.detachViews()
+        vout.setVideoView(view)
         vout.attachViews()
-        if (surface.width > 0) setWindowSize(surface.width, surface.height)
+        if (view.width > 0) setWindowSize(view.width, view.height)
+        if (videoDetached) {
+            videoDetached = false
+            player.setVideoTrackEnabled(true)
+        }
+    }
+
+    private var videoDetached = false
+
+    override fun detachVideo() {
+        videoDetached = true
+        player.setVideoTrackEnabled(false)
+        player.vlcVout.detachViews()
     }
 
     override fun setWindowSize(width: Int, height: Int) {
@@ -82,7 +101,7 @@ class LibVlcEngine(
 
     override fun open(media: Uri, subtitle: File?, startMs: Long, startPaused: Boolean) {
         val fd = try {
-            context.contentResolver.openFileDescriptor(media, "r")
+            appContext.contentResolver.openFileDescriptor(media, "r")
         } catch (e: FileNotFoundException) {
             throw MediaAccessException(e)
         } catch (e: SecurityException) {
@@ -92,7 +111,7 @@ class LibVlcEngine(
         descriptor = fd
 
         val item = Media(libVlc, fd.fileDescriptor)
-        item.setHWDecoderEnabled(hardwareDecoding, false)
+        item.setHWDecoderEnabled(options.hardwareDecoding, false)
         if (startMs > 0) item.addOption(":start-time=${startMs / 1000.0}")
         if (startPaused) item.addOption(":start-paused")
         if (subtitle != null) {
@@ -136,6 +155,66 @@ class LibVlcEngine(
         player.addSlave(IMedia.Slave.Type.Subtitle, Uri.fromFile(file), true)
     }
 
+    override fun chapters(): List<ChapterInfo> =
+        player.getChapters(-1).orEmpty().mapIndexed { index, chapter ->
+            // libVLC can put a space in front of the name, as seen with Matroska chapters.
+            ChapterInfo(chapter.name?.trim()?.ifEmpty { null } ?: "Chapter ${index + 1}", chapter.timeOffset)
+        }
+
+    override fun setRate(rate: Float) = player.setRate(rate)
+
+    override fun setVolume(level: Int) {
+        player.volume = level
+    }
+
+    // libVLC counts delays in microseconds.
+    override fun setAudioDelay(delayMs: Long) {
+        player.setAudioDelay(delayMs * 1000)
+    }
+
+    override fun setSubtitleDelay(delayMs: Long) {
+        player.setSpuDelay(delayMs * 1000)
+    }
+
+    override fun setAspectRatio(ratio: String) {
+        player.aspectRatio = ratio.ifEmpty { null }
+    }
+
+    override fun setEqualizer(settings: EqualizerSettings) {
+        if (!settings.enabled) {
+            player.setEqualizer(null)
+            return
+        }
+        val equalizer = MediaPlayer.Equalizer.create()
+        equalizer.setPreAmp(settings.preampDb)
+        settings.bandsDb.forEachIndexed { band, db -> equalizer.setAmp(band, db) }
+        player.setEqualizer(equalizer)
+    }
+
+    override fun equalizerPresets(): List<String> =
+        List(MediaPlayer.Equalizer.getPresetCount()) { MediaPlayer.Equalizer.getPresetName(it) }
+
+    override fun equalizerPreset(index: Int): EqualizerSettings {
+        val preset = MediaPlayer.Equalizer.createFromPreset(index)
+        return EqualizerSettings(
+            true,
+            preset.preAmp,
+            List(EqualizerSettings.BAND_COUNT) { preset.getAmp(it) },
+        ).normalized()
+    }
+
+    override fun equalizerBandFrequencies(): List<Float> =
+        List(MediaPlayer.Equalizer.getBandCount()) { MediaPlayer.Equalizer.getBandFrequency(it) }
+
+    override fun stats(): EngineStats? {
+        val media = player.media ?: return null
+        return try {
+            media.stats?.let { EngineStats(it.decodedVideo, it.lostPictures, it.decodedAudio, it.lostAbuffers) }
+        } finally {
+            media.release()
+        }
+    }
+
     override fun release() {
         player.setEventListener(null)
         if (state == PlaybackState.LOADING) {
@@ -160,5 +239,17 @@ class LibVlcEngine(
 
     private companion object {
         const val TAG = "BabarifyEngine"
+
+        /** Subtitle looks are engine-wide options, so changing one restarts the engine, as on desktop. */
+        fun arguments(options: EngineOptions): ArrayList<String> {
+            val style = options.subtitleStyle.normalized()
+            return arrayListOf(
+                "--no-lua", // Matches the desktop engine's hardening (R34).
+                "--sub-text-scale=${style.sizePct}",
+                "--freetype-color=${style.textColor}",
+                "--freetype-background-opacity=${style.backgroundOpacity * 255 / 100}",
+                "--freetype-background-color=0",
+            )
+        }
     }
 }

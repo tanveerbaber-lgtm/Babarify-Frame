@@ -5,58 +5,86 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <TextView
-        style="@style/Text.Title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:text="@string/app_name" />
-
-    <Button
-        android:id="@+id/openButton"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginHorizontal="16dp"
-        android:backgroundTint="@color/accent"
-        android:text="@string/open_file"
-        android:textColor="@color/on_accent" />
-
-    <TextView
-        style="@style/Text.Muted"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="16dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="4dp"
-        android:text="@string/recent" />
-
-    <TextView
-        android:id="@+id/emptyLabel"
-        style="@style/Text.Muted"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:text="@string/no_recent" />
-
-    <ListView
-        android:id="@+id/recentList"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="12dp">
 
-        <Button
-            android:id="@+id/settingsButton"
-            style="@style/ControlButton"
-            android:text="@string/settings" />
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="12dp"
+            android:importantForAccessibility="no"
+            android:src="@mipmap/ic_launcher" />
 
-        <Button
-            android:id="@+id/aboutButton"
-            style="@style/ControlButton"
-            android:text="@string/about" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/Text.Title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/app_name" />
+
+            <TextView
+                style="@style/Text.Muted"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tagline" />
+        </LinearLayout>
     </LinearLayout>
+
+    <Button
+        android:id="@+id/openButton"
+        style="@style/PrimaryButton"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginHorizontal="16dp"
+        android:drawableStart="@drawable/ic_folder"
+        android:text="@string/open_file" />
+
+    <TextView
+        style="@style/Text.Section"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="8dp"
+        android:text="@string/recent" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ListView
+            android:id="@+id/recentList"
+            style="@style/MediaList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <TextView
+            android:id="@+id/emptyLabel"
+            style="@style/Text.Muted"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:drawableTop="@drawable/ic_movie"
+            android:drawablePadding="12dp"
+            android:drawableTint="@color/text_muted"
+            android:gravity="center"
+            android:padding="32dp"
+            android:text="@string/no_recent" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/bottomNav"
+        style="@style/NavBar" />
 </LinearLayout>

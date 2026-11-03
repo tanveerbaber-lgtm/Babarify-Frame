@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- No permissions on purpose: files come through the system picker or another app's share. -->
+<!--
+    No storage or internet permission on purpose: files come through the system picker or another
+    app's share. The three below are only for sound the user chose to keep playing after leaving.
+-->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <application
         android:allowBackup="false"
         android:dataExtractionRules="@xml/no_backup"
@@ -21,7 +28,9 @@
             android:name=".ui.PlayerActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden"
             android:exported="true"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:supportsPictureInPicture="true"
+            android:theme="@style/Theme.Babarify.Player">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -33,5 +42,25 @@
         <activity
             android:name=".ui.AboutActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.LibraryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.PlaylistsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.PlaylistActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.SettingsActivity"
+            android:exported="false" />
+        <!-- Not exported: only the small window's own button can reach it. -->
+        <receiver
+            android:name=".ui.PictureToggleReceiver"
+            android:exported="false" />
+        <service
+            android:name=".engine.BackgroundPlaybackService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
     </application>
 </manifest>

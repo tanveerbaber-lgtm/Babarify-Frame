@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="49" failures="0" errors="0" skipped="0" time="0.000" timestamp="2026-11-03T12:34:17" hostname="localhost">
+  <testsuite name="com.babarify.frame.FeatureFlowsTest" tests="31" failures="0" errors="0" skipped="0" time="200.707" timestamp="2026-11-03T12:34:17" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="rememberHistoryOffKeepsNoHistory" classname="com.babarify.frame.FeatureFlowsTest" time="7.010" />
+    <testcase name="theButtonsNameThemselvesForScreenReaders" classname="com.babarify.frame.FeatureFlowsTest" time="3.775" />
+    <testcase name="soundKeepsPlayingWhenAskedAndTheVideoComesBack" classname="com.babarify.frame.FeatureFlowsTest" time="8.459" />
+    <testcase name="bookmarksArePerFile" classname="com.babarify.frame.FeatureFlowsTest" time="0.182" />
+    <testcase name="speedChangesHowFastThePositionMoves" classname="com.babarify.frame.FeatureFlowsTest" time="6.328" />
+    <testcase name="theBottomTabsOpenTheirScreens" classname="com.babarify.frame.FeatureFlowsTest" time="3.860" />
+    <testcase name="brightnessFilterChangesWhatIsOnScreen" classname="com.babarify.frame.FeatureFlowsTest" time="6.675" />
+    <testcase name="theControlsHideSoTheScreenIsAllVideoAndATapBringsThemBack" classname="com.babarify.frame.FeatureFlowsTest" time="8.362" />
+    <testcase name="everyScreenOpens" classname="com.babarify.frame.FeatureFlowsTest" time="9.790" />
+    <testcase name="playlistsKeepOrder" classname="com.babarify.frame.FeatureFlowsTest" time="0.411" />
+    <testcase name="aChosenTrackSurvivesLeavingAndReturning" classname="com.babarify.frame.FeatureFlowsTest" time="5.805" />
+    <testcase name="aLibraryFilePlaysThroughItsFolderAddress" classname="com.babarify.frame.FeatureFlowsTest" time="4.282" />
+    <testcase name="aSeekStepSettingChangesTheButtons" classname="com.babarify.frame.FeatureFlowsTest" time="3.935" />
+    <testcase name="abRepeatJumpsBack" classname="com.babarify.frame.FeatureFlowsTest" time="12.516" />
+    <testcase name="audioAndSubtitleDelaysAreKeptAcrossLeaving" classname="com.babarify.frame.FeatureFlowsTest" time="4.727" />
+    <testcase name="subtitleLookChangesTheColourOnScreen" classname="com.babarify.frame.FeatureFlowsTest" time="5.666" />
+    <testcase name="byDefaultNothingRunsInTheBackground" classname="com.babarify.frame.FeatureFlowsTest" time="48.226" />
+    <testcase name="swipingChangesVolumeAndPosition" classname="com.babarify.frame.FeatureFlowsTest" time="2.378" />
+    <testcase name="preferredLanguageIsChosenWhenAFileOpens" classname="com.babarify.frame.FeatureFlowsTest" time="8.379" />
+    <testcase name="normalVolumeRunsFrom1To100AndBoostTo200" classname="com.babarify.frame.FeatureFlowsTest" time="3.523" />
+    <testcase name="equalizerPresetsExistAndApply" classname="com.babarify.frame.FeatureFlowsTest" time="3.809" />
+    <testcase name="aPlaylistMovesOnAndNextPreviousWork" classname="com.babarify.frame.FeatureFlowsTest" time="13.460" />
+    <testcase name="theVolumeNumberIsShownOnTheButton" classname="com.babarify.frame.FeatureFlowsTest" time="2.873" />
+    <testcase name="settingsSurviveAndUnreadableOnesFallBack" classname="com.babarify.frame.FeatureFlowsTest" time="0.241" />
+    <testcase name="rotationKeepsVideoInsideTheView" classname="com.babarify.frame.FeatureFlowsTest" time="3.623" />
+    <testcase name="aFolderIsScannedWithoutReadingAnythingElse" classname="com.babarify.frame.FeatureFlowsTest" time="3.676" />
+    <testcase name="aSnapshotIsSavedAndReadable" classname="com.babarify.frame.FeatureFlowsTest" time="6.275" />
+    <testcase name="theSmallWindowKeepsPlaying" classname="com.babarify.frame.FeatureFlowsTest" time="5.766" />
+    <testcase name="gesturesCanBeTurnedOff" classname="com.babarify.frame.FeatureFlowsTest" time="3.154" />
+    <testcase name="chaptersAreListedAndNextChapterSeeks" classname="com.babarify.frame.FeatureFlowsTest" time="3.194" />
+    <testcase name="libraryKnowsSortsAndForgetsWithTheFolder" classname="com.babarify.frame.FeatureFlowsTest" time="0.347" />
+  </testsuite>
+  <testsuite name="com.babarify.frame.PlayerFlowsTest" tests="18" failures="0" errors="0" skipped="0" time="130.043" timestamp="2026-11-03T12:34:17" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5554" />
+    </properties>
+    <testcase name="leavingReleasesTheEngineAndReturningContinues" classname="com.babarify.frame.PlayerFlowsTest" time="6.132" />
+    <testcase name="aFinishedFileComesBackAtItsStart" classname="com.babarify.frame.PlayerFlowsTest" time="13.606" />
+    <testcase name="controlsStayClearOfTheSystemBars" classname="com.babarify.frame.PlayerFlowsTest" time="7.141" />
+    <testcase name="rotationKeepsTheSameEngineAndPosition" classname="com.babarify.frame.PlayerFlowsTest" time="3.567" />
+    <testcase name="licencesAreShipped" classname="com.babarify.frame.PlayerFlowsTest" time="0.063" />
+    <testcase name="tracksAreListedAndCanBeChosen" classname="com.babarify.frame.PlayerFlowsTest" time="3.104" />
+    <testcase name="playingAddsToRecentAndResumes" classname="com.babarify.frame.PlayerFlowsTest" time="8.548" />
+    <testcase name="aDamagedFileIsNotAddedToRecent" classname="com.babarify.frame.PlayerFlowsTest" time="1.481" />
+    <testcase name="seekButtonsMoveThePosition" classname="com.babarify.frame.PlayerFlowsTest" time="2.501" />
+    <testcase name="aPausedFileStaysPausedAfterReturning" classname="com.babarify.frame.PlayerFlowsTest" time="6.071" />
+    <testcase name="theFirstFileShowsPreparingThenPlays" classname="com.babarify.frame.PlayerFlowsTest" time="19.068" />
+    <testcase name="theAppHasNoInternetOrStoragePermission" classname="com.babarify.frame.PlayerFlowsTest" time="0.012" />
+    <testcase name="aPickedSubtitleFileBecomesATrack" classname="com.babarify.frame.PlayerFlowsTest" time="5.573" />
+    <testcase name="damagedAndUnreadableFilesShowAMessage" classname="com.babarify.frame.PlayerFlowsTest" time="6.551" />
+    <testcase name="otherAddressTypesAreRefused" classname="com.babarify.frame.PlayerFlowsTest" time="1.438" />
+    <testcase name="audioOnlyFilesAdvance" classname="com.babarify.frame.PlayerFlowsTest" time="25.319" />
+    <testcase name="leavingDuringTheFirstFileDoesNotFreezeTheScreen" classname="com.babarify.frame.PlayerFlowsTest" time="16.019" />
+    <testcase name="aFilePickedFromHomeStartsPlaying" classname="com.babarify.frame.PlayerFlowsTest" time="3.849" />
+  </testsuite>
+</testsuites>

@@ -19,3 +19,21 @@ data class TrackInfo(val id: Int, val kind: TrackKind, val title: String, val se
         const val DISABLED_ID = -1
     }
 }
+
+data class ChapterInfo(val title: String, val startMs: Long)
+
+data class QueueItem(val uri: String, val title: String)
+
+/** What happens when the user leaves the player without closing it. */
+enum class LeaveAction { STOP, AUDIO, PICTURE }
+
+enum class SortOrder { NAME, DATE_ADDED, RECENTLY_PLAYED, DURATION, SIZE }
+
+/** The look of plain-text subtitles; ASS and SSA files keep their own styling, as on desktop. */
+data class SubtitleStyle(val sizePct: Int = 100, val textColor: Int = 0xFFFFFF, val backgroundOpacity: Int = 0) {
+    fun normalized() = SubtitleStyle(
+        sizePct.coerceIn(50, 200),
+        textColor and 0xFFFFFF,
+        backgroundOpacity.coerceIn(0, 100),
+    )
+}
