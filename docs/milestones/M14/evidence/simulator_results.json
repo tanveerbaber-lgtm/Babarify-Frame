@@ -1,0 +1,2613 @@
+{
+ "runtime": [
+  "iOS 18.5",
+  "iOS 18.6",
+  "iOS 26.0",
+  "iOS 26.1",
+  "iOS 26.2",
+  "tvOS 18.5",
+  "tvOS 26.1",
+  "tvOS 26.2",
+  "watchOS 11.5",
+  "watchOS 26.1",
+  "watchOS 26.2",
+  "visionOS 2.3",
+  "visionOS 2.4",
+  "visionOS 2.5",
+  "visionOS 26.1",
+  "visionOS 26.2"
+ ],
+ "device": [
+  {
+   "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+   "name": "iPhone SE (3rd generation)"
+  }
+ ],
+ "avplayer": {
+  "files": {
+   "h264_aac.mp4": {
+    "error": null,
+    "tracks": [
+     "vide und",
+     "soun und",
+     "selectable AVMediaCharacteristicAudible Unknown language"
+    ],
+    "playing": true,
+    "engine": "avplayer",
+    "position_ms": 7225,
+    "positions_ms": [
+     0,
+     224,
+     726,
+     1226,
+     1726,
+     2225,
+     2726,
+     3225,
+     3726,
+     4226,
+     4726,
+     5225,
+     5726,
+     6226,
+     6726,
+     7225
+    ],
+    "duration_ms": 12000,
+    "states": [
+     "waiting",
+     "playing"
+    ],
+    "events": [
+     {
+      "event": "open",
+      "engine": "avplayer",
+      "at": 1793688118.5230742,
+      "media": "h264_aac.mp4"
+     }
+    ],
+    "picture": {
+     "max_lightness": 226,
+     "distinct": 23
+    },
+    "verdict": "plays"
+   },
+   "h264_aac.mkv": {
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "engine": "avplayer",
+    "playing": false,
+    "states": [
+     "waiting"
+    ],
+    "error": "Cannot Open",
+    "duration_ms": 0,
+    "tracks": [],
+    "events": [
+     {
+      "event": "open",
+      "at": 1793688129.520975,
+      "engine": "avplayer",
+      "media": "h264_aac.mkv"
+     }
+    ],
+    "position_ms": 0,
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "h264_ac3.ts": {
+    "states": [
+     "waiting"
+    ],
+    "duration_ms": 0,
+    "events": [
+     {
+      "media": "h264_ac3.ts",
+      "engine": "avplayer",
+      "at": 1793688141.412095,
+      "event": "open"
+     }
+    ],
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "error": "Cannot Open",
+    "engine": "avplayer",
+    "position_ms": 0,
+    "playing": false,
+    "tracks": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "hevc8_aac.mp4": {
+    "position_ms": 6001,
+    "positions_ms": [
+     0,
+     500,
+     1000,
+     1500,
+     2000,
+     2498,
+     3000,
+     3498,
+     4000,
+     4500,
+     5000,
+     5498,
+     6000
+    ],
+    "states": [
+     "playing"
+    ],
+    "playing": true,
+    "engine": "avplayer",
+    "duration_ms": 12000,
+    "error": null,
+    "events": [
+     {
+      "engine": "avplayer",
+      "at": 1793688164.100759,
+      "event": "open",
+      "media": "hevc8_aac.mp4"
+     }
+    ],
+    "tracks": [
+     "vide und",
+     "soun und",
+     "selectable AVMediaCharacteristicAudible Unknown language"
+    ],
+    "picture": {
+     "max_lightness": 226,
+     "distinct": 22
+    },
+    "verdict": "plays"
+   },
+   "hevc10_aac.mp4": {
+    "tracks": [
+     "vide und",
+     "soun und",
+     "selectable AVMediaCharacteristicAudible Unknown language"
+    ],
+    "position_ms": 8158,
+    "duration_ms": 12000,
+    "playing": true,
+    "states": [
+     "playing"
+    ],
+    "positions_ms": [
+     158,
+     657,
+     1158,
+     1658,
+     2158,
+     2658,
+     3158,
+     3658,
+     4158,
+     4658,
+     5157,
+     5658,
+     6157,
+     6657,
+     7157,
+     7658,
+     8158
+    ],
+    "error": null,
+    "events": [
+     {
+      "at": 1793688173.18905,
+      "event": "open",
+      "engine": "avplayer",
+      "media": "hevc10_aac.mp4"
+     }
+    ],
+    "engine": "avplayer",
+    "picture": {
+     "max_lightness": 226,
+     "distinct": 20
+    },
+    "verdict": "plays"
+   },
+   "vp9_opus.webm": {
+    "error": "Cannot Open",
+    "tracks": [],
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "playing": false,
+    "position_ms": 0,
+    "duration_ms": 0,
+    "states": [
+     "waiting"
+    ],
+    "engine": "avplayer",
+    "events": [
+     {
+      "event": "open",
+      "media": "vp9_opus.webm",
+      "engine": "avplayer",
+      "at": 1793688184.0046182
+     }
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "vp8_vorbis.webm": {
+    "states": [
+     "waiting"
+    ],
+    "events": [
+     {
+      "event": "open",
+      "media": "vp8_vorbis.webm",
+      "engine": "avplayer",
+      "at": 1793688194.223717
+     }
+    ],
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "error": "Cannot Open",
+    "engine": "avplayer",
+    "playing": false,
+    "duration_ms": 0,
+    "position_ms": 0,
+    "tracks": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "av1_opus.mkv": {
+    "duration_ms": 0,
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "events": [
+     {
+      "engine": "avplayer",
+      "at": 1793688204.449507,
+      "event": "open",
+      "media": "av1_opus.mkv"
+     }
+    ],
+    "engine": "avplayer",
+    "tracks": [],
+    "playing": false,
+    "position_ms": 0,
+    "error": "Cannot Open",
+    "states": [
+     "waiting"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "mpeg2_mp2.mpg": {
+    "events": [
+     {
+      "engine": "avplayer",
+      "at": 1793688214.7329478,
+      "media": "mpeg2_mp2.mpg",
+      "event": "open"
+     }
+    ],
+    "playing": false,
+    "states": [
+     "waiting"
+    ],
+    "position_ms": 0,
+    "error": "Cannot Open",
+    "engine": "avplayer",
+    "tracks": [],
+    "duration_ms": 0,
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "mpeg4_mp3.avi": {
+    "tracks": [
+     "vide und"
+    ],
+    "engine": "avplayer",
+    "error": null,
+    "duration_ms": 12066,
+    "playing": true,
+    "states": [
+     "playing"
+    ],
+    "events": [
+     {
+      "event": "open",
+      "engine": "avplayer",
+      "at": 1793688224.617315,
+      "media": "mpeg4_mp3.avi"
+     }
+    ],
+    "position_ms": 8360,
+    "positions_ms": [
+     360,
+     858,
+     1359,
+     1860,
+     2358,
+     2860,
+     3360,
+     3860,
+     4358,
+     4860,
+     5359,
+     5860,
+     6358,
+     6860,
+     7360,
+     7858,
+     8360
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "no picture"
+   },
+   "wmv2_wma.wmv": {
+    "duration_ms": 0,
+    "playing": false,
+    "engine": "avplayer",
+    "tracks": [],
+    "position_ms": 0,
+    "error": "Cannot Open",
+    "events": [
+     {
+      "media": "wmv2_wma.wmv",
+      "at": 1793688235.2457209,
+      "engine": "avplayer",
+      "event": "open"
+     }
+    ],
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "states": [
+     "waiting"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "theora_vorbis.ogv": {
+    "playing": false,
+    "position_ms": 0,
+    "states": [
+     "waiting"
+    ],
+    "engine": "avplayer",
+    "duration_ms": 0,
+    "events": [
+     {
+      "engine": "avplayer",
+      "media": "theora_vorbis.ogv",
+      "event": "open",
+      "at": 1793688246.012841
+     }
+    ],
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "error": "Cannot Open",
+    "tracks": [],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "multitrack.mkv": {
+    "position_ms": 0,
+    "duration_ms": 0,
+    "events": [
+     {
+      "media": "multitrack.mkv",
+      "event": "open",
+      "at": 1793688256.2224422,
+      "engine": "avplayer"
+     }
+    ],
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "engine": "avplayer",
+    "error": "Cannot Open",
+    "tracks": [],
+    "playing": false,
+    "states": [
+     "waiting"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "truncated.mp4": {
+    "duration_ms": 0,
+    "events": [
+     {
+      "at": 1793688266.494588,
+      "engine": "avplayer",
+      "media": "truncated.mp4",
+      "event": "open"
+     }
+    ],
+    "position_ms": 0,
+    "tracks": [],
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "error": "Cannot Open",
+    "playing": false,
+    "engine": "avplayer",
+    "states": [
+     "waiting"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "not_media.mp4": {
+    "playing": false,
+    "events": [
+     {
+      "event": "open",
+      "at": 1793688276.609817,
+      "media": "not_media.mp4",
+      "engine": "avplayer"
+     }
+    ],
+    "duration_ms": 0,
+    "engine": "avplayer",
+    "states": [
+     "waiting"
+    ],
+    "position_ms": 0,
+    "tracks": [],
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "error": "Cannot Open",
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "empty.mp4": {
+    "engine": "avplayer",
+    "states": [
+     "waiting"
+    ],
+    "events": [
+     {
+      "at": 1793688288.112973,
+      "event": "open",
+      "engine": "avplayer",
+      "media": "empty.mp4"
+     }
+    ],
+    "playing": false,
+    "duration_ms": 0,
+    "error": "Cannot Open",
+    "tracks": [],
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "position_ms": 0,
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "audio_aac.m4a": {
+    "error": null,
+    "tracks": [
+     "soun und",
+     "selectable AVMediaCharacteristicAudible Unknown language"
+    ],
+    "events": [
+     {
+      "at": 1793688299.284697,
+      "event": "open",
+      "media": "audio_aac.m4a",
+      "engine": "avplayer"
+     }
+    ],
+    "position_ms": 9584,
+    "engine": "avplayer",
+    "duration_ms": 11975,
+    "states": [
+     "playing"
+    ],
+    "positions_ms": [
+     82,
+     583,
+     1082,
+     1584,
+     2082,
+     2583,
+     3082,
+     3583,
+     4082,
+     4583,
+     5082,
+     5583,
+     6082,
+     6584,
+     7082,
+     7583,
+     8082,
+     8583,
+     9082,
+     9582
+    ],
+    "playing": true,
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "audio_mp3.mp3": {
+    "tracks": [
+     "soun und"
+    ],
+    "error": null,
+    "playing": true,
+    "position_ms": 8260,
+    "states": [
+     "playing"
+    ],
+    "duration_ms": 12042,
+    "positions_ms": [
+     260,
+     760,
+     1260,
+     1760,
+     2260,
+     2759,
+     3260,
+     3758,
+     4260,
+     4760,
+     5260,
+     5760,
+     6260,
+     6760,
+     7260,
+     7760,
+     8260
+    ],
+    "events": [
+     {
+      "media": "audio_mp3.mp3",
+      "at": 1793688311.435386,
+      "engine": "avplayer",
+      "event": "open"
+     }
+    ],
+    "engine": "avplayer",
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "audio_flac.flac": {
+    "engine": "avplayer",
+    "error": null,
+    "states": [
+     "playing"
+    ],
+    "playing": true,
+    "duration_ms": 12004,
+    "position_ms": 7799,
+    "positions_ms": [
+     299,
+     799,
+     1300,
+     1799,
+     2299,
+     2800,
+     3300,
+     3800,
+     4300,
+     4800,
+     5300,
+     5800,
+     6300,
+     6800,
+     7300,
+     7799
+    ],
+    "tracks": [
+     "soun und"
+    ],
+    "events": [
+     {
+      "media": "audio_flac.flac",
+      "at": 1793688322.116401,
+      "event": "open",
+      "engine": "avplayer"
+     }
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "audio_opus.opus": {
+    "positions_ms": [
+     303,
+     803,
+     1303,
+     1803,
+     2303,
+     2803,
+     3302,
+     3803,
+     4301,
+     4803,
+     5303,
+     5801,
+     6303,
+     6801,
+     7302,
+     7803
+    ],
+    "events": [
+     {
+      "at": 1793688331.894724,
+      "media": "audio_opus.opus",
+      "event": "open",
+      "engine": "avplayer"
+     }
+    ],
+    "playing": true,
+    "states": [
+     "playing"
+    ],
+    "engine": "avplayer",
+    "position_ms": 7803,
+    "error": null,
+    "duration_ms": 12560,
+    "tracks": [
+     "soun und"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "audio_vorbis.ogg": {
+    "engine": "avplayer",
+    "error": "Operation Stopped",
+    "duration_ms": 0,
+    "events": [
+     {
+      "event": "open",
+      "engine": "avplayer",
+      "media": "audio_vorbis.ogg",
+      "at": 1793688341.87654
+     }
+    ],
+    "states": [
+     "waiting"
+    ],
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "playing": false,
+    "tracks": [],
+    "position_ms": 0,
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "audio_ac3.ac3": {
+    "duration_ms": 12016,
+    "states": [
+     "playing"
+    ],
+    "error": null,
+    "events": [
+     {
+      "event": "open",
+      "at": 1793688351.972862,
+      "media": "audio_ac3.ac3",
+      "engine": "avplayer"
+     }
+    ],
+    "playing": true,
+    "positions_ms": [
+     240,
+     740,
+     1239,
+     1740,
+     2238,
+     2740,
+     3240,
+     3739,
+     4240,
+     4740,
+     5240,
+     5740,
+     6240,
+     6740,
+     7240,
+     7739
+    ],
+    "tracks": [
+     "soun und"
+    ],
+    "position_ms": 7739,
+    "engine": "avplayer",
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "audio_pcm.wav": {
+    "duration_ms": 12000,
+    "engine": "avplayer",
+    "positions_ms": [
+     289,
+     789,
+     1289,
+     1790,
+     2288,
+     2788,
+     3289,
+     3789,
+     4290,
+     4788,
+     5289,
+     5789,
+     6289,
+     6789,
+     7289,
+     7789
+    ],
+    "position_ms": 7789,
+    "error": null,
+    "tracks": [
+     "soun und"
+    ],
+    "events": [
+     {
+      "engine": "avplayer",
+      "media": "audio_pcm.wav",
+      "event": "open",
+      "at": 1793688362.083946
+     }
+    ],
+    "playing": true,
+    "states": [
+     "playing"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "h264_aac.mp4+subs.srt": {
+    "engine": "avplayer",
+    "error": "external subtitle files are not supported by AVPlayer",
+    "states": [
+     "playing"
+    ],
+    "duration_ms": 12000,
+    "tracks": [
+     "vide und",
+     "soun und",
+     "selectable AVMediaCharacteristicAudible Unknown language"
+    ],
+    "playing": true,
+    "position_ms": 8684,
+    "events": [
+     {
+      "at": 1793688372.170638,
+      "engine": "avplayer",
+      "media": "h264_aac.mp4",
+      "event": "open"
+     }
+    ],
+    "positions_ms": [
+     183,
+     684,
+     1183,
+     1684,
+     2183,
+     2684,
+     3183,
+     3684,
+     4183,
+     4682,
+     5184,
+     5684,
+     6183,
+     6683,
+     7182,
+     7683,
+     8184,
+     8683
+    ],
+    "picture": {
+     "max_lightness": 226,
+     "distinct": 21
+    },
+    "verdict": "error"
+   }
+  },
+  "seek": {
+   "tracks": [
+    "vide und",
+    "soun und",
+    "selectable AVMediaCharacteristicAudible Unknown language"
+   ],
+   "states": [
+    "playing"
+   ],
+   "engine": "avplayer",
+   "playing": true,
+   "position_ms": 21923,
+   "positions_ms": [
+    180,
+    681,
+    1181,
+    1681,
+    2179,
+    2681,
+    16921,
+    17421,
+    17923,
+    18421,
+    18921,
+    19423,
+    19921,
+    20421,
+    20923,
+    21423,
+    21923
+   ],
+   "events": [
+    {
+     "media": "long_60s.mp4",
+     "at": 1793688382.8681688,
+     "engine": "avplayer",
+     "event": "open"
+    },
+    {
+     "event": "seek",
+     "to_ms": 20000,
+     "at": 1793688385.9960399
+    }
+   ],
+   "duration_ms": 60000,
+   "error": null,
+   "picture": {
+    "max_lightness": 226,
+    "distinct": 22
+   }
+  },
+  "rotate": {
+   "engine": "avplayer",
+   "position_ms": 9180,
+   "duration_ms": 60000,
+   "events": [
+    {
+     "media": "long_60s.mp4",
+     "engine": "avplayer",
+     "event": "open",
+     "at": 1793688393.353002
+    },
+    {
+     "position_ms": 2733,
+     "at": 1793688396.4098802,
+     "event": "rotate"
+    },
+    {
+     "width": 667,
+     "at": 1793688397.4586282,
+     "height": 375,
+     "event": "rotated"
+    }
+   ],
+   "tracks": [
+    "vide und",
+    "soun und",
+    "selectable AVMediaCharacteristicAudible Unknown language"
+   ],
+   "playing": true,
+   "states": [
+    "playing"
+   ],
+   "positions_ms": [
+    179,
+    679,
+    1179,
+    1680,
+    2179,
+    2680,
+    3179,
+    3680,
+    4179,
+    4680,
+    5179,
+    5680,
+    6179,
+    6681,
+    7179,
+    7680,
+    8179,
+    8680,
+    9179
+   ],
+   "error": null,
+   "picture": {
+    "max_lightness": 226,
+    "distinct": 29
+   }
+  },
+  "leave_and_return": {
+   "engine": "avplayer",
+   "position_ms": 22595,
+   "duration_ms": 60000,
+   "states": [
+    "playing",
+    "paused",
+    "playing"
+   ],
+   "playing": true,
+   "tracks": [
+    "vide und",
+    "soun und",
+    "selectable AVMediaCharacteristicAudible Unknown language"
+   ],
+   "error": null,
+   "events": [
+    {
+     "event": "open",
+     "at": 1793688409.901269,
+     "engine": "avplayer",
+     "media": "long_60s.mp4"
+    },
+    {
+     "position_ms": 13380,
+     "playing": true,
+     "at": 1793688423.643879,
+     "event": "background"
+    },
+    {
+     "event": "foreground",
+     "position_ms": 16666,
+     "playing": false,
+     "at": 1793688427.4092221
+    }
+   ],
+   "positions_ms": [
+    143,
+    642,
+    1144,
+    1644,
+    2144,
+    2643,
+    3144,
+    3642,
+    4143,
+    4642,
+    5144,
+    5644,
+    6144,
+    6642,
+    7144,
+    7644,
+    8146,
+    8647,
+    9143,
+    9644,
+    10142,
+    10642,
+    11142,
+    11644,
+    12144,
+    12642,
+    13142,
+    13385,
+    16666,
+    16666,
+    16666,
+    16666,
+    16666,
+    17093,
+    17593,
+    18093,
+    18593,
+    19093,
+    19594,
+    20093,
+    20594,
+    21093,
+    21594,
+    22093,
+    22594
+   ],
+   "picture": {
+    "max_lightness": 226,
+    "distinct": 26
+   },
+   "position_while_away_ms": 16666
+  }
+ },
+ "vlckit": {
+  "files": {
+   "h264_aac.mp4": {
+    "engine": "vlckit",
+    "position_ms": 7651,
+    "playing": true,
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "error": null,
+    "duration_ms": 12000,
+    "positions_ms": [
+     0,
+     0,
+     408,
+     908,
+     1410,
+     1910,
+     2405,
+     3152,
+     3654,
+     4152,
+     4653,
+     4908,
+     5657,
+     5909,
+     6660,
+     7160,
+     7651
+    ],
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "events": [
+     {
+      "event": "open",
+      "at": 1793688435.994077,
+      "media": "h264_aac.mp4",
+      "engine": "vlckit"
+     }
+    ],
+    "picture": {
+     "max_lightness": 226,
+     "distinct": 20
+    },
+    "verdict": "plays"
+   },
+   "h264_aac.mkv": {
+    "duration_ms": 12023,
+    "position_ms": 8514,
+    "playing": true,
+    "error": null,
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "engine": "vlckit",
+    "positions_ms": [
+     13,
+     529,
+     1045,
+     1320,
+     1857,
+     2393,
+     2927,
+     3460,
+     3991,
+     4527,
+     5053,
+     5318,
+     5853,
+     6387,
+     6913,
+     7453,
+     7986,
+     8514
+    ],
+    "events": [
+     {
+      "engine": "vlckit",
+      "at": 1793688447.194875,
+      "media": "h264_aac.mkv",
+      "event": "open"
+     }
+    ],
+    "picture": {
+     "max_lightness": 226,
+     "distinct": 21
+    },
+    "verdict": "plays"
+   },
+   "h264_ac3.ts": {
+    "events": [
+     {
+      "engine": "vlckit",
+      "at": 1793688458.004394,
+      "media": "h264_ac3.ts",
+      "event": "open"
+     }
+    ],
+    "position_ms": 8308,
+    "error": null,
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "positions_ms": [
+     0,
+     303,
+     841,
+     1369,
+     1901,
+     2443,
+     2971,
+     3509,
+     3777,
+     4310,
+     4837,
+     5376,
+     5911,
+     6440,
+     6969,
+     7503,
+     7777,
+     8308
+    ],
+    "duration_ms": 11933,
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "playing": true,
+    "engine": "vlckit",
+    "picture": {
+     "max_lightness": 226,
+     "distinct": 19
+    },
+    "verdict": "plays"
+   },
+   "hevc8_aac.mp4": {
+    "playing": true,
+    "error": null,
+    "duration_ms": 12000,
+    "engine": "vlckit",
+    "positions_ms": [
+     0,
+     401,
+     651,
+     1157,
+     1657,
+     2403,
+     2659,
+     3411,
+     3907,
+     4406,
+     4659,
+     5160,
+     5910,
+     6412,
+     6902,
+     7411,
+     7907,
+     8403
+    ],
+    "position_ms": 8403,
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "events": [
+     {
+      "media": "hevc8_aac.mp4",
+      "engine": "vlckit",
+      "event": "open",
+      "at": 1793688468.771584
+     }
+    ],
+    "picture": {
+     "max_lightness": 226,
+     "distinct": 24
+    },
+    "verdict": "plays"
+   },
+   "hevc10_aac.mp4": {
+    "engine": "vlckit",
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "error": null,
+    "positions_ms": [
+     0,
+     161,
+     912,
+     1407,
+     1905,
+     2160,
+     2906,
+     3408,
+     3658,
+     4412,
+     4908,
+     5159,
+     5658,
+     6410,
+     6906,
+     7410,
+     7906
+    ],
+    "position_ms": 7906,
+    "playing": true,
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "events": [
+     {
+      "at": 1793688479.670806,
+      "event": "open",
+      "engine": "vlckit",
+      "media": "hevc10_aac.mp4"
+     }
+    ],
+    "duration_ms": 12000,
+    "picture": {
+     "max_lightness": 226,
+     "distinct": 20
+    },
+    "verdict": "plays"
+   },
+   "vp9_opus.webm": {
+    "error": null,
+    "positions_ms": [
+     0,
+     502,
+     1022,
+     1566,
+     2109,
+     2628,
+     2907,
+     3431,
+     3961,
+     4510,
+     5031,
+     5562,
+     6105,
+     6628,
+     6911,
+     7431,
+     7970,
+     8509
+    ],
+    "events": [
+     {
+      "at": 1793688491.00429,
+      "media": "vp9_opus.webm",
+      "event": "open",
+      "engine": "vlckit"
+     }
+    ],
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "engine": "vlckit",
+    "playing": true,
+    "duration_ms": 12008,
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "position_ms": 8509,
+    "picture": {
+     "max_lightness": 226,
+     "distinct": 17
+    },
+    "verdict": "plays"
+   },
+   "vp8_vorbis.webm": {
+    "playing": true,
+    "engine": "vlckit",
+    "duration_ms": 12003,
+    "position_ms": 8019,
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "positions_ms": [
+     0,
+     570,
+     1109,
+     1640,
+     2180,
+     2431,
+     2966,
+     3499,
+     4031,
+     4560,
+     5096,
+     5632,
+     6167,
+     6426,
+     6976,
+     7488,
+     8019
+    ],
+    "events": [
+     {
+      "media": "vp8_vorbis.webm",
+      "event": "open",
+      "engine": "vlckit",
+      "at": 1793688503.13235
+     }
+    ],
+    "error": null,
+    "picture": {
+     "max_lightness": 226,
+     "distinct": 18
+    },
+    "verdict": "plays"
+   },
+   "av1_opus.mkv": {
+    "position_ms": 8508,
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "positions_ms": [
+     0,
+     505,
+     1026,
+     1310,
+     1823,
+     2371,
+     2903,
+     3421,
+     3962,
+     4510,
+     5021,
+     5306,
+     5831,
+     6369,
+     6906,
+     7423,
+     7965,
+     8508
+    ],
+    "engine": "vlckit",
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "duration_ms": 12008,
+    "events": [
+     {
+      "event": "open",
+      "at": 1793688513.489835,
+      "media": "av1_opus.mkv",
+      "engine": "vlckit"
+     }
+    ],
+    "playing": true,
+    "error": null,
+    "picture": {
+     "max_lightness": 226,
+     "distinct": 21
+    },
+    "verdict": "plays"
+   },
+   "mpeg2_mp2.mpg": {
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "error": null,
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "position_ms": 8381,
+    "events": [
+     {
+      "event": "open",
+      "engine": "vlckit",
+      "at": 1793688524.256291,
+      "media": "mpeg2_mp2.mpg"
+     }
+    ],
+    "positions_ms": [
+     319,
+     854,
+     1450,
+     1983,
+     2516,
+     2780,
+     3319,
+     3853,
+     4318,
+     4921,
+     5452,
+     5852,
+     6452,
+     6780,
+     7253,
+     7847,
+     8381
+    ],
+    "playing": true,
+    "engine": "vlckit",
+    "duration_ms": 11964,
+    "picture": {
+     "max_lightness": 226,
+     "distinct": 24
+    },
+    "verdict": "plays"
+   },
+   "mpeg4_mp3.avi": {
+    "position_ms": 9531,
+    "engine": "vlckit",
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "events": [
+     {
+      "media": "mpeg4_mp3.avi",
+      "engine": "vlckit",
+      "event": "open",
+      "at": 1793688534.636122
+     }
+    ],
+    "positions_ms": [
+     131,
+     685,
+     1234,
+     1506,
+     2056,
+     2608,
+     3160,
+     3710,
+     4251,
+     4507,
+     5051,
+     5583,
+     6110,
+     6635,
+     7153,
+     7684,
+     8204,
+     8733,
+     9006,
+     9531
+    ],
+    "duration_ms": 12000,
+    "error": null,
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "playing": true,
+    "picture": {
+     "max_lightness": 225,
+     "distinct": 19
+    },
+    "verdict": "plays"
+   },
+   "wmv2_wma.wmv": {
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "error": null,
+    "positions_ms": [
+     0,
+     303,
+     907,
+     1510,
+     1806,
+     2407,
+     3004,
+     3305,
+     3907,
+     4507,
+     4806,
+     5404,
+     6008,
+     6310,
+     6907,
+     7502,
+     7810,
+     8410,
+     9006
+    ],
+    "position_ms": 9006,
+    "events": [
+     {
+      "event": "open",
+      "engine": "vlckit",
+      "at": 1793688548.6772819,
+      "media": "wmv2_wma.wmv"
+     }
+    ],
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "engine": "vlckit",
+    "playing": true,
+    "duration_ms": 12046,
+    "picture": {
+     "max_lightness": 226,
+     "distinct": 22
+    },
+    "verdict": "plays"
+   },
+   "theora_vorbis.ogv": {
+    "playing": true,
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "positions_ms": [
+     0,
+     572,
+     943,
+     1376,
+     1956,
+     1956,
+     2969,
+     2969,
+     3776,
+     4570,
+     5024,
+     5377,
+     6049,
+     6049,
+     6977,
+     6977,
+     8089,
+     8577,
+     9108
+    ],
+    "position_ms": 9108,
+    "error": null,
+    "events": [
+     {
+      "engine": "vlckit",
+      "event": "open",
+      "at": 1793688560.4729939,
+      "media": "theora_vorbis.ogv"
+     }
+    ],
+    "engine": "vlckit",
+    "duration_ms": 12000,
+    "picture": {
+     "max_lightness": 226,
+     "distinct": 23
+    },
+    "verdict": "plays"
+   },
+   "multitrack.mkv": {
+    "playing": true,
+    "tracks": [
+     "audio Disable",
+     "audio Track 1 - [English]",
+     "audio Track 2 - [French]",
+     "text Disable",
+     "text Track 1"
+    ],
+    "events": [
+     {
+      "at": 1793688572.4194078,
+      "media": "multitrack.mkv",
+      "engine": "vlckit",
+      "event": "open"
+     }
+    ],
+    "position_ms": 8656,
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "positions_ms": [
+     129,
+     652,
+     1185,
+     1455,
+     1992,
+     2522,
+     3062,
+     3571,
+     4107,
+     4645,
+     5178,
+     5456,
+     5990,
+     6522,
+     7055,
+     7589,
+     8121,
+     8656
+    ],
+    "error": null,
+    "duration_ms": 12023,
+    "engine": "vlckit",
+    "picture": {
+     "max_lightness": 226,
+     "distinct": 18
+    },
+    "verdict": "plays"
+   },
+   "truncated.mp4": {
+    "engine": "vlckit",
+    "position_ms": 0,
+    "playing": false,
+    "duration_ms": 0,
+    "states": [
+     "VLCMediaPlayerStateStopped"
+    ],
+    "tracks": [],
+    "events": [
+     {
+      "event": "open",
+      "at": 1793688583.849828,
+      "media": "truncated.mp4",
+      "engine": "vlckit"
+     }
+    ],
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "error": null,
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "no progress"
+   },
+   "not_media.mp4": {
+    "duration_ms": 0,
+    "states": [
+     "VLCMediaPlayerStateStopped"
+    ],
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "playing": false,
+    "events": [
+     {
+      "at": 1793688594.966073,
+      "media": "not_media.mp4",
+      "event": "open",
+      "engine": "vlckit"
+     }
+    ],
+    "error": null,
+    "position_ms": 0,
+    "tracks": [],
+    "engine": "vlckit",
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "no progress"
+   },
+   "empty.mp4": {
+    "playing": false,
+    "error": "VLCMediaPlayerState.error",
+    "position_ms": 0,
+    "engine": "vlckit",
+    "duration_ms": 0,
+    "states": [
+     "VLCMediaPlayerStateStopped"
+    ],
+    "events": [
+     {
+      "media": "empty.mp4",
+      "at": 1793688605.0390692,
+      "event": "open",
+      "engine": "vlckit"
+     }
+    ],
+    "tracks": [],
+    "positions_ms": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "error"
+   },
+   "audio_aac.m4a": {
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "duration_ms": 12000,
+    "engine": "vlckit",
+    "position_ms": 7158,
+    "playing": true,
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "positions_ms": [
+     155,
+     654,
+     1159,
+     1655,
+     1910,
+     2408,
+     3162,
+     3661,
+     4157,
+     4413,
+     4911,
+     5416,
+     5910,
+     6410,
+     7158
+    ],
+    "error": null,
+    "events": [
+     {
+      "at": 1793688613.6405802,
+      "event": "open",
+      "engine": "vlckit",
+      "media": "audio_aac.m4a"
+     }
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "audio_mp3.mp3": {
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "error": null,
+    "playing": true,
+    "position_ms": 7581,
+    "engine": "vlckit",
+    "positions_ms": [
+     164,
+     787,
+     1310,
+     1678,
+     2201,
+     2718,
+     3344,
+     3612,
+     4234,
+     4761,
+     5277,
+     5640,
+     6164,
+     6793,
+     7321,
+     7581
+    ],
+    "duration_ms": 12070,
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "events": [
+     {
+      "engine": "vlckit",
+      "media": "audio_mp3.mp3",
+      "at": 1793688622.6179209,
+      "event": "open"
+     }
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "audio_flac.flac": {
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "position_ms": 7128,
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "events": [
+     {
+      "at": 1793688632.1042418,
+      "event": "open",
+      "engine": "vlckit",
+      "media": "audio_flac.flac"
+     }
+    ],
+    "duration_ms": 12000,
+    "error": null,
+    "playing": true,
+    "engine": "vlckit",
+    "positions_ms": [
+     135,
+     649,
+     1160,
+     1672,
+     2205,
+     2737,
+     3252,
+     3762,
+     4275,
+     4787,
+     5340,
+     5596,
+     6105,
+     6617,
+     7128
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "audio_opus.opus": {
+    "playing": true,
+    "events": [
+     {
+      "engine": "vlckit",
+      "media": "audio_opus.opus",
+      "at": 1793688640.706337,
+      "event": "open"
+     }
+    ],
+    "error": null,
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "duration_ms": 11927,
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "positions_ms": [
+     0,
+     824,
+     824,
+     1820,
+     1820,
+     2831,
+     2831,
+     3828,
+     3828,
+     4833,
+     4833,
+     5833,
+     5833,
+     6822,
+     6822
+    ],
+    "engine": "vlckit",
+    "position_ms": 6822,
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "audio_vorbis.ogg": {
+    "position_ms": 7072,
+    "duration_ms": 12000,
+    "engine": "vlckit",
+    "error": null,
+    "playing": true,
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "events": [
+     {
+      "media": "audio_vorbis.ogg",
+      "engine": "vlckit",
+      "at": 1793688649.798092,
+      "event": "open"
+     }
+    ],
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "positions_ms": [
+     0,
+     0,
+     941,
+     941,
+     1965,
+     1965,
+     2978,
+     2978,
+     3999,
+     3999,
+     5025,
+     5025,
+     6046,
+     6046,
+     7072
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "audio_ac3.ac3": {
+    "engine": "vlckit",
+    "error": null,
+    "playing": true,
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "events": [
+     {
+      "event": "open",
+      "engine": "vlckit",
+      "at": 1793688659.418765,
+      "media": "audio_ac3.ac3"
+     }
+    ],
+    "duration_ms": 12016,
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "positions_ms": [
+     58,
+     408,
+     1000,
+     1655,
+     1936,
+     2530,
+     3191,
+     3473,
+     4134,
+     4405,
+     5069,
+     5666,
+     5942,
+     6601,
+     7127,
+     7469
+    ],
+    "position_ms": 7469,
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "audio_pcm.wav": {
+    "duration_ms": 12000,
+    "positions_ms": [
+     200,
+     758,
+     1310,
+     1608,
+     2212,
+     2810,
+     3112,
+     3661,
+     4210,
+     4711,
+     5307,
+     5851,
+     6108,
+     6704,
+     7259,
+     7810,
+     8358
+    ],
+    "error": null,
+    "playing": true,
+    "position_ms": 8358,
+    "tracks": [
+     "audio Disable",
+     "audio Track 1"
+    ],
+    "engine": "vlckit",
+    "events": [
+     {
+      "at": 1793688668.9997091,
+      "engine": "vlckit",
+      "media": "audio_pcm.wav",
+      "event": "open"
+     }
+    ],
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "picture": {
+     "max_lightness": 0,
+     "distinct": 1
+    },
+    "verdict": "plays"
+   },
+   "h264_aac.mp4+subs.srt": {
+    "events": [
+     {
+      "event": "open",
+      "media": "h264_aac.mp4",
+      "engine": "vlckit",
+      "at": 1793688679.3534532
+     }
+    ],
+    "duration_ms": 12000,
+    "engine": "vlckit",
+    "states": [
+     "VLCMediaPlayerStateBuffering"
+    ],
+    "position_ms": 7410,
+    "playing": true,
+    "error": null,
+    "tracks": [
+     "audio Disable",
+     "audio Track 1",
+     "text Disable",
+     "text Track 1"
+    ],
+    "positions_ms": [
+     0,
+     410,
+     903,
+     1158,
+     1910,
+     2405,
+     2908,
+     3160,
+     3655,
+     4156,
+     4658,
+     5159,
+     5661,
+     6405,
+     6908,
+     7410
+    ],
+    "picture": {
+     "max_lightness": 226,
+     "distinct": 18
+    },
+    "verdict": "plays"
+   }
+  },
+  "seek": {
+   "playing": true,
+   "states": [
+    "VLCMediaPlayerStateBuffering"
+   ],
+   "position_ms": 28193,
+   "events": [
+    {
+     "engine": "vlckit",
+     "at": 1793688689.216269,
+     "media": "long_60s.mp4",
+     "event": "open"
+    },
+    {
+     "to_ms": 20000,
+     "event": "seek",
+     "at": 1793688692.3587232
+    }
+   ],
+   "engine": "vlckit",
+   "duration_ms": 60000,
+   "error": null,
+   "tracks": [
+    "audio Disable",
+    "audio Track 1"
+   ],
+   "positions_ms": [
+    150,
+    410,
+    910,
+    1657,
+    2158,
+    2659,
+    20000,
+    20693,
+    20944,
+    21691,
+    21941,
+    22440,
+    22941,
+    23441,
+    23943,
+    24694,
+    24945,
+    25691,
+    26184,
+    26686,
+    26943,
+    27437,
+    28193
+   ],
+   "picture": {
+    "max_lightness": 226,
+    "distinct": 23
+   }
+  },
+  "rotate": {
+   "duration_ms": 60000,
+   "states": [
+    "VLCMediaPlayerStateBuffering"
+   ],
+   "error": null,
+   "events": [
+    {
+     "media": "long_60s.mp4",
+     "engine": "vlckit",
+     "event": "open",
+     "at": 1793688703.883991
+    },
+    {
+     "position_ms": 2659,
+     "at": 1793688707.017009,
+     "event": "rotate"
+    },
+    {
+     "event": "rotated",
+     "at": 1793688708.0693521,
+     "width": 667,
+     "height": 375
+    }
+   ],
+   "playing": true,
+   "tracks": [
+    "audio Disable",
+    "audio Track 1"
+   ],
+   "positions_ms": [
+    154,
+    404,
+    905,
+    1654,
+    2161,
+    2659,
+    2910,
+    3659,
+    4160,
+    4660,
+    5161,
+    5657,
+    5909,
+    6408,
+    7157,
+    7655,
+    7909,
+    8660,
+    9152,
+    9654,
+    10159
+   ],
+   "position_ms": 10159,
+   "engine": "vlckit",
+   "picture": {
+    "max_lightness": 226,
+    "distinct": 26
+   }
+  },
+  "leave_and_return": {
+   "position_ms": 15159,
+   "tracks": [
+    "audio Disable",
+    "audio Track 1"
+   ],
+   "positions_ms": [
+    159,
+    410,
+    904,
+    1658,
+    2151,
+    2408,
+    2909,
+    3660,
+    4158,
+    4658,
+    5160,
+    5651,
+    6160,
+    6658,
+    7156,
+    7454,
+    8159,
+    8411,
+    8916,
+    8916,
+    8916,
+    8916,
+    8916,
+    8916,
+    8916,
+    8916,
+    8916,
+    8916,
+    8916,
+    8916,
+    8916,
+    9156,
+    9659,
+    9920,
+    10659,
+    11151,
+    11410,
+    12153,
+    12409,
+    12912,
+    13658,
+    14157,
+    14651,
+    15159
+   ],
+   "engine": "vlckit",
+   "duration_ms": 60000,
+   "playing": true,
+   "events": [
+    {
+     "at": 1793688716.934171,
+     "media": "long_60s.mp4",
+     "engine": "vlckit",
+     "event": "open"
+    },
+    {
+     "at": 1793688726.260746,
+     "position_ms": 8916,
+     "event": "background",
+     "playing": true
+    },
+    {
+     "playing": false,
+     "at": 1793688732.7158508,
+     "position_ms": 8916,
+     "event": "foreground"
+    }
+   ],
+   "states": [
+    "VLCMediaPlayerStateBuffering",
+    "VLCMediaPlayerStatePaused",
+    "VLCMediaPlayerStatePlaying"
+   ],
+   "error": null,
+   "picture": {
+    "max_lightness": 226,
+    "distinct": 23
+   },
+   "position_while_away_ms": 8916
+  }
+ }
+}
