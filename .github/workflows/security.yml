@@ -1,0 +1,29 @@
+name: Monthly security check
+
+# Fails when a Python package version the Windows app ships has a known vulnerability, so GitHub
+# notifies the maintainer. It does not cover libVLC or the Android and iOS libraries (docs/SUPPORT.md).
+on:
+  schedule:
+    - cron: "17 6 3 * *"
+  workflow_dispatch:
+  push:
+    branches: ["m[0-9]*"]
+    paths:
+      - "requirements/**"
+      - ".github/workflows/security.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install pip-audit
+      # Only the pinned names and versions are sent to the advisory service.
+      - run: python -m pip_audit -r requirements/windows-runtime.txt --no-deps --disable-pip
