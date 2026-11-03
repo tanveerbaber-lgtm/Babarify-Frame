@@ -11,6 +11,9 @@ final class ProbeApp: UIResponder, UIApplicationDelegate {
     private let video = UIView()
     private var events: [[String: Any]] = []
     private var positions: [Int] = []
+    // A finished player forgets its tracks, so keep the longest list seen.
+    private var longestTracks: [String] = []
+    private var statesSeen: [String] = []
     private var ticker: Timer?
     private let defaults = UserDefaults.standard
 
@@ -85,7 +88,11 @@ final class ProbeApp: UIResponder, UIApplicationDelegate {
     }
 
     private func tick() {
-        if let engine { positions.append(engine.positionMs) }
+        if let engine {
+            positions.append(engine.positionMs)
+            if engine.tracks.count > longestTracks.count { longestTracks = engine.tracks }
+            if statesSeen.last != engine.stateName { statesSeen.append(engine.stateName) }
+        }
         write()
     }
 
@@ -116,7 +123,8 @@ final class ProbeApp: UIResponder, UIApplicationDelegate {
             "duration_ms": engine?.durationMs ?? 0,
             "playing": engine?.isPlaying ?? false,
             "error": engine?.lastError ?? NSNull(),
-            "tracks": engine?.tracks ?? [],
+            "tracks": longestTracks,
+            "states": statesSeen,
             "positions_ms": positions,
             "events": events,
         ]

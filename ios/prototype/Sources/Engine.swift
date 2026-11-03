@@ -7,6 +7,7 @@ protocol Engine: AnyObject {
     var durationMs: Int { get }
     var isPlaying: Bool { get }
     var lastError: String? { get }
+    var stateName: String { get }
     var tracks: [String] { get }
 
     func attach(to view: UIView)

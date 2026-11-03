@@ -123,6 +123,11 @@ def main() -> int:
         if runtime["isAvailable"]
     ]
 
+    booted = json.loads(simctl("list", "devices", "booted", "--json"))["devices"]
+    results["device"] = [
+        {"runtime": runtime, "name": device["name"]} for runtime, group in booted.items() for device in group
+    ]
+
     def save() -> None:
         (args.output / "results.json").write_text(json.dumps(results, indent=1), "utf-8")
 

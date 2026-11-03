@@ -10,6 +10,7 @@ final class VLCKitEngine: NSObject, Engine, VLCMediaPlayerDelegate {
     var durationMs: Int { Int(player.media?.length.intValue ?? 0) }
     var isPlaying: Bool { player.isPlaying }
     var lastError: String? { failure }
+    var stateName: String { VLCMediaPlayerStateToString(player.state) }
 
     var tracks: [String] {
         let audio = (player.audioTrackNames as? [String] ?? []).map { "audio \($0)" }

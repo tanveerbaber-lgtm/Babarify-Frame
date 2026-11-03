@@ -20,6 +20,14 @@ final class AVPlayerEngine: Engine {
 
     var isPlaying: Bool { player.timeControlStatus == .playing }
 
+    var stateName: String {
+        switch player.timeControlStatus {
+        case .playing: return "playing"
+        case .paused: return "paused"
+        default: return "waiting"
+        }
+    }
+
     var lastError: String? {
         failure ?? player.currentItem?.error?.localizedDescription
     }
