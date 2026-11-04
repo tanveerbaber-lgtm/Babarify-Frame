@@ -6,6 +6,7 @@ import com.babarify.frame.core.EqualizerSettings
 import com.babarify.frame.core.LeaveAction
 import com.babarify.frame.core.PictureSettings
 import com.babarify.frame.core.PlaybackRules
+import com.babarify.frame.core.RepeatMode
 import com.babarify.frame.core.SortOrder
 import com.babarify.frame.core.SubtitleStyle
 import org.json.JSONArray
@@ -70,6 +71,10 @@ class Preferences(context: Context) {
     var leaveAction: LeaveAction
         get() = enumValue("leave_action", LeaveAction.STOP)
         set(value) = store.edit().putString("leave_action", value.name).apply()
+
+    var repeatMode: RepeatMode
+        get() = enumValue("repeat_mode", RepeatMode.OFF)
+        set(value) = store.edit().putString("repeat_mode", value.name).apply()
 
     var librarySort: SortOrder
         get() = enumValue("library_sort", SortOrder.NAME)

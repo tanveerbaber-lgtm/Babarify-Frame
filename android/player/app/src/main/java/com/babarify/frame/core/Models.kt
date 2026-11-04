@@ -27,6 +27,9 @@ data class QueueItem(val uri: String, val title: String)
 /** What happens when the user leaves the player without closing it. */
 enum class LeaveAction { STOP, AUDIO, PICTURE }
 
+/** What happens when a file ends. */
+enum class RepeatMode { OFF, ONE, ALL }
+
 enum class SortOrder { NAME, DATE_ADDED, RECENTLY_PLAYED, DURATION, SIZE }
 
 /** The look of plain-text subtitles; ASS and SSA files keep their own styling, as on desktop. */

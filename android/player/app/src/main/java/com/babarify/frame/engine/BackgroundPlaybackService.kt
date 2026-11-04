@@ -9,30 +9,46 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.drawable.Icon
 import android.media.MediaMetadata
+import android.media.MediaMetadataRetriever
 import android.media.session.MediaSession
 import android.media.session.PlaybackState as MediaPlaybackState
+import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.os.PowerManager
 import com.babarify.frame.R
 import com.babarify.frame.core.ErrorCode
 import com.babarify.frame.core.PlaybackState
+import com.babarify.frame.core.RepeatMode
 import com.babarify.frame.ui.PlayerActivity
+import java.io.IOException
+import java.util.concurrent.Executors
 
 /**
- * Keeps sound going after the player screen has gone, only when the user chose that in Settings.
- * The notification is how they see it is happening and how they stop it.
+ * The mini player: keeps sound going after the player screen or the whole app has gone, for audio
+ * files, and for video when the user chose that in Settings. The notification is how they see it
+ * is happening, and only that notification closes it.
  */
 class BackgroundPlaybackService : Service(), SessionListener {
     private lateinit var session: PlaybackSession
     private lateinit var mediaSession: MediaSession
     private lateinit var wakeLock: PowerManager.WakeLock
+    private val handler = Handler(Looper.getMainLooper())
+    private val refreshAgain = Runnable { refresh() }
+    private val worker = Executors.newSingleThreadExecutor()
+    private var cover: Bitmap? = null
+    private var closing = false
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
+        running = true
         session = PlaybackSession.get(this)
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(
@@ -56,10 +72,14 @@ class BackgroundPlaybackService : Service(), SessionListener {
                     refresh()
                 }
                 override fun onStop() = stopEverything()
+                override fun onCustomAction(action: String, extras: Bundle?) {
+                    if (action == ACTION_STOP) stopEverything()
+                }
             })
             isActive = true
         }
         session.addListener(this)
+        loadCover()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -75,14 +95,14 @@ class BackgroundPlaybackService : Service(), SessionListener {
         return START_NOT_STICKY
     }
 
-    /** Swiping the app away from recent apps ends it, sound included. */
-    override fun onTaskRemoved(rootIntent: Intent?) {
-        stopEverything()
-        super.onTaskRemoved(rootIntent)
-    }
-
     override fun onDestroy() {
         session.removeListener(this)
+        closing = true
+        running = false
+        handler.removeCallbacksAndMessages(null)
+        worker.shutdownNow()
+        // Android removes a foreground service's notification, but not one posted just as it stops.
+        getSystemService(NotificationManager::class.java).cancel(NOTIFICATION_ID)
         if (wakeLock.isHeld) wakeLock.release()
         mediaSession.release()
         super.onDestroy()
@@ -91,34 +111,80 @@ class BackgroundPlaybackService : Service(), SessionListener {
     override fun onPlaybackStateChanged(state: PlaybackState, error: ErrorCode?) {
         if (state == PlaybackState.ENDED || state == PlaybackState.ERROR) {
             if (!PlayerActivity.isVisible) session.stop()
-            stopSelf()
+            close()
             return
         }
         refresh()
+        // The file's length is often known only just after it starts.
+        handler.removeCallbacks(refreshAgain)
+        handler.postDelayed(refreshAgain, REFRESH_AFTER_START_MS)
     }
 
-    override fun onMediaChanged() = refresh()
+    override fun onMediaChanged() {
+        loadCover()
+        refresh()
+    }
+
+    /** The picture inside a music file, if it has one. Read away from the main thread. */
+    private fun loadCover() {
+        val uri = session.mediaUri ?: return
+        cover = null
+        worker.execute {
+            val retriever = MediaMetadataRetriever()
+            val picture = try {
+                retriever.setDataSource(this, uri)
+                retriever.embeddedPicture?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
+            } catch (_: RuntimeException) {
+                null
+            } finally {
+                try {
+                    retriever.release()
+                } catch (_: IOException) {
+                    // Nothing more to do with it.
+                }
+            }
+            handler.post {
+                if (session.mediaUri == uri) {
+                    cover = picture
+                    refresh()
+                }
+            }
+        }
+    }
 
     private fun stopEverything() {
         session.stop()
         session.wantsToPlay = false
+        session.clearMedia()
         PlayerActivity.closeRequested?.invoke()
+        close()
+    }
+
+    /** Nothing may redraw the notification after this, or a dead one would stay behind. */
+    private fun close() {
+        closing = true
+        handler.removeCallbacksAndMessages(null)
+        stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
     private fun refresh() {
+        if (closing) return
         val playing = session.isPlaying
         if (playing) wakeLock.acquire(WAKE_LOCK_MS) else if (wakeLock.isHeld) wakeLock.release()
         mediaSession.setMetadata(
             MediaMetadata.Builder()
                 .putString(MediaMetadata.METADATA_KEY_TITLE, session.title)
                 .putLong(MediaMetadata.METADATA_KEY_DURATION, session.durationMs ?: -1)
+                .apply { cover?.let { putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, it) } }
                 .build(),
         )
         var actions = MediaPlaybackState.ACTION_PLAY_PAUSE or MediaPlaybackState.ACTION_PLAY or
             MediaPlaybackState.ACTION_PAUSE or MediaPlaybackState.ACTION_SEEK_TO or MediaPlaybackState.ACTION_STOP or
             MediaPlaybackState.ACTION_SKIP_TO_PREVIOUS
-        if (session.queue.hasNext) actions = actions or MediaPlaybackState.ACTION_SKIP_TO_NEXT
+        if (session.queue.hasNext || session.repeatMode == RepeatMode.ALL) {
+            actions = actions or MediaPlaybackState.ACTION_SKIP_TO_NEXT
+        }
         mediaSession.setPlaybackState(
             MediaPlaybackState.Builder()
                 .setActions(actions)
@@ -127,6 +193,8 @@ class BackgroundPlaybackService : Service(), SessionListener {
                     session.positionMs,
                     if (playing) session.rate else 0f,
                 )
+                // Android 13+ builds its media controls from here, not from the notification's own buttons.
+                .addCustomAction(ACTION_STOP, getString(R.string.close_mini_player), android.R.drawable.ic_menu_close_clear_cancel)
                 .build(),
         )
         postNotification()
@@ -153,6 +221,8 @@ class BackgroundPlaybackService : Service(), SessionListener {
             .setContentTitle(session.title.ifEmpty { getString(R.string.app_name) })
             .setContentIntent(open)
             .setOngoing(playing)
+            .setDeleteIntent(serviceIntent(ACTION_STOP))
+            .apply { cover?.let { setLargeIcon(it) } }
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .addAction(action(android.R.drawable.ic_media_previous, R.string.previous, ACTION_PREVIOUS))
             .addAction(
@@ -169,23 +239,28 @@ class BackgroundPlaybackService : Service(), SessionListener {
     }
 
     private fun action(icon: Int, label: Int, name: String): Notification.Action {
-        val intent = PendingIntent.getService(
-            this,
-            name.hashCode(),
-            Intent(this, BackgroundPlaybackService::class.java).setAction(name),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-        )
-        return Notification.Action.Builder(Icon.createWithResource(this, icon), getString(label), intent).build()
+        return Notification.Action.Builder(Icon.createWithResource(this, icon), getString(label), serviceIntent(name)).build()
     }
+
+    private fun serviceIntent(name: String): PendingIntent = PendingIntent.getService(
+        this,
+        name.hashCode(),
+        Intent(this, BackgroundPlaybackService::class.java).setAction(name),
+        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+    )
 
     companion object {
         private const val CHANNEL = "playback"
         private const val NOTIFICATION_ID = 1
+        private const val REFRESH_AFTER_START_MS = 1_000L
         private const val WAKE_LOCK_MS = 6L * 60 * 60 * 1000
         private const val ACTION_TOGGLE = "com.babarify.frame.action.TOGGLE"
         private const val ACTION_NEXT = "com.babarify.frame.action.NEXT"
         private const val ACTION_PREVIOUS = "com.babarify.frame.action.PREVIOUS"
         private const val ACTION_STOP = "com.babarify.frame.action.STOP"
+
+        var running = false
+            private set
 
         fun start(context: Context) {
             context.startForegroundService(Intent(context, BackgroundPlaybackService::class.java))

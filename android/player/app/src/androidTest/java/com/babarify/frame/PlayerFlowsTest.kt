@@ -43,6 +43,9 @@ class PlayerFlowsTest {
 
     @Before
     fun clearHistory() {
+        // Audio from an earlier test may still be playing on, as it does for users.
+        instrumentation.runOnMainSync { com.babarify.frame.engine.PlaybackSession.get(context).clearMedia() }
+        com.babarify.frame.engine.BackgroundPlaybackService.stop(context)
         history = HistoryStore(context)
         history.clear()
         if (!fontCache().exists()) {

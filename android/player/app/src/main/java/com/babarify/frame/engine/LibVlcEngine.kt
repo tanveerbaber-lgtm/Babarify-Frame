@@ -44,6 +44,10 @@ class LibVlcEngine(
         get() = player.currentVideoTrack?.takeIf { it.width > 0 && it.height > 0 }?.let { it.width to it.height }
     override val volume: Int
         get() = player.volume
+    override val hasVideoTrack: Boolean
+        get() = player.videoTracksCount > 0
+    override var openedWithoutVideo = false
+        private set
 
     init {
         player.setEventListener { event ->
@@ -99,7 +103,7 @@ class LibVlcEngine(
         player.vlcVout.setWindowSize(width, height)
     }
 
-    override fun open(media: Uri, subtitle: File?, startMs: Long, startPaused: Boolean) {
+    override fun open(media: Uri, subtitle: File?, startMs: Long, startPaused: Boolean, withVideo: Boolean) {
         val fd = try {
             appContext.contentResolver.openFileDescriptor(media, "r")
         } catch (e: FileNotFoundException) {
@@ -114,6 +118,8 @@ class LibVlcEngine(
         item.setHWDecoderEnabled(options.hardwareDecoding, false)
         if (startMs > 0) item.addOption(":start-time=${startMs / 1000.0}")
         if (startPaused) item.addOption(":start-paused")
+        if (!withVideo) item.addOption(":no-video")
+        openedWithoutVideo = !withVideo
         if (subtitle != null) {
             item.addSlave(IMedia.Slave(IMedia.Slave.Type.Subtitle, 4, Uri.fromFile(subtitle).toString()))
         }

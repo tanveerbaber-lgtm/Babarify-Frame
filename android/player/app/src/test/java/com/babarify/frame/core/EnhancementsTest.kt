@@ -123,6 +123,25 @@ class EnhancementsTest {
     }
 
     @Test
+    fun repeatDecidesWhatPlaysAtTheEnd() {
+        val items = listOf(QueueItem("a", "A"), QueueItem("b", "B"))
+        val off = PlayQueue(items, 1)
+        assertNull("off stops at the end", off.afterEnd(RepeatMode.OFF))
+        val first = PlayQueue(items, 0)
+        assertEquals("off moves on", "B", first.afterEnd(RepeatMode.OFF)?.title)
+        val one = PlayQueue(items, 1)
+        assertEquals("one stays", "B", one.afterEnd(RepeatMode.ONE)?.title)
+        assertEquals(1, one.index)
+        val all = PlayQueue(items, 1)
+        assertEquals("all goes round", "A", all.afterEnd(RepeatMode.ALL)?.title)
+        assertEquals(0, all.index)
+        assertEquals("a single file repeats with all", "A", PlayQueue(listOf(items[0])).afterEnd(RepeatMode.ALL)?.title)
+        assertEquals("next goes round with all", "A", PlayQueue(items, 1).nextPressed(RepeatMode.ALL)?.title)
+        assertNull("next stops otherwise", PlayQueue(items, 1).nextPressed(RepeatMode.ONE))
+        assertNull(PlayQueue(emptyList()).afterEnd(RepeatMode.ONE))
+    }
+
+    @Test
     fun queueMovesAndStopsAtItsEnds() {
         val queue = PlayQueue(listOf(QueueItem("a", "A"), QueueItem("b", "B")), 0)
         assertTrue(queue.isPlaylist)

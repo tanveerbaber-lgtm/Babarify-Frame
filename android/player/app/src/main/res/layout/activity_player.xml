@@ -199,6 +199,12 @@
                     android:contentDescription="@string/subtitles"
                     android:src="@drawable/ic_subtitles" />
 
+                <ImageButton
+                    android:id="@+id/repeatButton"
+                    style="@style/ToolIcon"
+                    android:contentDescription="@string/repeat_off_label"
+                    android:src="@drawable/ic_repeat" />
+
                 <Button
                     android:id="@+id/speedButton"
                     style="@style/ToolText" />

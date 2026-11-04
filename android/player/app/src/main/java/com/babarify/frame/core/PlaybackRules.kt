@@ -78,6 +78,12 @@ object PlaybackRules {
         return extension in VIDEO_EXTENSIONS || extension in AUDIO_EXTENSIONS
     }
 
+    fun isAudioName(name: String): Boolean = name.substringAfterLast('.', "").lowercase() in AUDIO_EXTENSIONS
+
+    /** Audio has no picture to miss, so it plays on with the app closed. Cover art isn't a picture to watch. */
+    fun isAudioOnly(name: String, progressed: Boolean, hasVideoTrack: Boolean): Boolean =
+        isAudioName(name) || (progressed && !hasVideoTrack)
+
     /** Normal volume is 1 to 100; only an allowed boost goes on to 200. Silence is mute's job. */
     fun volumeMaximum(allowBoost: Boolean): Int = if (allowBoost) VOLUME_BOOST_MAX else VOLUME_NORMAL_MAX
 

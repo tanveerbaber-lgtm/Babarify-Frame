@@ -19,6 +19,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.babarify.frame.core.LeaveAction
 import com.babarify.frame.core.PictureSettings
 import com.babarify.frame.core.PlaybackState
+import com.babarify.frame.core.RepeatMode
 import com.babarify.frame.core.SortOrder
 import com.babarify.frame.core.SubtitleStyle
 import com.babarify.frame.core.TrackKind
@@ -26,6 +27,7 @@ import com.babarify.frame.core.VideoTransform
 import com.babarify.frame.data.HistoryStore
 import com.babarify.frame.data.LibraryStore
 import com.babarify.frame.data.Preferences
+import com.babarify.frame.engine.BackgroundPlaybackService
 import com.babarify.frame.engine.PlaybackSession
 import com.babarify.frame.ui.HomeActivity
 import com.babarify.frame.ui.LibraryActivity
@@ -58,9 +60,16 @@ class FeatureFlowsTest {
     fun setUp() {
         preferences = Preferences(context)
         preferences.resetToDefaults()
-        session().setVolumeLevel(100)
         library = LibraryStore(context)
         history = HistoryStore(context)
+        instrumentation.runOnMainSync {
+            session().clearMedia()
+            while (session().repeatMode != RepeatMode.OFF) session().cycleRepeat()
+            session().setVolumeLevel(100)
+        }
+        BackgroundPlaybackService.stop(context)
+        val notifications = context.getSystemService(NotificationManager::class.java)
+        waitUntil("no notification left over", 5_000) { notifications.activeNotifications.isEmpty() }
         history.clear()
         clearLibrary()
     }
@@ -332,6 +341,9 @@ class FeatureFlowsTest {
             assertFalse(session().queue.hasNext)
             assertFalse(scenario.read { it.findViewById<View>(R.id.nextButton).isEnabled })
         }
+        // Music started the mini player; closing on a video must leave nothing behind.
+        val manager = context.getSystemService(NotificationManager::class.java)
+        waitUntil("mini player gone", 5_000) { manager.activeNotifications.isEmpty() }
     }
 
     // ------------------------------------------------- leaving the player
@@ -381,6 +393,147 @@ class FeatureFlowsTest {
             val before = scenario.read { it.currentPositionMs }
             waitUntil("still playing") { scenario.read { it.currentPositionMs } > before + 1_000 }
             waitUntil("controls hidden", 2_000) { scenario.read { it.controlsView.visibility } == View.GONE }
+        }
+    }
+
+    // ---------------------------------------------------------------- music
+    @Test
+    fun audioPlaysOnAfterClosingAndClosesFromTheNotification() {
+        val manager = context.getSystemService(NotificationManager::class.java)
+        open("audio_60s.m4a").use { scenario ->
+            scenario.waitForProgress(1_000)
+            waitUntil("mini player shown", 5_000) { manager.activeNotifications.isNotEmpty() }
+        } // Closes the screen, as Back does.
+        assertEquals("audio keeps playing", PlaybackState.PLAYING, session().state)
+        val away = session().positionMs
+        waitUntil("position moves with the app closed", 8_000) { session().positionMs > away + 1_500 }
+        assertTrue(manager.activeNotifications.isNotEmpty())
+
+        context.startService(
+            Intent(context, BackgroundPlaybackService::class.java).setAction("com.babarify.frame.action.TOGGLE"),
+        )
+        waitUntil("paused from the notification", 5_000) { session().state == PlaybackState.PAUSED }
+        assertTrue("still there while paused", manager.activeNotifications.isNotEmpty())
+
+        context.startService(
+            Intent(context, BackgroundPlaybackService::class.java).setAction("com.babarify.frame.action.STOP"),
+        )
+        waitUntil("closed from the notification", 5_000) { session().engine == null }
+        waitUntil("mini player gone", 5_000) { manager.activeNotifications.isEmpty() }
+    }
+
+    @Test
+    fun comingBackToPlayingMusicJoinsItInsteadOfRestarting() {
+        open("audio_60s.m4a").use { it.waitForProgress(2_000) }
+        val engine = session().engine
+        assertNotNull(engine)
+        open("audio_60s.m4a").use { scenario ->
+            assertSame(engine, scenario.read { it.engineInstance })
+            assertTrue(scenario.read { it.currentPositionMs } >= 2_000)
+        }
+    }
+
+    @Test
+    fun aVideoStillStopsOnLeavingEvenAfterMusic() {
+        open("audio_60s.m4a").use { it.waitForProgress() }
+        open("long_60s.mp4").use { it.waitForProgress() }
+        assertNull(session().engine)
+    }
+
+    @Test
+    fun repeatButtonCyclesAndIsRemembered() {
+        open("long_60s.mp4").use { scenario ->
+            scenario.waitForProgress()
+            val labels = (1..3).map {
+                scenario.onActivity { activity -> activity.findViewById<View>(R.id.repeatButton).performClick() }
+                scenario.read { activity -> activity.findViewById<View>(R.id.repeatButton).contentDescription.toString() }
+            }
+            assertEquals(
+                listOf(R.string.repeat_one_label, R.string.repeat_all_label, R.string.repeat_off_label).map(context::getString),
+                labels,
+            )
+            scenario.onActivity { session().cycleRepeat() }
+            assertEquals(RepeatMode.ONE, Preferences(context).repeatMode)
+        }
+    }
+
+    @Test
+    fun repeatOnePlaysTheSameFileAgain() {
+        instrumentation.runOnMainSync { session().cycleRepeat() }
+        assertEquals(RepeatMode.ONE, session().repeatMode)
+        open("c_audio_aac.m4a").use { scenario ->
+            scenario.waitForProgress(5_000)
+            var wentBack = false
+            val end = SystemClock.elapsedRealtime() + 20_000
+            var last = scenario.read { it.currentPositionMs }
+            while (SystemClock.elapsedRealtime() < end && !wentBack) {
+                SystemClock.sleep(200)
+                val now = scenario.read { it.currentPositionMs }
+                if (now < last - 2_000) wentBack = true
+                last = now
+            }
+            assertTrue("never started again", wentBack)
+            waitUntil("playing again") { scenario.read { it.playbackState } == PlaybackState.PLAYING }
+            assertEquals("c_audio_aac.m4a", session().title)
+        }
+    }
+
+    @Test
+    fun repeatAllGoesBackToTheFirstFile() {
+        instrumentation.runOnMainSync {
+            session().cycleRepeat()
+            session().cycleRepeat()
+        }
+        assertEquals(RepeatMode.ALL, session().repeatMode)
+        val items = listOf("s_sidecar_720p.mp4", "c_audio_aac.m4a")
+        val intent = playerIntent(TestMediaProvider.uri(items[1]))
+            .putStringArrayListExtra(PlayerActivity.EXTRA_QUEUE_URIS, ArrayList(items.map { TestMediaProvider.uri(it).toString() }))
+            .putStringArrayListExtra(PlayerActivity.EXTRA_QUEUE_TITLES, ArrayList(items))
+            .putExtra(PlayerActivity.EXTRA_QUEUE_INDEX, 1)
+        ActivityScenario.launch<PlayerActivity>(intent).use { scenario ->
+            scenario.waitForProgress()
+            waitUntil("first file again", 30_000) { session().title == items[0] }
+            waitUntil("it plays") { scenario.read { it.playbackState } == PlaybackState.PLAYING }
+        }
+    }
+
+    // -------------------------------------------------------------- playlists
+    @Test
+    fun mediaCanBeAddedToAPlaylistFromFiles() {
+        val id = library.createPlaylist("Added")
+        val intent = Intent(context, PlaylistActivity::class.java).putExtra(PlaylistActivity.EXTRA_ID, id)
+        ActivityScenario.launch<PlaylistActivity>(intent).use { scenario ->
+            assertEquals(View.VISIBLE, scenario.read { it.findViewById<View>(R.id.playlistsAdd).visibility })
+            scenario.onActivity {
+                it.addFiles(listOf(TestMediaProvider.uri("audio_60s.m4a"), TestMediaProvider.uri("long_60s.mp4")))
+            }
+            assertEquals(listOf("audio_60s.m4a", "long_60s.mp4"), scenario.read { it.shownItems }.map { it.title })
+        }
+        assertEquals(2, library.playlists().single().itemCount)
+    }
+
+    @Test
+    fun pickingSeveralFilesAddsThemAll() {
+        val id = library.createPlaylist("Picked")
+        val uris = listOf(TestMediaProvider.uri("audio_60s.m4a"), TestMediaProvider.uri("c_audio_aac.m4a"))
+        val picker = object : android.app.Instrumentation.ActivityMonitor() {
+            override fun onStartActivity(intent: Intent): android.app.Instrumentation.ActivityResult? {
+                if (intent.action != Intent.ACTION_OPEN_DOCUMENT) return null
+                assertTrue(intent.getBooleanExtra(Intent.EXTRA_ALLOW_MULTIPLE, false))
+                val clip = android.content.ClipData.newRawUri("files", uris[0])
+                clip.addItem(android.content.ClipData.Item(uris[1]))
+                return android.app.Instrumentation.ActivityResult(android.app.Activity.RESULT_OK, Intent().also { it.clipData = clip })
+            }
+        }
+        instrumentation.addMonitor(picker)
+        try {
+            val intent = Intent(context, PlaylistActivity::class.java).putExtra(PlaylistActivity.EXTRA_ID, id)
+            ActivityScenario.launch<PlaylistActivity>(intent).use { scenario ->
+                scenario.onActivity { it.findViewById<View>(R.id.playlistsAdd).performClick() } // Empty library: goes straight to files.
+                waitUntil("files added", 8_000) { scenario.read { it.shownItems }.size == 2 }
+            }
+        } finally {
+            instrumentation.removeMonitor(picker)
         }
     }
 
@@ -667,7 +820,7 @@ class FeatureFlowsTest {
             scenario.waitForProgress()
             val ids = listOf(
                 R.id.closeButton, R.id.moreButton, R.id.backButton, R.id.playButton, R.id.forwardButton,
-                R.id.audioButton, R.id.subtitleButton, R.id.volumeButton, R.id.fitButton, R.id.rotateButton,
+                R.id.audioButton, R.id.subtitleButton, R.id.repeatButton, R.id.speedButton, R.id.volumeButton, R.id.fitButton, R.id.rotateButton,
             )
             for (id in ids) {
                 val description = scenario.read { it.findViewById<View>(id).contentDescription?.toString().orEmpty() }

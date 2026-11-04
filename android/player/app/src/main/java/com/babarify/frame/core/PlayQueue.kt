@@ -12,6 +12,21 @@ class PlayQueue(val items: List<QueueItem>, startIndex: Int = 0) {
     fun next(): QueueItem? = if (hasNext) items[++index] else null
 
     fun previous(): QueueItem? = if (hasPrevious) items[--index] else null
+
+    /** What plays when the current file ends; null means playback stops. */
+    fun afterEnd(mode: RepeatMode): QueueItem? = when (mode) {
+        RepeatMode.ONE -> items.getOrNull(index)
+        RepeatMode.ALL -> next() ?: first()
+        RepeatMode.OFF -> next()
+    }
+
+    /** Next chosen by the user: only repeating everything goes round from the end. */
+    fun nextPressed(mode: RepeatMode): QueueItem? = next() ?: if (mode == RepeatMode.ALL) first() else null
+
+    private fun first(): QueueItem? {
+        index = 0
+        return items.firstOrNull()
+    }
 }
 
 /** A-B repeat: the first press sets A, the second sets B and starts repeating, the third clears. */

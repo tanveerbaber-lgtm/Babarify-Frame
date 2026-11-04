@@ -23,6 +23,10 @@ interface PlayerEngine {
     val durationMs: Long?
     val videoSize: Pair<Int, Int>?
     val volume: Int
+    val hasVideoTrack: Boolean
+
+    /** Opened with nothing to draw on: showing a picture needs opening it again. */
+    val openedWithoutVideo: Boolean
 
     fun attachVideo(view: TextureView)
 
@@ -31,7 +35,7 @@ interface PlayerEngine {
     fun setWindowSize(width: Int, height: Int)
 
     /** Throws [MediaAccessException] when the file cannot be reached. */
-    fun open(media: Uri, subtitle: File?, startMs: Long, startPaused: Boolean)
+    fun open(media: Uri, subtitle: File?, startMs: Long, startPaused: Boolean, withVideo: Boolean = true)
     fun play()
     fun pause()
     fun seekTo(positionMs: Long)
