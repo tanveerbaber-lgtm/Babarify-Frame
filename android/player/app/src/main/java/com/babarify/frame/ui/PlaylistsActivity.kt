@@ -11,8 +11,10 @@ import android.widget.ListView
 import android.widget.TextView
 import com.babarify.frame.R
 import com.babarify.frame.data.LibraryStore
+import com.babarify.frame.data.MediaEntry
 import com.babarify.frame.data.Playlist
 import com.babarify.frame.data.PlaylistItem
+import com.babarify.frame.engine.PlaybackSession
 
 class PlaylistsActivity : Activity() {
     private lateinit var store: LibraryStore
@@ -32,11 +34,7 @@ class PlaylistsActivity : Activity() {
         val list = findViewById<ListView>(R.id.playlistsList)
         list.adapter = adapter
         list.setOnItemClickListener { _, _, position, _ ->
-            startActivity(
-                Intent(this, PlaylistActivity::class.java)
-                    .putExtra(PlaylistActivity.EXTRA_ID, playlists[position].id)
-                    .putExtra(PlaylistActivity.EXTRA_NAME, playlists[position].name),
-            )
+            openPlaylist(playlists[position].id, playlists[position].name)
         }
         list.setOnItemLongClickListener { _, _, position, _ ->
             manage(playlists[position])
@@ -47,8 +45,7 @@ class PlaylistsActivity : Activity() {
             setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_add, 0, 0, 0)
             setOnClickListener {
                 askPlaylistName(this@PlaylistsActivity, null) { name ->
-                    store.createPlaylist(name)
-                    refresh()
+                    openPlaylist(store.createPlaylist(name), name) // Straight to adding media.
                 }
             }
         }
@@ -70,6 +67,14 @@ class PlaylistsActivity : Activity() {
             MediaRow(it.name, getString(R.string.playlist_count, it.itemCount), placeholder = R.drawable.ic_playlist)
         }
         empty.visibility = if (playlists.isEmpty()) View.VISIBLE else View.GONE
+    }
+
+    private fun openPlaylist(id: Long, name: String) {
+        startActivity(
+            Intent(this, PlaylistActivity::class.java)
+                .putExtra(PlaylistActivity.EXTRA_ID, id)
+                .putExtra(PlaylistActivity.EXTRA_NAME, name),
+        )
     }
 
     private fun manage(playlist: Playlist) {
@@ -128,6 +133,10 @@ class PlaylistActivity : Activity() {
             setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_play, 0, 0, 0)
             setOnClickListener { if (items.isNotEmpty()) play(0) }
         }
+        findViewById<Button>(R.id.playlistsAdd).apply {
+            visibility = View.VISIBLE
+            setOnClickListener { chooseWhereToAddFrom() }
+        }
     }
 
     override fun onStart() {
@@ -145,6 +154,74 @@ class PlaylistActivity : Activity() {
         adapter.rows = items.map { MediaRow(it.title, "", placeholder = placeholderFor(it.title)) }
         empty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
     }
+
+    /** The library if it has anything, or files from anywhere through the system's picker. */
+    private fun chooseWhereToAddFrom() {
+        val entries = store.media()
+        if (entries.isEmpty()) {
+            pickFiles()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.add_media)
+            .setItems(arrayOf(getString(R.string.add_from_library), getString(R.string.add_from_files))) { _, which ->
+                if (which == 0) chooseFromLibrary(entries) else pickFiles()
+            }
+            .show()
+    }
+
+    private fun chooseFromLibrary(entries: List<MediaEntry>) {
+        val chosen = BooleanArray(entries.size)
+        AlertDialog.Builder(this)
+            .setTitle(R.string.add_from_library)
+            .setMultiChoiceItems(entries.map { it.name }.toTypedArray(), chosen) { _, which, checked ->
+                chosen[which] = checked
+            }
+            .setPositiveButton(R.string.add_media) { _, _ ->
+                entries.filterIndexed { index, _ -> chosen[index] }.forEach { store.addToPlaylist(playlistId, it.uri, it.name) }
+                refresh()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun pickFiles() {
+        val pick = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("video/*", "audio/*"))
+            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+        }
+        @Suppress("DEPRECATION")
+        startActivityForResult(pick, REQUEST_FILES)
+    }
+
+    @Deprecated("The activity result API would add androidx.activity for one call.")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        @Suppress("DEPRECATION")
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != REQUEST_FILES || resultCode != RESULT_OK || data == null) return
+        val clip = data.clipData
+        val picked = if (clip != null) List(clip.itemCount) { clip.getItemAt(it).uri } else listOfNotNull(data.data)
+        addFiles(picked)
+    }
+
+    /** Keeps lasting access to exactly these files, so the playlist still works next time. */
+    fun addFiles(uris: List<Uri>) {
+        val session = PlaybackSession.get(this)
+        for (uri in uris) {
+            try {
+                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            } catch (_: SecurityException) {
+                // Lent for now only: it plays until Android takes the access back.
+            }
+            store.addToPlaylist(playlistId, uri.toString(), session.displayName(uri) ?: getString(R.string.untitled))
+        }
+        refresh()
+    }
+
+    /** For tests. */
+    val shownItems: List<PlaylistItem> get() = items
 
     private fun play(index: Int) {
         startActivity(
@@ -174,5 +251,6 @@ class PlaylistActivity : Activity() {
     companion object {
         const val EXTRA_ID = "com.babarify.frame.PLAYLIST_ID"
         const val EXTRA_NAME = "com.babarify.frame.PLAYLIST_NAME"
+        private const val REQUEST_FILES = 4
     }
 }

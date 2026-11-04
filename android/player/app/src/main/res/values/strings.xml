@@ -48,8 +48,8 @@
     <string name="added_to_playlist">Added to %1$s</string>
     <string name="new_playlist">New playlist</string>
     <string name="playlist_name">Playlist name</string>
-    <string name="no_playlists">Create a playlist, then add files to it from the library: press and hold a file there.</string>
-    <string name="playlist_empty">This playlist is empty. In the library, press and hold a file to add it.</string>
+    <string name="no_playlists">Create a playlist, then add videos and music to it.</string>
+    <string name="playlist_empty">This playlist is empty. Press Add media to fill it.</string>
     <string name="playlist_count">%1$d files</string>
     <string name="play_all">Play all</string>
     <string name="rename">Rename</string>
@@ -62,14 +62,14 @@
     <string name="file_details">%1$s · %2$s</string>
     <string name="size_mb">%1$.1f MB</string>
     <string name="section_playback">Playback</string>
-    <string name="section_leaving">When you leave the player</string>
+    <string name="section_leaving">When you leave a video</string>
     <string name="section_sound">Sound</string>
     <string name="section_subtitles">Audio and subtitles</string>
     <string name="section_privacy">Privacy</string>
     <string name="leave_stop">Stop and remember the place</string>
     <string name="leave_audio">Keep playing the sound</string>
     <string name="leave_picture">Continue in a small window</string>
-    <string name="leave_note">Pressing Back always closes the player. While sound plays on, a notification shows it and has a Stop button.</string>
+    <string name="leave_note">Music and other audio files always keep playing, even after closing the app, until you close them from the notification. For video, pressing Back always closes the player.</string>
     <string name="seek_step">Seek step: %1$d seconds</string>
     <string name="seek_previews">Show pictures while dragging the position</string>
     <string name="gestures">Swipe to seek, change volume and brightness; double-tap to skip</string>
@@ -194,6 +194,14 @@
     <string name="forward_label">Forward %1$d seconds</string>
     <string name="volume_description">Volume %1$d. Tap to change.</string>
     <string name="speed_description">Playback speed %1$s</string>
+
+    <string name="add_media">Add media</string>
+    <string name="add_from_library">From the library</string>
+    <string name="add_from_files">From your files</string>
+    <string name="repeat_off_label">Repeat off</string>
+    <string name="repeat_one_label">Repeat this file</string>
+    <string name="repeat_all_label">Repeat all</string>
+    <string name="close_mini_player">Close</string>
 
     <!-- Same meaning as USER_MESSAGES in the desktop app's core/errors.py. -->
     <string name="error_media_not_found">The file could not be found, or this app no longer has permission to open it. Open it again from your files.</string>

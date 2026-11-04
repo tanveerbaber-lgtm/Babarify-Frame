@@ -25,6 +25,18 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="8dp" />
 
+    <Button
+        android:id="@+id/playlistsAdd"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="8dp"
+        android:drawableStart="@drawable/ic_add"
+        android:drawableTint="@color/text"
+        android:paddingHorizontal="20dp"
+        android:text="@string/add_media"
+        android:visibility="gone" />
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"

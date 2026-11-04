@@ -45,6 +45,14 @@ publishing needs the signing key, the libVLC source decision and the patent ques
 Android only: swipe gestures for seek, volume and brightness; double-tap to skip; background audio with
 a notification; small floating window; buttons to fill the screen and turn it.
 
+## Owner's additions after acceptance
+
+- **Repeat:** a player button cycling off, this file, all. It's remembered between sessions.
+- **Playlists:** *Add media*, from the library or the system's picker, several at once.
+- **Music mini player:** audio files keep playing after Back or closing the app, with a notification player,
+  until closed from that notification. **This replaces "leaving stops playback by default" for audio.** Video
+  still stops on leaving unless the user chooses otherwise.
+
 ## Interface
 
 The owner asked for it to look like a real media player, so the interface was redesigned using the desktop
@@ -61,9 +69,9 @@ theme's colours and blue-to-cyan accent.
 
 - **Playback moved out of the screen** into `PlaybackSession`, so sound can outlive it.
   `BackgroundPlaybackService` runs only when the user chose to keep sound playing.
-- **Leaving still stops playback by default.** Background sound and the floating window are settings, so
-  M13's "nothing runs in the background" still holds unless the user changes it.
-- **Three new permissions**, used only for background sound: `FOREGROUND_SERVICE`,
+- **Leaving a video stops it by default.** Background sound for video and the floating window are settings.
+  Audio files play on, so M13's "nothing runs in the background" no longer holds for audio, by the owner's decision.
+- **Three new permissions**, used only for sound that plays on: `FOREGROUND_SERVICE`,
   `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, `WAKE_LOCK`. Still no internet or storage permission, and a
   test fails if the list changes. `POST_NOTIFICATIONS` isn't requested, as media session notifications are exempt.
 - **`TextureView` replaces `SurfaceView`.** It allows a colour filter, rotation and snapshots with
@@ -75,26 +83,30 @@ theme's colours and blue-to-cyan accent.
 
 | Where | Result | Notes |
 |---|---|---|
-| Samsung Galaxy A33 5G, Android 16 | **49 of 49** | [`parity_device_tests_galaxy_a33_android16.xml`](evidence/parity_device_tests_galaxy_a33_android16.xml) |
-| Emulator, Android 10 | **49 of 49** | [`parity_device_tests_android10_emulator.xml`](evidence/parity_device_tests_android10_emulator.xml) |
-| Unit tests | **27 of 27** | |
+| Samsung Galaxy A33 5G, Android 16 | **57 of 57** | [`parity_device_tests_galaxy_a33_android16.xml`](evidence/parity_device_tests_galaxy_a33_android16.xml) |
+| Emulator, Android 10 | **57 of 57** | [`parity_device_tests_android10_emulator.xml`](evidence/parity_device_tests_android10_emulator.xml) |
+| Unit tests | **29 of 29** | |
 | Lint | 0 errors, 22 warnings | The warnings are style and translation advice, and an old-Android backup note that M13 already accepted |
 | Owner's check on the A33 | **"All works"**, before the redesign | A 10-step checklist with their own videos, covering library, playlists, boost, equalizer, background sound with the screen locked, small window, gestures, picture tools and subtitle look |
 
-The emulator's 49 ran just before a last tidy-up (unused files removed, one screen-reader label added). The A33's
-49, unit tests and lint ran on the final code.
+The owner also checked the additions on the A33 with their own songs and reported **"All works"**: a 12-step
+checklist covering playlists, repeat, and the mini player after swiping the app away, with the screen locked and when closing.
+
+All of these ran on the final code. One earlier A33 run stopped after 53 tests when USB dropped: the crash log
+shows the test tool losing its connection, and no app error.
 
 Device tests use real libVLC playback. Colour filter and subtitle colour tests read the actual screen.
 
 ## Defects found and fixed
 
-Recorded as R54–R56 in the [regression catalog](../../testing/regressions.md).
+Recorded as R54–R57 in the [regression catalog](../../testing/regressions.md).
 
 | ID | Defect | Found by |
 |---|---|---|
 | R54 | Chapter names began with a space | Device test |
 | R55 | On Android 10–12, other apps could have pressed play or pause in the small window | Lint |
 | R56 | The controls could stay visible in the small window | Device test, once in Android 10's emulator |
+| R57 | Closing the mini player could leave a dead notification behind | Device test |
 
 Three intermittent results on the emulator, worth keeping an eye on:
 
@@ -111,7 +123,10 @@ Neither failure has returned in the two full emulator runs and one phone run sin
 
 - **Thin device matrix:** still one real phone and one emulator. Android 11–15, other brands and 32-bit are untested.
 - **Boost:** the owner reports clear sound on their phone and videos. There's no limiter, so loud passages can distort.
-- **Lock screen:** while sound plays in the background, the file's name shows in the notification and on the lock screen.
+- **Lock screen:** while sound plays on, the file's name shows in the notification and on the lock screen.
+- **R57's second case** (music then video in a playlist) was fixed by always removing the notification. Where
+  that one came from wasn't established.
+- **Phone makers' battery rules** may stop background sound after swiping the app away on other phones. It worked on the owner's A33; automated tests can't do that swipe.
 - **Not measured:** battery use with `TextureView` or background sound, memory, long sessions, very large libraries.
 - **Library pictures and lengths** use the system's decoders, so a format only libVLC can play gets neither.
 - **Language matching** relies on the words in a track's name, so an unnamed track can't match.
@@ -123,7 +138,7 @@ Neither failure has returned in the two full emulator runs and one phone run sin
 ## Changes
 
 - `android/player/`: the features and interface above and `FeatureFlowsTest`, `EnhancementsTest`; version 0.2.0-beta.
-- `docs/PRIVACY.md`, `CHANGELOG.md`, the plan's status, R54–R56.
+- `docs/PRIVACY.md`, `CHANGELOG.md`, the plan's status, R54–R57.
 - No change to the Windows app. M13's PASS stands for its original scope; this report doesn't change a milestone's decision.
 - **On the phone:** 0.2.0-beta (debug build) is installed for the owner's use. It can't be updated by a build
   signed with the future release key without uninstalling first, and uninstalling removes its library and settings.

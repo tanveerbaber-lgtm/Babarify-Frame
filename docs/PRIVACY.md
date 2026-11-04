@@ -54,7 +54,8 @@ subtitle file you add is copied into the app's private cache so the player can r
 removes all of this, except snapshots you chose to take, which are saved in `Pictures/Babarify Frame`
 for you to keep.
 
-Its only permissions are for sound you ask to keep playing after leaving the player (*Settings → When
-you leave the player*, off by default): `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK` and
-`WAKE_LOCK`. While that sound plays, a notification shows the file's name and has a Stop button; the
-name also shows on the lock screen. By default, leaving the player stops playback.
+Its only permissions are for sound that keeps playing after you leave: `FOREGROUND_SERVICE`,
+`FOREGROUND_SERVICE_MEDIA_PLAYBACK` and `WAKE_LOCK`. Audio files always keep playing, even after closing
+the app, until you close them from the notification. Video does so only if you choose that in *Settings →
+When you leave a video*; otherwise leaving stops it. While sound plays on, the notification shows the file's
+name, and the name also shows on the lock screen.

@@ -48,6 +48,7 @@ import com.babarify.frame.core.PlayQueue
 import com.babarify.frame.core.PlaybackRules
 import com.babarify.frame.core.PlaybackState
 import com.babarify.frame.core.QueueItem
+import com.babarify.frame.core.RepeatMode
 import com.babarify.frame.core.TrackInfo
 import com.babarify.frame.core.TrackKind
 import com.babarify.frame.core.VideoGeometry
@@ -82,6 +83,7 @@ class PlayerActivity : Activity(), SessionListener {
     private lateinit var previousButton: ImageButton
     private lateinit var nextButton: ImageButton
     private lateinit var pictureButton: ImageButton
+    private lateinit var repeatButton: ImageButton
     private lateinit var speedButton: Button
     private lateinit var volumeButton: Button
     private lateinit var previewImage: ImageView
@@ -216,8 +218,11 @@ class PlayerActivity : Activity(), SessionListener {
             return
         }
         visibleScreen = null
-        val keepSound = !isFinishing && !leftPicture && preferences.leaveAction == LeaveAction.AUDIO &&
+        // Audio plays on until it's closed from the notification. Video needs the user's say-so.
+        val audioContinues = session.isAudioOnly && (session.isPlaying || session.state == PlaybackState.PAUSED)
+        val videoContinues = !isFinishing && !leftPicture && preferences.leaveAction == LeaveAction.AUDIO &&
             session.isPlaying
+        val keepSound = audioContinues || videoContinues
         if (keepSound) {
             session.continueWithoutVideo()
         } else {
@@ -254,9 +259,7 @@ class PlayerActivity : Activity(), SessionListener {
             messageLabel.visibility = View.GONE
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             scheduleHideControls()
-            if (preferences.leaveAction == LeaveAction.AUDIO) {
-                BackgroundPlaybackService.start(this) // Started while visible, as Android 12+ requires.
-            }
+            startMiniPlayerIfNeeded()
             applyTransform()
             pictureButton.visibility = if (hasPicture()) View.VISIBLE else View.GONE
         } else {
@@ -289,7 +292,7 @@ class PlayerActivity : Activity(), SessionListener {
         val inPlaylist = session.queue.isPlaylist
         previousButton.visibility = if (inPlaylist) View.VISIBLE else View.GONE
         nextButton.visibility = if (inPlaylist) View.VISIBLE else View.GONE
-        nextButton.isEnabled = session.queue.hasNext
+        showRepeat()
     }
 
     private fun showVolume() {
@@ -337,7 +340,36 @@ class PlayerActivity : Activity(), SessionListener {
         playButton.contentDescription = getString(if (playing) R.string.pause else R.string.play)
     }
 
+    /** Started while this screen is visible, as Android 12+ requires. */
+    private fun startMiniPlayerIfNeeded() {
+        if (BackgroundPlaybackService.running || !session.isPlaying) return
+        if (session.isAudioOnly || preferences.leaveAction == LeaveAction.AUDIO) {
+            BackgroundPlaybackService.start(this)
+        }
+    }
+
+    private fun showRepeat() {
+        val (icon, label) = when (session.repeatMode) {
+            RepeatMode.OFF -> R.drawable.ic_repeat to R.string.repeat_off_label
+            RepeatMode.ONE -> R.drawable.ic_repeat_one to R.string.repeat_one_label
+            RepeatMode.ALL -> R.drawable.ic_repeat to R.string.repeat_all_label
+        }
+        repeatButton.setImageResource(icon)
+        repeatButton.contentDescription = getString(label)
+        repeatButton.imageTintList =
+            getColorStateList(if (session.repeatMode == RepeatMode.OFF) R.color.text else R.color.cyan)
+        nextButton.isEnabled = session.queue.hasNext || session.repeatMode == RepeatMode.ALL
+    }
+
+    fun pressRepeat() {
+        session.cycleRepeat()
+        showRepeat()
+        showGesture(repeatButton.contentDescription.toString())
+        showControls()
+    }
+
     private fun onTick() {
+        startMiniPlayerIfNeeded()
         // Android can deliver lifecycle calls around entering the small window in either order.
         if (isInPictureInPictureMode && controls.visibility == View.VISIBLE) setControlsVisible(false)
         val state = session.state ?: return
@@ -1115,6 +1147,7 @@ class PlayerActivity : Activity(), SessionListener {
         volumeButton = findViewById(R.id.volumeButton)
         previewImage = findViewById(R.id.previewImage)
         pictureButton = findViewById(R.id.pictureButton)
+        repeatButton = findViewById(R.id.repeatButton)
         applySystemBarPadding(findViewById(R.id.topBar), includeBottom = false)
         applySystemBarPadding(findViewById(R.id.bottomBar), includeTop = false)
 
@@ -1152,6 +1185,7 @@ class PlayerActivity : Activity(), SessionListener {
         findViewById<View>(R.id.audioButton).setOnClickListener { showTracks(TrackKind.AUDIO) }
         findViewById<View>(R.id.subtitleButton).setOnClickListener { showTracks(TrackKind.SUBTITLE) }
         speedButton.setOnClickListener { showSpeed() }
+        repeatButton.setOnClickListener { pressRepeat() }
         volumeButton.setOnClickListener { showVolumeDialog() }
         volumeButton.addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
             if (right - left != oldRight - oldLeft) volumeButton.post { centreVolumeContent() }

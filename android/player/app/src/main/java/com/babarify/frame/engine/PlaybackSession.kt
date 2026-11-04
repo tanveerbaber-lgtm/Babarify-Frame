@@ -21,6 +21,7 @@ import com.babarify.frame.core.PlayQueue
 import com.babarify.frame.core.PlaybackRules
 import com.babarify.frame.core.PlaybackState
 import com.babarify.frame.core.QueueItem
+import com.babarify.frame.core.RepeatMode
 import com.babarify.frame.core.TrackInfo
 import com.babarify.frame.core.TrackKind
 import com.babarify.frame.data.HistoryEntry
@@ -35,9 +36,9 @@ interface SessionListener {
 }
 
 /**
- * Owns playback for the whole app, so sound can outlive the player screen when the user asks for
- * that (Settings). By default the screen still releases the engine as it leaves, and then nothing
- * plays or reads media in the background. Main thread only.
+ * Owns playback for the whole app, so sound can outlive the player screen: always for audio files,
+ * and for video only when the user asks for that in Settings. Otherwise the screen releases the
+ * engine as it leaves, and then nothing plays or reads media in the background. Main thread only.
  */
 class PlaybackSession private constructor(private val app: Context) : EngineListener {
     val preferences = Preferences(app)
@@ -82,9 +83,13 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
         private set
     var aspectRatio = ""
         private set
+    var repeatMode = preferences.repeatMode
+        private set
 
     val state: PlaybackState? get() = engine?.state
     val isPlaying: Boolean get() = engine?.state == PlaybackState.PLAYING
+    val isAudioOnly: Boolean
+        get() = engine?.let { PlaybackRules.isAudioOnly(title, it.progressed, it.hasVideoTrack) } == true
     val positionMs: Long get() = engine?.positionMs ?: storedPositionMs
     val durationMs: Long? get() = engine?.durationMs
     val volumeMaximum: Int get() = PlaybackRules.volumeMaximum(preferences.allowVolumeBoost)
@@ -181,8 +186,15 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
         videoView = view
         val current = engine
         if (current != null) {
-            if (view != null) current.attachVideo(view)
-            return
+            if (view == null) return
+            if (!current.openedWithoutVideo || isAudioOnly) {
+                current.attachVideo(view)
+                return
+            }
+            // A video the queue moved on to in the background: open it again to show its picture.
+            storedPositionMs = current.positionMs
+            wantsToPlay = current.state == PlaybackState.PLAYING
+            releaseEngine()
         }
         val media = mediaUri ?: return
         val created = LibVlcEngine(
@@ -196,7 +208,7 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
         finished = false
         tracksApplied = false
         try {
-            created.open(media, subtitleFile, storedPositionMs, startPaused = !wantsToPlay)
+            created.open(media, subtitleFile, storedPositionMs, startPaused = !wantsToPlay, withVideo = view != null)
         } catch (_: MediaAccessException) {
             releaseEngine()
             notifyState(PlaybackState.ERROR, ErrorCode.MEDIA_NOT_FOUND)
@@ -263,7 +275,7 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
                 wantsToPlay = false
                 storedPositionMs = 0
                 saveProgress()
-                val next = queue.next()
+                val next = queue.afterEnd(repeatMode)
                 if (next != null) {
                     playItem(next)
                     return
@@ -383,8 +395,15 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
         }
     }
 
+    /** Off, then repeat one, then repeat all. */
+    fun cycleRepeat(): RepeatMode {
+        repeatMode = RepeatMode.entries[(repeatMode.ordinal + 1) % RepeatMode.entries.size]
+        preferences.repeatMode = repeatMode
+        return repeatMode
+    }
+
     fun next(): Boolean {
-        val item = queue.next() ?: return false
+        val item = queue.nextPressed(repeatMode) ?: return false
         playItem(item)
         return true
     }
@@ -405,8 +424,10 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
             storedPositionMs = engine?.positionMs ?: storedPositionMs
             saveProgress()
         }
+        val keptRate = rate // Moving through a playlist shouldn't change its speed.
         releaseEngine()
         prepare(uri, item.title)
+        rate = keptRate
         listeners.toList().forEach { it.onMediaChanged() }
         start(view)
     }

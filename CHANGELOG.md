@@ -13,9 +13,11 @@ Brings the Android app close to the Windows app. Not yet published.
 - New: picture controls, equalizer with presets, profiles, aspect, zoom, rotate, flip, snapshots.
 - New: subtitle look, preferred languages, media and playback information, pictures while seeking.
 - New: a redesigned interface: full-screen video with overlay controls, icons, bottom tabs and grouped settings.
-- New: swipe gestures, sound in the background and a small floating window. Leaving the player still stops
-  playback until you choose otherwise, and sound in the background needs three new permissions. Still no
+- New: repeat off, one or all; add media to a playlist from the library or your files.
+- New: audio files keep playing with the app closed, in a mini player in the notifications, until you close
+  it there. Video stops when you leave unless you choose otherwise. This needs three new permissions; still no
   internet or storage permission.
+- New: swipe gestures and a small floating window.
 - Not included: network streams and local AI subtitles, by the owner's decision.
 
 ## Android 0.1.0-beta (not released)

@@ -109,6 +109,15 @@ class PlaybackRulesTest {
     }
 
     @Test
+    fun audioIsToldApartFromVideo() {
+        assertTrue(PlaybackRules.isAudioOnly("song.mp3", progressed = false, hasVideoTrack = false))
+        assertTrue("cover art doesn't make a song a video", PlaybackRules.isAudioOnly("song.m4a", true, hasVideoTrack = true))
+        assertFalse(PlaybackRules.isAudioOnly("film.mp4", progressed = true, hasVideoTrack = true))
+        assertFalse("not known yet", PlaybackRules.isAudioOnly("film.mp4", progressed = false, hasVideoTrack = false))
+        assertTrue("sound only, whatever the name", PlaybackRules.isAudioOnly("clip.mp4", progressed = true, hasVideoTrack = false))
+    }
+
+    @Test
     fun delaysStayInRange() {
         assertEquals(60_000, PlaybackRules.clampDelay(999_999))
         assertEquals(-60_000, PlaybackRules.clampDelay(-999_999))
