@@ -15,6 +15,7 @@ and Esc work everywhere.
 from __future__ import annotations
 
 import contextlib
+import random
 from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
@@ -218,6 +219,9 @@ class MainWindow(QMainWindow):
         self.shuffle_action = self._action("S&huffle", [K(Qt.Key.Key_Z)], p.toggle_shuffle)
         self.repeat_action = self._action("&Repeat: off, this file, all", [K(Qt.Key.Key_R)], p.cycle_repeat)
         self.queue_action = self._action("&Queue…", [K(Qt.Key.Key_Q)], self.show_queue)
+        self.favourite_action = self._action(
+            "Add to or remove from fa&vourites", [K(Qt.Key.Key_U)], p.toggle_favourite
+        )
         # Playback actions: enabled only on the Now Playing page (see module docstring).
         self.play_action = self._action(
             "&Play/Pause", [K(Qt.Key.Key_Space), K(Qt.Key.Key_MediaTogglePlayPause)], p.toggle_play_pause
@@ -326,6 +330,7 @@ class MainWindow(QMainWindow):
         play_menu.addAction(self.shuffle_action)
         play_menu.addAction(self.repeat_action)
         play_menu.addAction(self.queue_action)
+        play_menu.addAction(self.favourite_action)
         self.sleep_menu = play_menu.addMenu("S&leep timer")
         self.sleep_menu.aboutToShow.connect(self._fill_sleep_menu)
         play_menu.addSeparator()
@@ -384,6 +389,8 @@ class MainWindow(QMainWindow):
         self.settings.clear_history_requested.connect(self.clear_history)
         self.library.play_requested.connect(self.open_path)
         self.library.play_list_requested.connect(self.play_list)
+        self.library.shuffle_requested.connect(self.shuffle_list)
+        self.player.favourites_changed.connect(self.library.refresh_current_tab)
         self.library.status_changed.connect(self.statusBar().showMessage)
         self.library.sort_changed.connect(self._on_library_sort)
         self.home.play_requested.connect(self.open_path)
@@ -466,6 +473,7 @@ class MainWindow(QMainWindow):
         self.shuffle_action.setEnabled(on_player and len(queue) > 1)
         self.repeat_action.setEnabled(on_player)
         self.queue_action.setEnabled(on_player and len(queue) > 1)
+        self.favourite_action.setEnabled(on_player and p.has_media)
         self.start_over_action.setEnabled(on_player and p.is_seekable)
         caps = p.capabilities_or_none()
         playing_video = p.has_media and p.state in (PlaybackState.PLAYING, PlaybackState.PAUSED)
@@ -853,6 +861,9 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(f"{name} — {PRODUCT_NAME}" if name else PRODUCT_NAME)
 
     def _on_engine_ready(self, ok: bool) -> None:
+        # Songs waiting to be read, like an existing library's after an update, need no rescan.
+        if ok and self.library_service.db.counts()[2]:
+            self.library_service.fetch_metadata()
         if not ok:
             self.show_page(self.player)  # the player page explains what failed
         db = self.library_service.db
@@ -925,6 +936,10 @@ class MainWindow(QMainWindow):
             self._home_dirty = True
         self._refresh_ai_status()
         self._update_actions()
+
+    def shuffle_list(self, paths: list[str]) -> None:
+        self.show_page(self.player)
+        self.player.play_queue(paths, random.randrange(len(paths)), shuffle=True)
 
     def _on_repeat_changed(self, mode: object) -> None:
         self._prefs = replace(self._prefs, repeat_mode=str(mode))
@@ -1036,6 +1051,7 @@ class MainWindow(QMainWindow):
             "<tr><td><b>Z</b></td><td>Shuffle</td></tr>"
             "<tr><td><b>R</b></td><td>Repeat: off, this file, all</td></tr>"
             "<tr><td><b>Q</b></td><td>Queue</td></tr>"
+            "<tr><td><b>U</b></td><td>Add to or remove from favourites</td></tr>"
             "<tr><td><b>N / P</b></td><td>Next / previous in playlist</td></tr>"
             "<tr><td><b>Home</b></td><td>Start over</td></tr>"
             "<tr><td><b>Ctrl+E</b></td><td>Picture &amp; Sound</td></tr>"

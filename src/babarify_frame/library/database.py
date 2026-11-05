@@ -26,6 +26,7 @@ from contextlib import contextmanager, suppress
 from dataclasses import dataclass
 from pathlib import Path
 
+from babarify_frame.core.models import AUDIO_EXTENSIONS
 from babarify_frame.library.history import is_finished
 from babarify_frame.library.models import (
     Bookmark,
@@ -39,6 +40,7 @@ from babarify_frame.library.models import (
     Transcript,
     path_key,
 )
+from babarify_frame.library.music import SongSort
 
 log = logging.getLogger(__name__)
 
@@ -120,8 +122,39 @@ MIGRATIONS: tuple[tuple[str, ...], ...] = (
             created_at REAL NOT NULL)""",
         "CREATE VIRTUAL TABLE transcript_cues USING fts5(text, transcript_id UNINDEXED, start_ms UNINDEXED)",
     ),
+    (  # 5: songs' tags and favourites
+        "ALTER TABLE media ADD COLUMN title TEXT",
+        "ALTER TABLE media ADD COLUMN artist TEXT",
+        "ALTER TABLE media ADD COLUMN album TEXT",
+        """CREATE TABLE favourites(
+            path_key TEXT PRIMARY KEY,
+            path TEXT NOT NULL,
+            title TEXT NOT NULL,
+            added_at REAL NOT NULL)""",
+        # Read existing songs again, for their tags and pictures. Videos are left alone.
+        """UPDATE media SET probed = 0 WHERE (video_codec IS NULL AND audio_codec IS NOT NULL)
+            OR lower(name) LIKE '%.mp3' OR lower(name) LIKE '%.m4a' OR lower(name) LIKE '%.aac'
+            OR lower(name) LIKE '%.flac' OR lower(name) LIKE '%.wav' OR lower(name) LIKE '%.ogg'
+            OR lower(name) LIKE '%.opus' OR lower(name) LIKE '%.wma' OR lower(name) LIKE '%.ac3'
+            OR lower(name) LIKE '%.mka'""",
+    ),
 )
 SCHEMA_VERSION = len(MIGRATIONS)
+AUTOMATIC_LIST_SIZE = 50
+# What counts as a song, in SQL. The name counts too: a cover can look like a video track.
+_IS_SONG = (
+    "((m.video_codec IS NULL AND m.audio_codec IS NOT NULL) OR "
+    + " OR ".join(f"lower(m.name) LIKE '%{ext}'" for ext in sorted(AUDIO_EXTENSIONS))
+    + ")"
+)
+_SONG_PATH = "(" + " OR ".join(f"lower(path) LIKE '%{ext}'" for ext in sorted(AUDIO_EXTENSIONS)) + ")"
+_SONG_ORDERS = {
+    SongSort.TITLE: "COALESCE(m.title, m.name) COLLATE NOCASE, m.path COLLATE NOCASE",
+    SongSort.ARTIST: "m.artist IS NULL, m.artist COLLATE NOCASE, COALESCE(m.title, m.name) COLLATE NOCASE",
+    SongSort.ALBUM: "m.album IS NULL, m.album COLLATE NOCASE, COALESCE(m.title, m.name) COLLATE NOCASE",
+    SongSort.RECENTLY_ADDED: "m.added_at DESC, COALESCE(m.title, m.name) COLLATE NOCASE",
+    SongSort.LONGEST: "m.duration_ms IS NULL, m.duration_ms DESC, COALESCE(m.title, m.name) COLLATE NOCASE",
+}
 MAX_PLAYLIST_NAME = 120
 MAX_BOOKMARK_LABEL = 120
 MAX_BOOKMARKS_PER_FILE = 200
@@ -148,6 +181,9 @@ class ProbeRecord:
     video_codec: str | None
     audio_codec: str | None
     thumbnail: str | None
+    title: str | None = None
+    artist: str | None = None
+    album: str | None = None
 
 
 def default_database_path() -> Path:
@@ -396,9 +432,9 @@ class LibraryDatabase:
                 return
             conn.execute(
                 """UPDATE media SET probed = 1, duration_ms = ?, width = ?, height = ?, video_codec = ?,
-                   audio_codec = ?, thumbnail = ? WHERE id = ?""",
+                   audio_codec = ?, thumbnail = ?, title = ?, artist = ?, album = ? WHERE id = ?""",
                 (result.duration_ms, result.width, result.height, result.video_codec, result.audio_codec,
-                 result.thumbnail, media_id),
+                 result.thumbnail, result.title, result.artist, result.album, media_id),
             )  # fmt: skip
 
     def media(
@@ -430,6 +466,72 @@ class LibraryDatabase:
         )
         return [self._media_entry(r) for r in rows]
 
+    def songs(
+        self, search: str = "", sort: SongSort = SongSort.TITLE, limit: int = 100_000
+    ) -> list[MediaEntry]:
+        """Music in the library. Every word searched for must be in the title, artist, album or name."""
+        clauses, params = [_IS_SONG], []
+        for term in search.split():
+            clauses.append(
+                "(m.title LIKE ? ESCAPE '\\' OR m.artist LIKE ? ESCAPE '\\' "
+                "OR m.album LIKE ? ESCAPE '\\' OR m.name LIKE ? ESCAPE '\\')"
+            )
+            params.extend([f"%{_escape_like(term)}%"] * 4)
+        rows = self._query(
+            f"""SELECT m.*, h.position_ms AS h_position, h.last_played_at AS h_played, 0 AS dups
+                FROM media m LEFT JOIN history h ON h.path_key = m.path_key
+                WHERE {" AND ".join(clauses)} ORDER BY {_SONG_ORDERS[sort]} LIMIT ?""",
+            (*params, limit),
+        )
+        return [self._media_entry(r) for r in rows]
+
+    # ---------------------------------------------- favourites and automatic lists
+    def is_favourite(self, path: str) -> bool:
+        return bool(self._query("SELECT 1 FROM favourites WHERE path_key = ?", (path_key(path),)))
+
+    def set_favourite(self, path: str, title: str, favourite: bool) -> None:
+        with self._transaction() as conn:
+            if favourite:
+                conn.execute(
+                    "INSERT OR IGNORE INTO favourites(path_key, path, title, added_at) VALUES (?, ?, ?, ?)",
+                    (path_key(path), path, title, time.time()),
+                )
+            else:
+                conn.execute("DELETE FROM favourites WHERE path_key = ?", (path_key(path),))
+
+    @staticmethod
+    def _saved_tracks(rows: list[sqlite3.Row]) -> list[PlaylistItem]:
+        return [
+            PlaylistItem(0, 0, index, r["path"], r["title"], "://" in r["path"] or os.path.exists(r["path"]))
+            for index, r in enumerate(rows)
+        ]
+
+    def favourites(self) -> list[PlaylistItem]:
+        return self._saved_tracks(self._query("SELECT path, title FROM favourites ORDER BY added_at DESC"))
+
+    def recently_played_songs(self, limit: int = AUTOMATIC_LIST_SIZE) -> list[PlaylistItem]:
+        return self._saved_tracks(
+            self._query(
+                f"SELECT path, title FROM history WHERE {_SONG_PATH} ORDER BY last_played_at DESC LIMIT ?",
+                (limit,),
+            )
+        )
+
+    def most_played_songs(self, limit: int = AUTOMATIC_LIST_SIZE) -> list[PlaylistItem]:
+        return self._saved_tracks(
+            self._query(
+                f"""SELECT path, title FROM history WHERE {_SONG_PATH} AND play_count > 0
+                    ORDER BY play_count DESC, last_played_at DESC LIMIT ?""",
+                (limit,),
+            )
+        )
+
+    def recently_added_songs(self, limit: int = AUTOMATIC_LIST_SIZE) -> list[PlaylistItem]:
+        return [
+            PlaylistItem(0, 0, index, song.path, song.display_title, song.available)
+            for index, song in enumerate(self.songs(sort=SongSort.RECENTLY_ADDED, limit=limit))
+        ]
+
     @staticmethod
     def _media_entry(r: sqlite3.Row) -> MediaEntry:
         return MediaEntry(
@@ -452,6 +554,9 @@ class LibraryDatabase:
             duplicates=int(r["dups"] or 0) if r["content_key"] else 0,
             position_ms=int(r["h_position"] or 0),
             last_played_at=r["h_played"],
+            title=r["title"],
+            artist=r["artist"],
+            album=r["album"],
         )
 
     def media_by_path(self, path: str) -> MediaEntry | None:

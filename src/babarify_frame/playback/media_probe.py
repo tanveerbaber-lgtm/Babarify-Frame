@@ -24,6 +24,10 @@ class ProbeResult:
     thumbnail: bytes | None = None
     thumbnail_width: int = 0
     thumbnail_height: int = 0
+    # The file's own tags, when it has them.
+    title: str | None = None
+    artist: str | None = None
+    album: str | None = None
 
 
 class MediaProbe(ABC):

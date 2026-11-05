@@ -13,6 +13,7 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import QPoint, QSize, Qt, QTimer, Signal
+from PySide6.QtGui import QShowEvent
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QComboBox,
@@ -35,7 +36,8 @@ from PySide6.QtWidgets import (
 )
 
 from babarify_frame.library.database import LibraryError
-from babarify_frame.library.models import MediaEntry, SortOrder
+from babarify_frame.library.models import MediaEntry, PlaylistItem, SortOrder
+from babarify_frame.library.music import GroupKind
 from babarify_frame.library.service import (
     LibraryEvent,
     LibraryService,
@@ -47,6 +49,7 @@ from babarify_frame.library.service import (
 from babarify_frame.ui import theme
 from babarify_frame.ui.bridge import UiBridge
 from babarify_frame.ui.library_view import CARD, LibraryDelegate, LibraryModel
+from babarify_frame.ui.music_panel import MusicPanel
 
 SORT_LABELS = {
     SortOrder.NAME: "Name",
@@ -141,6 +144,9 @@ class FoldersDialog(QDialog):
         self.refresh()
 
 
+AUTOMATIC_LISTS = ("Favourites", "Recently played", "Most played", "Recently added")
+
+
 class PlaylistsPanel(QWidget):
     play_requested = Signal(list, int)  # paths, start index
 
@@ -152,6 +158,15 @@ class PlaylistsPanel(QWidget):
         row.setSpacing(theme.L)
 
         left = QVBoxLayout()
+        self.automatic = QListWidget()
+        self.automatic.setAccessibleName("Automatic playlists")
+        self.automatic.setMaximumWidth(280)
+        self.automatic.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.automatic.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        for name in AUTOMATIC_LISTS:
+            self.automatic.addItem(name)
+        left.addWidget(self.automatic)
+        left.addWidget(_label("Your playlists", "caption"))
         self.playlists = QListWidget()
         self.playlists.setAccessibleName("Playlists")
         self.playlists.setMaximumWidth(280)
@@ -191,9 +206,47 @@ class PlaylistsPanel(QWidget):
         self.up_button.clicked.connect(lambda: self._move(-1))
         self.down_button.clicked.connect(lambda: self._move(1))
         self.remove_button.clicked.connect(self._remove_item)
-        self.playlists.currentRowChanged.connect(lambda _r: self._show_items())
+        self.playlists.currentRowChanged.connect(self._playlist_chosen)
+        self.automatic.currentRowChanged.connect(self._automatic_chosen)
         self.items.itemActivated.connect(lambda _i: self._play())
         self.refresh()
+
+    def showEvent(self, event: QShowEvent) -> None:
+        super().showEvent(event)
+        # Only now does a row know its height, because the app's style has been applied.
+        frame = self.automatic.frameWidth() * 2
+        self.automatic.setFixedHeight(self.automatic.sizeHintForRow(0) * len(AUTOMATIC_LISTS) + frame + 2)
+        self.automatic.scrollToTop()
+
+    @property
+    def current_automatic(self) -> str | None:
+        item = self.automatic.currentItem()
+        return item.text() if item is not None and item.isSelected() else None
+
+    def _playlist_chosen(self, row: int) -> None:
+        if row >= 0:
+            self.automatic.blockSignals(True)
+            self.automatic.clearSelection()
+            self.automatic.setCurrentRow(-1)
+            self.automatic.blockSignals(False)
+        self._show_items()
+
+    def _automatic_chosen(self, row: int) -> None:
+        if row >= 0:
+            self.playlists.blockSignals(True)
+            self.playlists.clearSelection()
+            self.playlists.setCurrentRow(-1)
+            self.playlists.blockSignals(False)
+        self._show_items()
+
+    def _automatic_items(self, name: str) -> list[PlaylistItem]:
+        db = self._service.db
+        return {
+            "Favourites": db.favourites,
+            "Recently played": db.recently_played_songs,
+            "Most played": db.most_played_songs,
+            "Recently added": db.recently_added_songs,
+        }[name]()
 
     @property
     def current_playlist(self) -> int | None:
@@ -202,6 +255,7 @@ class PlaylistsPanel(QWidget):
 
     def refresh(self, select: int | None = None) -> None:
         current = select if select is not None else self.current_playlist
+        automatic_row = self.automatic.currentRow() if self.current_automatic and select is None else -1
         self.playlists.blockSignals(True)
         self.playlists.clear()
         for playlist in self._service.db.playlists():
@@ -210,18 +264,31 @@ class PlaylistsPanel(QWidget):
             self.playlists.addItem(item)
             if playlist.id == current:
                 self.playlists.setCurrentItem(item)
-        if self.playlists.currentRow() < 0 and self.playlists.count():
+        if automatic_row < 0 and self.playlists.currentRow() < 0 and self.playlists.count():
             self.playlists.setCurrentRow(0)
         self.playlists.blockSignals(False)
+        self.automatic.blockSignals(True)
+        self.automatic.setCurrentRow(automatic_row)
+        if automatic_row < 0:
+            self.automatic.clearSelection()
+        elif (item := self.automatic.item(automatic_row)) is not None:
+            item.setSelected(True)
+        self.automatic.blockSignals(False)
         self._show_items()
 
     def _show_items(self, select_row: int | None = None) -> None:
         self.items.clear()
         pid = self.current_playlist
+        automatic = self.current_automatic
         for button in (self.rename_button, self.delete_button):
-            button.setEnabled(pid is not None)
-        if pid is not None:
-            for entry in self._service.db.playlist_items(pid):
+            button.setEnabled(pid is not None and automatic is None)
+        shown: list[PlaylistItem] = []
+        if automatic is not None:
+            shown = self._automatic_items(automatic)
+        elif pid is not None:
+            shown = self._service.db.playlist_items(pid)
+        if shown or automatic is not None or pid is not None:
+            for entry in shown:
                 text = entry.title if entry.available else f"{entry.title}   (not found)"
                 item = QListWidgetItem(text)
                 item.setData(Qt.ItemDataRole.UserRole, entry.id)
@@ -233,8 +300,17 @@ class PlaylistsPanel(QWidget):
         if select_row is not None and self.items.count():
             self.items.setCurrentRow(max(0, min(select_row, self.items.count() - 1)))
         has_items = self.items.count() > 0
-        for button in (self.play_button, self.up_button, self.down_button, self.remove_button):
-            button.setEnabled(has_items)
+        self.play_button.setEnabled(has_items)
+        for button in (self.up_button, self.down_button):
+            button.setEnabled(has_items and automatic is None)
+        self.remove_button.setEnabled(has_items and automatic in (None, "Favourites"))
+        self.remove_button.setText("Remove from favourites" if automatic else "Remove from playlist")
+        if automatic == "Favourites":
+            self.hint.setText("Press the heart while a song plays, or right-click a song, to add it here.")
+        elif automatic:
+            self.hint.setText("This list fills itself in from what you play and add.")
+        else:
+            self.hint.setText("Add files from the Media tab: right-click a file → Add to playlist.")
 
     def new_playlist(self, name: str | None = None) -> int | None:
         if name is None:
@@ -292,7 +368,10 @@ class PlaylistsPanel(QWidget):
         if item is None:
             return
         row = self.items.currentRow()
-        self._service.db.remove_playlist_item(int(item.data(Qt.ItemDataRole.UserRole)))
+        if self.current_automatic == "Favourites":
+            self._service.db.set_favourite(str(item.data(Qt.ItemDataRole.UserRole + 1)), "", False)
+        else:
+            self._service.db.remove_playlist_item(int(item.data(Qt.ItemDataRole.UserRole)))
         self.refresh()
         self._show_items(select_row=row)
 
@@ -300,6 +379,7 @@ class PlaylistsPanel(QWidget):
 class LibraryPage(QWidget):
     play_requested = Signal(str)
     play_list_requested = Signal(list, int)
+    shuffle_requested = Signal(list)
     status_changed = Signal(str)
     sort_changed = Signal(str)
 
@@ -330,8 +410,8 @@ class LibraryPage(QWidget):
         outer.addLayout(header)
 
         self.tabs = QTabBar()
-        self.tabs.addTab("Media")
-        self.tabs.addTab("Playlists")
+        for name in ("Media", "Songs", "Albums", "Artists", "Playlists"):
+            self.tabs.addTab(name)
         self.tabs.setAccessibleName("Library sections")
         self.tabs.setDrawBase(False)
         self.tabs.setExpanding(False)
@@ -402,6 +482,9 @@ class LibraryPage(QWidget):
         media_box.addWidget(self.view_stack, stretch=1)
         self.stack.addWidget(media)
 
+        self.songs_panel = self._music_panel(None)
+        self.albums_panel = self._music_panel(GroupKind.ALBUM)
+        self.artists_panel = self._music_panel(GroupKind.ARTIST)
         self.playlists = PlaylistsPanel(service)
         self.stack.addWidget(self.playlists)
 
@@ -415,7 +498,7 @@ class LibraryPage(QWidget):
         self._refresh_timer.timeout.connect(self.refresh)
         self.search.textChanged.connect(lambda _t: self._search_timer.start())
         self.sort.currentIndexChanged.connect(self._sort_changed)
-        self.tabs.currentChanged.connect(self.stack.setCurrentIndex)
+        self.tabs.currentChanged.connect(self._tab_changed)
         self.folders_button.clicked.connect(self.manage_folders)
         self.empty_action.clicked.connect(self.manage_folders)
         self.scan_button.clicked.connect(lambda: self.rescan())
@@ -425,6 +508,38 @@ class LibraryPage(QWidget):
         self.view.customContextMenuRequested.connect(self._context_menu)
         self.playlists.play_requested.connect(self.play_list_requested)
         self.refresh()
+
+    # ---------------------------------------------------------- music
+    def _music_panel(self, kind: GroupKind | None) -> MusicPanel:
+        panel = MusicPanel(self._service, kind, self._fill_playlist_menu, reveal_in_explorer)
+        panel.play_requested.connect(self.play_list_requested)
+        panel.shuffle_requested.connect(self.shuffle_requested)
+        panel.status_changed.connect(self.status_changed)
+        self.stack.addWidget(panel)
+        return panel
+
+    def _music_panels(self) -> tuple[MusicPanel, MusicPanel, MusicPanel]:
+        return (self.songs_panel, self.albums_panel, self.artists_panel)
+
+    def _tab_changed(self, index: int) -> None:
+        self.stack.setCurrentIndex(index)
+        self.refresh_current_tab()
+
+    def refresh_current_tab(self) -> None:
+        """Only what's on show: Songs, Albums and Artists read every song in the library."""
+        current = self.stack.currentWidget()
+        if isinstance(current, MusicPanel):
+            current.refresh()
+        elif current is self.playlists:
+            self.playlists.refresh()
+
+    def _fill_playlist_menu(self, menu: QMenu, entries: list[MediaEntry]) -> None:
+        for playlist in self._service.db.playlists():
+            action = menu.addAction(playlist.name)
+            action.triggered.connect(lambda _=False, pid=playlist.id: self.add_to_playlist(pid, entries))
+        menu.addSeparator()
+        new = menu.addAction("New playlist…")
+        new.triggered.connect(lambda: self._add_to_new_playlist(entries))
 
     # ----------------------------------------------------------- data
     @property
@@ -512,6 +627,7 @@ class LibraryPage(QWidget):
                 text = "Scan stopped · files found so far are kept"
             self.status_changed.emit(text)
             self.refresh()
+            self.refresh_current_tab()
         elif isinstance(event, MetadataUpdated):
             if not self._refresh_timer.isActive():
                 self._refresh_timer.start()
@@ -519,6 +635,7 @@ class LibraryPage(QWidget):
             self._set_scanning(False)
             self._refresh_timer.stop()
             self.refresh()
+            self.refresh_current_tab()
 
     # -------------------------------------------------------- actions
     def selected_entries(self) -> list[MediaEntry]:
@@ -551,13 +668,7 @@ class LibraryPage(QWidget):
         rows = [self.model.entries.index(e) for e in entries]
         play = menu.addAction("Play" if len(entries) == 1 else f"Play {len(entries)} files")
         play.triggered.connect(lambda: self._play_rows(rows))
-        add = menu.addMenu("Add to playlist")
-        for playlist in self._service.db.playlists():
-            action = add.addAction(playlist.name)
-            action.triggered.connect(lambda _=False, pid=playlist.id: self.add_to_playlist(pid, entries))
-        add.addSeparator()
-        new = add.addAction("New playlist…")
-        new.triggered.connect(lambda: self._add_to_new_playlist(entries))
+        self._fill_playlist_menu(menu.addMenu("Add to playlist"), entries)
         if len(entries) == 1 and entries[0].available:
             reveal = menu.addAction("Show in folder")
             reveal.triggered.connect(lambda: reveal_in_explorer(entries[0].path))

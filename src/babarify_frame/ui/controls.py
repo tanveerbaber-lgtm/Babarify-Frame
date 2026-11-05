@@ -43,6 +43,8 @@ _FALLBACK = {
     "previous": QStyle.StandardPixmap.SP_MediaSkipBackward,
     "next": QStyle.StandardPixmap.SP_MediaSkipForward,
     "queue": QStyle.StandardPixmap.SP_FileDialogListView,
+    "heart": QStyle.StandardPixmap.SP_DialogYesButton,
+    "heart_filled": QStyle.StandardPixmap.SP_DialogYesButton,
 }
 REPEAT_NAMES = {
     RepeatMode.OFF: "Repeat is off",
@@ -75,6 +77,7 @@ class ControlBar(QFrame):
     shuffle_clicked = Signal()
     repeat_clicked = Signal()
     queue_clicked = Signal()
+    favourite_clicked = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -112,7 +115,11 @@ class ControlBar(QFrame):
             "repeat", REPEAT_NAMES[RepeatMode.OFF], "Repeat (R)", self.repeat_clicked
         )
         self.queue_button = self._button("queue", "Queue", "Queue (Q)", self.queue_clicked)
+        self.favourite_button = self._button(
+            "heart", "Add to favourites", "Add to favourites (U)", self.favourite_clicked
+        )
         self._has_list = False
+        self._can_favourite = False
         self.title_label = self._label("", "mediaTitle", "Now playing")
         self.title_label.setMinimumWidth(40)
         plain_text(self.title_label)
@@ -173,6 +180,7 @@ class ControlBar(QFrame):
         row.addSpacing(theme.S)
         row.addWidget(self.title_label, stretch=1)
         for trailing in (
+            self.favourite_button,
             self.shuffle_button,
             self.repeat_button,
             self.queue_button,
@@ -228,6 +236,16 @@ class ControlBar(QFrame):
     def set_list_controls(self, *, previous: bool, next_item: bool) -> None:
         self.previous_button.setEnabled(previous)
         self.next_button.setEnabled(next_item)
+
+    def set_favourite(self, available: bool, favourite: bool) -> None:
+        self._can_favourite = available
+        self.favourite_button.setIcon(
+            icon(self, "heart_filled" if favourite else "heart", theme.RED if favourite else theme.TEXT)
+        )
+        name = "Remove from favourites" if favourite else "Add to favourites"
+        self.favourite_button.setAccessibleName(name)
+        self.favourite_button.setToolTip(f"{name} (U)")
+        self.apply_width(self.width())
 
     def set_shuffle(self, on: bool) -> None:
         self.shuffle_button.setIcon(icon(self, "shuffle", theme.CYAN if on else theme.TEXT))
@@ -306,6 +324,7 @@ class ControlBar(QFrame):
         self.back_button.setVisible(not narrow)
         self.forward_button.setVisible(not narrow)
         self.repeat_button.setVisible(not narrow)
+        self.favourite_button.setVisible(self._can_favourite)
         self.previous_button.setVisible(self._has_list)
         self.next_button.setVisible(self._has_list)
         self.shuffle_button.setVisible(self._has_list and not compact)

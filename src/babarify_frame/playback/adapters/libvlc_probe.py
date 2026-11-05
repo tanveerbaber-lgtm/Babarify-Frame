@@ -27,6 +27,7 @@ from babarify_frame.playback.media_probe import THUMBNAIL_WIDTH, MediaProbe, Pro
 
 PARSE_TIMEOUT_S = 4.0
 FRAME_TIMEOUT_S = 4.0
+MAX_TAG_LENGTH = 300
 _PROBE_ARGS = ("--no-video-title-show", "--no-lua", "--no-audio", "--no-spu", "--no-osd", "--no-stats")
 
 _FormatCb = ctypes.CFUNCTYPE(
@@ -87,21 +88,33 @@ class LibVlcProbe(MediaProbe):
             tracks = read_media_tracks(vlc, media)
             video = next((t for t in tracks if t.type == 1), None)
             audio = next((t for t in tracks if t.type == 0), None)
+            named_audio = os.path.splitext(path)[1].lower() in AUDIO_EXTENSIONS
             result = ProbeResult(
                 duration_ms=duration if duration and duration > 0 else None,
                 width=video.width or None if video else None,
                 height=video.height or None if video else None,
                 video_codec=video.codec if video else None,
                 audio_codec=audio.codec if audio else None,
+                title=self._tag(media, vlc.Meta.Title, path),
+                artist=self._tag(media, vlc.Meta.Artist, path),
+                album=self._tag(media, vlc.Meta.Album, path),
             )
-            audio_only = video is None and (
-                bool(tracks) or os.path.splitext(path)[1].lower() in AUDIO_EXTENSIONS
-            )
-            if audio_only:
+            # A song's cover can look like a video track, so the file's name counts too.
+            if named_audio or (video is None and tracks):
                 return result
             return self._thumbnail(media, result, cancel)
         finally:
             media.release()
+
+    @staticmethod
+    def _tag(media: Any, kind: Any, path: str) -> str | None:
+        value = media.get_meta(kind)
+        if isinstance(value, bytes):
+            value = value.decode("utf-8", "replace")
+        text = " ".join(str(value or "").split())[:MAX_TAG_LENGTH]
+        name = os.path.basename(path)
+        # libVLC reports the file's name as the title of untagged media.
+        return text if text and text not in (name, os.path.splitext(name)[0]) else None
 
     def _thumbnail(self, media: Any, result: ProbeResult, cancel: threading.Event) -> ProbeResult | None:
         vlc = self._vlc
@@ -183,6 +196,9 @@ class LibVlcProbe(MediaProbe):
             height=result.height or src_h or None,
             video_codec=result.video_codec,
             audio_codec=result.audio_codec,
+            title=result.title,
+            artist=result.artist,
+            album=result.album,
             thumbnail=bytes(state["buf"]),
             thumbnail_width=state["w"],
             thumbnail_height=state["h"],

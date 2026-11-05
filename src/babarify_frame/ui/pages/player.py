@@ -121,6 +121,7 @@ class PlayerPage(QWidget):
     bookmarks_changed = Signal()  # M8: the current file's bookmarks changed (or another file opened)
     media_info_changed = Signal()  # M8: tracks, tags or chapters of the current file changed
     queue_requested = Signal()  # the window shows the queue
+    favourites_changed = Signal()
     queue_changed = Signal()  # the list, its order or the place in it changed
     repeat_changed = Signal(object)  # RepeatMode, for the window to persist
 
@@ -264,6 +265,7 @@ class PlayerPage(QWidget):
         c.shuffle_clicked.connect(self.toggle_shuffle)
         c.repeat_clicked.connect(self.cycle_repeat)
         c.queue_clicked.connect(self.queue_requested)
+        c.favourite_clicked.connect(self.toggle_favourite)
         c.tracks_menu_opening.connect(self._fill_tracks_menu)
         c.seek.hovered.connect(self._on_seek_hover)
         c.seek.hover_left.connect(self._on_seek_left)
@@ -397,6 +399,7 @@ class PlayerPage(QWidget):
         self._duration_ms = None
         self._is_audio_only = False
         self._video_announced = False
+        self._show_favourite()
         self.controls.reset_position()
         self.controls.set_title(self._media_name)
         self.controls.set_rate(1.0)
@@ -631,7 +634,7 @@ class PlayerPage(QWidget):
     def queue(self) -> tuple[list[str], int]:
         return list(self._queue), self._queue_index
 
-    def play_queue(self, paths: list[str], start: int = 0) -> None:
+    def play_queue(self, paths: list[str], start: int = 0, shuffle: bool = False) -> None:
         """Play a list of files in order (a playlist). Unavailable files are skipped."""
         if not paths:
             return
@@ -639,6 +642,8 @@ class PlayerPage(QWidget):
         self._ordered_queue = None
         self._queue_index = max(0, min(start, len(paths) - 1)) - 1
         self.next_in_queue()
+        if shuffle and len(self._queue) > 1:
+            self.toggle_shuffle()
 
     def next_in_queue(self) -> None:
         self._step_queue(1)
@@ -720,6 +725,34 @@ class PlayerPage(QWidget):
         self.repeat_changed.emit(self._repeat)
         self._show_queue_state()
 
+    @property
+    def is_favourite(self) -> bool:
+        uri = self._current_uri
+        if uri is None or self._history is None:
+            return False
+        try:
+            return self._history.is_favourite(uri)
+        except sqlite3.Error:
+            log.exception("could not read favourites")
+            return False
+
+    def toggle_favourite(self) -> None:
+        uri = self._current_uri
+        if uri is None or self._history is None or not self._is_audio_only:
+            return
+        adding = not self.is_favourite
+        try:
+            self._history.set_favourite(uri, self.audio_view.title.text() or self._media_name, adding)
+        except sqlite3.Error:
+            log.exception("could not save favourite")
+            return
+        self.status_changed.emit("Added to favourites" if adding else "Removed from favourites")
+        self._show_favourite()
+        self.favourites_changed.emit()
+
+    def _show_favourite(self) -> None:
+        self.controls.set_favourite(self._is_audio_only and self._history is not None, self.is_favourite)
+
     def _show_queue_state(self) -> None:
         has_list = len(self._queue) > 1
         self.controls.set_list_available(has_list)
@@ -764,6 +797,7 @@ class PlayerPage(QWidget):
                 self._read_picture(path)
         self.audio_view.set_playing(self._state is S.PLAYING)
         self._stage.setCurrentWidget(self.audio_view)
+        self._show_favourite()
 
     def _read_picture(self, path: str) -> None:
         def work() -> None:
