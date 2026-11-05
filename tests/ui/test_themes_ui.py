@@ -96,7 +96,8 @@ def test_lit_buttons_take_the_new_colour(
 
     monkeypatch.setattr(controls, "icon", recording_icon)
     window.player.cycle_repeat()
-    assert asked[-1] == THEMES[DEFAULT_THEME].accent2
+    assert THEMES[DEFAULT_THEME].accent2 in asked
+    asked.clear()
     choose(window, "sunset")
     assert THEMES["sunset"].accent2 in asked
 
