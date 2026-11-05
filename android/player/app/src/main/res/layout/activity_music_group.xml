@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/groupRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ImageButton
+        android:id="@+id/groupBack"
+        style="@style/IconButton"
+        android:layout_margin="4dp"
+        android:contentDescription="@string/close_player"
+        android:src="@drawable/ic_arrow_back" />
+
+    <ListView
+        android:id="@+id/groupList"
+        style="@style/MediaList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <include layout="@layout/now_playing" />
+</LinearLayout>

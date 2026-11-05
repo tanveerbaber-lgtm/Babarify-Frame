@@ -13,7 +13,20 @@ Brings the Android app close to the Windows app. Not yet published.
 - New: picture controls, equalizer with presets, profiles, aspect, zoom, rotate, flip, snapshots.
 - New: subtitle look, preferred languages, media and playback information, pictures while seeking.
 - New: a redesigned interface: full-screen video with overlay controls, icons, bottom tabs and grouped settings.
-- New: repeat off, one or all; add media to a playlist from the library or your files.
+- New: repeat off, one or all; shuffle; add media to a playlist from the library, your files or the player.
+- New: a Music tab listing every song on the phone by song, album, artist and folder, with search and sorting.
+  It asks for a new, optional permission to read songs; you can still open files and add folders without it.
+- New: a now-playing screen with the song's picture filling the top, colours taken from it, or an animation
+  if it has none: mirrored bars with a reflection, capsules, waves, a circle or lights. They change by
+  themselves while a song plays, or you can choose one. Its controls stay until you hide them. The animations
+  don't follow the sound.
+- New: favourites, and automatic Recently played, Most played and Recently added lists.
+- New: a queue you can jump around in, and shuffle that can be switched off again.
+- New: an equalizer screen with preset chips, upright sliders, and bass boost and preamp dials.
+- New: six colour themes, a sleep timer and touch lock.
+- New: a mini player on the main screens: a card coloured from the song's picture, with its progress, title and
+  artist. Swipe it sideways to change song.
+- New: the notification shows the song's title, artist and picture, with a favourite button.
 - New: audio files keep playing with the app closed, in a mini player in the notifications, until you close
   it there. Video stops when you leave unless you choose otherwise. This needs three new permissions; still no
   internet or storage permission.

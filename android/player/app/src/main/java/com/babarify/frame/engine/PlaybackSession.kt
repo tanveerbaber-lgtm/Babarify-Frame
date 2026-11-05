@@ -26,6 +26,7 @@ import com.babarify.frame.core.TrackInfo
 import com.babarify.frame.core.TrackKind
 import com.babarify.frame.data.HistoryEntry
 import com.babarify.frame.data.HistoryStore
+import com.babarify.frame.data.LibraryStore
 import com.babarify.frame.data.Preferences
 import java.io.File
 
@@ -43,6 +44,7 @@ interface SessionListener {
 class PlaybackSession private constructor(private val app: Context) : EngineListener {
     val preferences = Preferences(app)
     private val history = HistoryStore(app)
+    private val library by lazy { LibraryStore(app) }
     private val audioManager = app.getSystemService(AudioManager::class.java)
     private val handler = Handler(Looper.getMainLooper())
     private val listeners = LinkedHashSet<SessionListener>()
@@ -56,6 +58,11 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
     var subtitleFile: File? = null
     var queue = PlayQueue(emptyList())
         private set
+    private var orderedQueue: PlayQueue? = null
+    private var playCounted = false
+    private var resumedFrom = 0L
+    private var firstPlayingAt = 0L
+    val shuffled: Boolean get() = orderedQueue != null
     var wantsToPlay = true
     var finished = false
         private set
@@ -93,6 +100,14 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
     val positionMs: Long get() = engine?.positionMs ?: storedPositionMs
     val durationMs: Long? get() = engine?.durationMs
     val volumeMaximum: Int get() = PlaybackRules.volumeMaximum(preferences.allowVolumeBoost)
+
+    /** When playback will pause by itself, on the elapsed-time clock; null when no timer is set. */
+    var sleepAt: Long? = null
+        private set
+    private val sleepNow = Runnable {
+        sleepAt = null
+        pause()
+    }
 
     private val tick = object : Runnable {
         override fun run() {
@@ -139,6 +154,7 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
         saveProgress()
         releaseEngine()
         queue = newQueue
+        orderedQueue = null
         prepare(uri, displayTitle)
     }
 
@@ -148,6 +164,7 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
         subtitleFile = null
         wantsToPlay = true
         finished = false
+        playCounted = false
         abLoop.clear()
         rate = 1f
         audioDelayMs = 0
@@ -174,7 +191,15 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
         queue = items
     }
 
+    /** Null turns it off. It pauses rather than closes, so the place in the file is kept. */
+    fun setSleepTimer(afterMs: Long?) {
+        handler.removeCallbacks(sleepNow)
+        sleepAt = afterMs?.let { SystemClock.elapsedRealtime() + it }
+        if (afterMs != null) handler.postDelayed(sleepNow, afterMs)
+    }
+
     fun clearMedia() {
+        setSleepTimer(null)
         saveProgress()
         releaseEngine()
         mediaUri = null
@@ -207,6 +232,8 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
         openedAt = SystemClock.elapsedRealtime()
         finished = false
         tracksApplied = false
+        resumedFrom = storedPositionMs
+        firstPlayingAt = 0L
         try {
             created.open(media, subtitleFile, storedPositionMs, startPaused = !wantsToPlay, withVideo = view != null)
         } catch (_: MediaAccessException) {
@@ -269,8 +296,12 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
     // ------------------------------------------------------------- events
     override fun onStateChanged(state: PlaybackState, error: ErrorCode?) {
         when (state) {
-            PlaybackState.PLAYING -> applyEngineSettings()
+            PlaybackState.PLAYING -> {
+                if (firstPlayingAt == 0L) firstPlayingAt = SystemClock.elapsedRealtime()
+                applyEngineSettings()
+            }
             PlaybackState.ENDED -> {
+                if (restartAfterFailedResume()) return
                 finished = true
                 wantsToPlay = false
                 storedPositionMs = 0
@@ -284,6 +315,20 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
             else -> Unit
         }
         notifyState(state, error)
+    }
+
+    /**
+     * Some files can't start part way: libVLC starts them and reports the end at once. That's a resume that
+     * failed, not a file that finished, so play it from the beginning. Seen with a very low bitrate MP3.
+     */
+    private fun restartAfterFailedResume(): Boolean {
+        val instant = firstPlayingAt != 0L && SystemClock.elapsedRealtime() - firstPlayingAt < INSTANT_END_MS
+        if (resumedFrom <= 0 || !instant) return false
+        val view = videoView
+        releaseEngine()
+        storedPositionMs = 0
+        start(view)
+        return true
     }
 
     override fun onTracksChanged() {
@@ -307,11 +352,20 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
             return
         }
         if (current.progressed) applyTrackChoices(current)
+        countPlay(current)
         abLoop.jumpTarget(current.positionMs)?.let(current::seekTo)
         if (state == PlaybackState.PLAYING && SystemClock.elapsedRealtime() - lastSavedAt > SAVE_INTERVAL_MS) {
             storedPositionMs = current.positionMs
             saveProgress()
         }
+    }
+
+    /** For the automatic lists of songs. Follows the setting that switches history off. */
+    private fun countPlay(current: PlayerEngine) {
+        val uri = mediaUri
+        if (playCounted || uri == null || !current.progressed || !isAudioOnly) return
+        playCounted = true
+        if (preferences.rememberHistory) library.recordPlay(uri.toString(), title)
     }
 
     /** Once per engine, after the tracks are known: what the user chose, or else their languages. */
@@ -416,6 +470,25 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
         queue.previous()?.let(::playItem)
     }
 
+    /** Plays one of the queue's items, as when it's chosen from the list. */
+    fun playAt(position: Int) {
+        queue.jumpTo(position)?.let(::playItem)
+    }
+
+    /** Random order and back. What's playing carries on, and only what comes next changes. */
+    fun toggleShuffle(): Boolean {
+        if (!queue.isPlaylist) return false
+        val ordered = orderedQueue
+        if (ordered == null) {
+            orderedQueue = queue
+            queue = queue.shuffled()
+        } else {
+            queue = ordered.at(queue.items.getOrNull(queue.index))
+            orderedQueue = null
+        }
+        return shuffled
+    }
+
     private fun playItem(item: QueueItem) {
         val view = videoView
         val uri = Uri.parse(item.uri)
@@ -502,6 +575,7 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
 
     companion object {
         private const val TICK_MS = 200L
+        private const val INSTANT_END_MS = 1_500L
         private const val SAVE_INTERVAL_MS = 5_000L
 
         @SuppressLint("StaticFieldLeak") // Holds only the application context.

@@ -1,5 +1,7 @@
 package com.babarify.frame.core
 
+import kotlin.random.Random
+
 /** The files that play one after another: a playlist, or just the one file that was opened. */
 class PlayQueue(val items: List<QueueItem>, startIndex: Int = 0) {
     var index = startIndex.coerceIn(0, (items.size - 1).coerceAtLeast(0))
@@ -22,6 +24,23 @@ class PlayQueue(val items: List<QueueItem>, startIndex: Int = 0) {
 
     /** Next chosen by the user: only repeating everything goes round from the end. */
     fun nextPressed(mode: RepeatMode): QueueItem? = next() ?: if (mode == RepeatMode.ALL) first() else null
+
+    /** Straight to one item, as when it's chosen from the queue. */
+    fun jumpTo(position: Int): QueueItem? {
+        val item = items.getOrNull(position) ?: return null
+        index = position
+        return item
+    }
+
+    /** The same items in a random order, with the current one still current. */
+    fun shuffled(random: Random = Random.Default): PlayQueue {
+        val current = items.getOrNull(index) ?: return this
+        val others = items.filterIndexed { position, _ -> position != index }.shuffled(random)
+        return PlayQueue(listOf(current) + others, 0)
+    }
+
+    /** The same items, moved to [current] in this order, for turning shuffle off. */
+    fun at(current: QueueItem?): PlayQueue = PlayQueue(items, items.indexOf(current).coerceAtLeast(0))
 
     private fun first(): QueueItem? {
         index = 0

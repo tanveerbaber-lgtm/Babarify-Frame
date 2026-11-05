@@ -53,6 +53,23 @@ a notification; small floating window; buttons to fill the screen and turn it.
   until closed from that notification. **This replaces "leaving stops playback by default" for audio.** Video
   still stops on leaving unless the user chooses otherwise.
 
+- **Audio screen:** the screen went black seconds after a song started, because the auto-hide meant for video
+  also ran for audio (R58). Audio now has its own screen, and its controls stay until hidden.
+- **Music interface**, using a popular music player's store page and screenshots as a reference for layout only.
+  No artwork or branding was copied, and the app itself was not run.
+  - A Music tab with songs, albums, artists and folders, from Android's media index.
+  - A now-playing screen with the song's picture, colours from it, shuffle, queue and favourites.
+  - Five animations for songs with no picture, in the style of an image the owner supplied, changing every
+    20 seconds or chosen by the user. **They are decoration and don't follow the sound:** that would need the
+    microphone permission, which the app doesn't ask for.
+  - Automatic favourites, recently played, most played and recently added lists.
+  - An equalizer screen. Its bass dial turns up the four lowest equalizer bands.
+  - Six colour themes, sleep timer, touch lock, a redesigned mini player and notification.
+
+**The owner chose to add a music permission** so songs can be found without picking folders: `READ_MEDIA_AUDIO`, or
+`READ_EXTERNAL_STORAGE` on Android 12 and earlier. It's asked for only when the user taps *Find my music*, and the app
+works without it. On Android 12 and earlier it can technically see other files, which the app doesn't read.
+
 ## Interface
 
 The owner asked for it to look like a real media player, so the interface was redesigned using the desktop
@@ -83,10 +100,11 @@ theme's colours and blue-to-cyan accent.
 
 | Where | Result | Notes |
 |---|---|---|
-| Samsung Galaxy A33 5G, Android 16 | **57 of 57** | [`parity_device_tests_galaxy_a33_android16.xml`](evidence/parity_device_tests_galaxy_a33_android16.xml) |
-| Emulator, Android 10 | **57 of 57** | [`parity_device_tests_android10_emulator.xml`](evidence/parity_device_tests_android10_emulator.xml) |
-| Unit tests | **29 of 29** | |
-| Lint | 0 errors, 22 warnings | The warnings are style and translation advice, and an old-Android backup note that M13 already accepted |
+| Samsung Galaxy A33 5G, Android 16 | **78 of 78** | [`music_device_tests_galaxy_a33_android16.xml`](evidence/music_device_tests_galaxy_a33_android16.xml) |
+| Emulator, Android 10 | **78 of 78** | [`music_device_tests_android10_emulator.xml`](evidence/music_device_tests_android10_emulator.xml). One test then gained a 1.5 s wait, and only the phone re-ran the whole suite after that |
+| Unit tests | **39 of 39** | |
+| Lint | 0 errors, 38 warnings | Not reviewed individually since the music interface; it was 22 before it |
+| Owner's check of the music interface on the A33 | **"All works"** | An 18-step checklist with their own songs, covering the Music tab, now playing, animations, equalizer, mini player, notification, themes and video |
 | Owner's check on the A33 | **"All works"**, before the redesign | A 10-step checklist with their own videos, covering library, playlists, boost, equalizer, background sound with the screen locked, small window, gestures, picture tools and subtitle look |
 
 The owner also checked the additions on the A33 with their own songs and reported **"All works"**: a 12-step
@@ -99,7 +117,7 @@ Device tests use real libVLC playback. Colour filter and subtitle colour tests r
 
 ## Defects found and fixed
 
-Recorded as R54–R57 in the [regression catalog](../../testing/regressions.md).
+Recorded as R54–R63 in the [regression catalog](../../testing/regressions.md).
 
 | ID | Defect | Found by |
 |---|---|---|
@@ -107,6 +125,12 @@ Recorded as R54–R57 in the [regression catalog](../../testing/regressions.md).
 | R55 | On Android 10–12, other apps could have pressed play or pause in the small window | Lint |
 | R56 | The controls could stay visible in the small window | Device test, once in Android 10's emulator |
 | R57 | Closing the mini player could leave a dead notification behind | Device test |
+| R58 | The screen went black seconds after a song started | The owner |
+| R59 | Playing a song crashed the app on Android 10 | Device test |
+| R60 | A very low bitrate MP3 opened part way ended at once and was called finished | Screenshot review |
+| R61 | An audio test failed on and off, with the song playing normally | Device test |
+| R62 | The notification kept the last song's title after a new list started another song | Screenshot review |
+| R63 | Tapping a song in the list did nothing | Screenshot review |
 
 Three intermittent results on the emulator, worth keeping an eye on:
 
@@ -119,6 +143,12 @@ Three intermittent results on the emulator, worth keeping an eye on:
 
 Neither failure has returned in the two full emulator runs and one phone run since, which is only a few runs.
 
+R61's cause is taken from its logs, and the test passed 12 of 12 repeats and the last full runs after the fix. An
+earlier fix also passed 12 of 12 and then failed in a full run, so it's worth watching. The mini player swipe test
+failed on the A33 when it swiped straight after the player closed, and passed with a wait: the cause of that wasn't
+established, beyond the screen still changing at the time. R60 was reproduced only with a silent 32 kbps file;
+normal-sounding MP3s at 192 kbps and VBR resumed correctly.
+
 ## Known limits
 
 - **Thin device matrix:** still one real phone and one emulator. Android 11–15, other brands and 32-bit are untested.
@@ -127,7 +157,11 @@ Neither failure has returned in the two full emulator runs and one phone run sin
 - **R57's second case** (music then video in a playlist) was fixed by always removing the notification. Where
   that one came from wasn't established.
 - **Phone makers' battery rules** may stop background sound after swiping the app away on other phones. It worked on the owner's A33; automated tests can't do that swipe.
-- **Not measured:** battery use with `TextureView` or background sound, memory, long sessions, very large libraries.
+- **Not measured:** battery use with `TextureView`, background sound or the animations, memory, long sessions,
+  very large libraries. The largest music list tested is a handful of songs.
+- **Permission refused:** the Music screen's prompt after refusing isn't covered by a device test, because taking a
+  permission back stops the app.
+- **Reference app:** only its store page and screenshots were seen.
 - **Library pictures and lengths** use the system's decoders, so a format only libVLC can play gets neither.
 - **Language matching** relies on the words in a track's name, so an unnamed track can't match.
 - **Not tested by anyone, as far as recorded:** phone calls, unplugging headphones, and folders on SD cards or cloud providers.
@@ -138,7 +172,7 @@ Neither failure has returned in the two full emulator runs and one phone run sin
 ## Changes
 
 - `android/player/`: the features and interface above and `FeatureFlowsTest`, `EnhancementsTest`; version 0.2.0-beta.
-- `docs/PRIVACY.md`, `CHANGELOG.md`, the plan's status, R54–R57.
+- `docs/PRIVACY.md`, `CHANGELOG.md`, the plan's status, R54–R63.
 - No change to the Windows app. M13's PASS stands for its original scope; this report doesn't change a milestone's decision.
 - **On the phone:** 0.2.0-beta (debug build) is installed for the owner's use. It can't be updated by a build
   signed with the future release key without uninstalling first, and uninstalling removes its library and settings.

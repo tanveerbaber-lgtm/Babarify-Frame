@@ -1,6 +1,7 @@
 package com.babarify.frame.ui
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Outline
@@ -24,6 +25,10 @@ data class MediaRow(
     val thumbnail: String? = null,
     val progress: Float? = null,
     val placeholder: Int = R.drawable.ic_movie,
+    /** A song or other file to take the picture from, instead of [thumbnail]. */
+    val artUri: String? = null,
+    /** A colour for the icon of a list that has no picture of its own. */
+    val iconColour: Int? = null,
 )
 
 /** The picture to show for a file that has none of its own, from its name. */
@@ -60,6 +65,11 @@ class MediaRowAdapter(private val context: Context) : BaseAdapter() {
         progress.visibility = if (row.progress == null) View.GONE else View.VISIBLE
         progress.progress = ((row.progress ?: 0f) * progress.max).toInt()
         val image = view.findViewById<ImageView>(R.id.rowPicture)
+        if (row.artUri != null) {
+            Art.show(image, row.artUri, row.placeholder)
+            return view
+        }
+        image.tag = null
         image.outlineProvider = rounded
         image.clipToOutline = true
         val bitmap = row.thumbnail?.let(::picture)
@@ -68,7 +78,7 @@ class MediaRowAdapter(private val context: Context) : BaseAdapter() {
             image.scaleType = ImageView.ScaleType.CENTER_CROP
             image.setImageBitmap(bitmap)
         } else {
-            image.imageTintList = context.getColorStateList(R.color.text_muted)
+            image.imageTintList = row.iconColour?.let(ColorStateList::valueOf) ?: context.getColorStateList(R.color.text_muted)
             image.scaleType = ImageView.ScaleType.CENTER
             image.setImageResource(row.placeholder)
         }

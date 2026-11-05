@@ -12,9 +12,11 @@ import android.content.pm.PackageManager
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
+import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.Icon
 import android.media.AudioManager
 import android.media.MediaMetadataRetriever
@@ -30,6 +32,7 @@ import android.util.Rational
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.TextureView
+import android.view.ViewGroup
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
@@ -38,10 +41,13 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import com.babarify.frame.R
+import com.babarify.frame.core.MusicRules
+import com.babarify.frame.core.VisualStyle
 import com.babarify.frame.core.ErrorCode
 import com.babarify.frame.core.LeaveAction
 import com.babarify.frame.core.PlayQueue
@@ -66,6 +72,9 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.abs
 
+/** Where a button sits while a video shows. */
+private class Placed(val view: View, val parent: ViewGroup, val index: Int, val params: ViewGroup.LayoutParams)
+
 /**
  * The player screen. What plays lives in [PlaybackSession]; leaving this screen stops it unless the
  * user chose otherwise in Settings, so by default nothing plays or reads media in the background.
@@ -84,6 +93,13 @@ class PlayerActivity : Activity(), SessionListener {
     private lateinit var nextButton: ImageButton
     private lateinit var pictureButton: ImageButton
     private lateinit var repeatButton: ImageButton
+    private lateinit var unlockButton: ImageButton
+    private lateinit var audioView: View
+    private lateinit var audioArt: View
+    private lateinit var audioCover: ImageView
+    private lateinit var audioBars: EqualizerBarsView
+    private lateinit var audioTitle: TextView
+    private lateinit var audioArtist: TextView
     private lateinit var speedButton: Button
     private lateinit var volumeButton: Button
     private lateinit var previewImage: ImageView
@@ -99,6 +115,19 @@ class PlayerActivity : Activity(), SessionListener {
     private var previewWanted: Long? = null
     private var previewRunning = false
     private var leftPicture = false
+    private var coverLoadedFor: Uri? = null
+    private lateinit var audioFade: View
+    private lateinit var audioInfo: View
+    private lateinit var bottomBar: LinearLayout
+    private lateinit var toolRow: LinearLayout
+    private lateinit var transportRow: LinearLayout
+    private lateinit var shuffleButton: ImageButton
+    private lateinit var favouriteButton: ImageButton
+    private lateinit var backSeek: Button
+    private lateinit var forwardSeek: Button
+    private var audioLayout = false
+    private var placeInVideo: List<Placed> = emptyList()
+    private var locked = false
 
     private val handler = Handler(Looper.getMainLooper())
     private val tick = object : Runnable {
@@ -107,9 +136,11 @@ class PlayerActivity : Activity(), SessionListener {
             handler.postDelayed(this, TICK_MS)
         }
     }
+    // Only a video has a picture to clear the way for. Audio's controls stay until the user hides them.
     private val hideControls = Runnable {
-        if (session.isPlaying && !userSeeking) setControlsVisible(false)
+        if (session.isPlaying && !userSeeking && !session.isAudioOnly) setControlsVisible(false)
     }
+    private val hideUnlock = Runnable { unlockButton.visibility = View.GONE }
     private val hideGestureLabel = Runnable { gestureLabel.visibility = View.GONE }
 
     /** For tests and diagnostics. */
@@ -120,6 +151,7 @@ class PlayerActivity : Activity(), SessionListener {
     val controlsView: View get() = controls
     val videoView: TextureView get() = video
     val currentTransform: VideoTransform get() = transform
+    val isLocked: Boolean get() = locked
     fun tracksOf(kind: TrackKind): List<TrackInfo> = session.tracks(kind)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -168,6 +200,8 @@ class PlayerActivity : Activity(), SessionListener {
     }
 
     private fun acceptIntent(intent: Intent) {
+        val pending = pendingQueue
+        pendingQueue = null
         val uri = intent.data
         if (uri == null || !PlaybackRules.isOpenableScheme(uri.scheme)) {
             session.clearMedia()
@@ -177,11 +211,15 @@ class PlayerActivity : Activity(), SessionListener {
         if (session.isLoaded(uri)) return // Playing on from the background: just come back to it.
         val uris = intent.getStringArrayListExtra(EXTRA_QUEUE_URIS).orEmpty()
         val titles = intent.getStringArrayListExtra(EXTRA_QUEUE_TITLES).orEmpty()
-        val title = session.displayName(uri) ?: getString(R.string.untitled)
-        val items = uris.zip(titles) { item, name -> QueueItem(item, name) }
+        val index = intent.getIntExtra(EXTRA_QUEUE_INDEX, 0)
+        val items = (pending ?: uris.zip(titles) { item, name -> QueueItem(item, name) })
             .filter { PlaybackRules.isOpenableScheme(Uri.parse(it.uri).scheme) }
+        val title = items.getOrNull(index)?.takeIf { pending != null }?.title
+            ?: session.displayName(uri)
+            ?: getString(R.string.untitled)
         if (items.size > 1) {
-            session.load(uri, title, PlayQueue(items, intent.getIntExtra(EXTRA_QUEUE_INDEX, 0)))
+            session.load(uri, title, PlayQueue(items, index))
+            if (intent.getBooleanExtra(EXTRA_SHUFFLE, false)) session.toggleShuffle()
         } else {
             session.load(uri, title)
         }
@@ -233,6 +271,12 @@ class PlayerActivity : Activity(), SessionListener {
         super.onStop()
     }
 
+    // Before the next screen starts, so its mini player knows this one is leaving. A small window stays in front.
+    override fun onPause() {
+        isInFront = isInPictureInPictureMode
+        super.onPause()
+    }
+
     override fun onDestroy() {
         library.close()
         worker.shutdownNow()
@@ -246,9 +290,13 @@ class PlayerActivity : Activity(), SessionListener {
         outState.putString(STATE_SUBTITLE, session.subtitleFile?.path)
         outState.putLong(STATE_POSITION, session.positionMs)
         outState.putBoolean(STATE_PLAYING, session.wantsToPlay)
-        outState.putStringArrayList(STATE_QUEUE_URIS, ArrayList(session.queue.items.map { it.uri }))
-        outState.putStringArrayList(STATE_QUEUE_TITLES, ArrayList(session.queue.items.map { it.title }))
-        outState.putInt(STATE_QUEUE_INDEX, session.queue.index)
+        // Saved state has a size limit that a big music collection would pass: keep what's around the current song.
+        val queue = session.queue
+        val first = (queue.index - SAVED_QUEUE_AROUND).coerceAtLeast(0)
+        val saved = queue.items.subList(first, (queue.index + SAVED_QUEUE_AROUND + 1).coerceAtMost(queue.items.size))
+        outState.putStringArrayList(STATE_QUEUE_URIS, ArrayList(saved.map { it.uri }))
+        outState.putStringArrayList(STATE_QUEUE_TITLES, ArrayList(saved.map { it.title }))
+        outState.putInt(STATE_QUEUE_INDEX, queue.index - first)
     }
 
     // ------------------------------------------------------------- events
@@ -267,7 +315,10 @@ class PlayerActivity : Activity(), SessionListener {
             showControls()
         }
         when (state) {
-            PlaybackState.ENDED -> seekBar.progress = seekBar.max
+            PlaybackState.ENDED -> {
+                seekBar.progress = seekBar.max
+                positionLabel.text = durationLabel.text
+            }
             PlaybackState.ERROR -> showMessage(getString(messageFor(error)))
             else -> Unit
         }
@@ -290,9 +341,77 @@ class PlayerActivity : Activity(), SessionListener {
         showRate(session.rate)
         showVolume()
         val inPlaylist = session.queue.isPlaylist
-        previousButton.visibility = if (inPlaylist) View.VISIBLE else View.GONE
-        nextButton.visibility = if (inPlaylist) View.VISIBLE else View.GONE
+        previousButton.visibility = if (inPlaylist || audioLayout) View.VISIBLE else View.GONE
+        nextButton.visibility = if (inPlaylist || audioLayout) View.VISIBLE else View.GONE
         showRepeat()
+        showShuffle()
+        showFavourite()
+    }
+
+    private fun showShuffle() {
+        shuffleButton.isEnabled = session.queue.isPlaylist
+        shuffleButton.alpha = if (session.queue.isPlaylist) 1f else DISABLED_ALPHA
+        shuffleButton.contentDescription = getString(if (session.shuffled) R.string.shuffle_on else R.string.shuffle_off)
+        shuffleButton.imageTintList = android.content.res.ColorStateList.valueOf(
+            if (session.shuffled) themeColor(R.attr.accent2Color) else getColor(R.color.text),
+        )
+    }
+
+    private fun showFavourite() {
+        val favourite = session.mediaUri?.let { library.isFavourite(it.toString()) } == true
+        favouriteButton.setImageResource(if (favourite) R.drawable.ic_heart else R.drawable.ic_heart_outline)
+        favouriteButton.contentDescription = getString(if (favourite) R.string.remove_favourite else R.string.add_favourite)
+        favouriteButton.imageTintList = android.content.res.ColorStateList.valueOf(
+            if (favourite) FAVOURITE_COLOUR else getColor(R.color.text),
+        )
+    }
+
+    /** For tests, too. */
+    fun pressFavourite() {
+        val uri = session.mediaUri?.toString() ?: return
+        library.setFavourite(uri, session.title, !library.isFavourite(uri))
+        showFavourite()
+    }
+
+    private fun pressShuffle() {
+        session.toggleShuffle()
+        showShuffle()
+        showGesture(shuffleButton.contentDescription.toString())
+    }
+
+    private fun showQueue() {
+        val queue = session.queue
+        val names = queue.items.map { MusicRules.withoutExtension(it.title) }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.queue)
+            .setSingleChoiceItems(names.toTypedArray(), queue.index) { dialog, which ->
+                dialog.dismiss()
+                if (which != queue.index) session.playAt(which)
+            }
+            .show()
+    }
+
+    private fun showVisualStyles() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.animation_style)
+            .setSingleChoiceItems(
+                VISUAL_STYLES.map { getString(it.second) }.toTypedArray(),
+                VISUAL_STYLES.indexOfFirst { it.first == preferences.visualStyle },
+            ) { dialog, which ->
+                chooseVisualStyle(VISUAL_STYLES[which].first)
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    /** For tests, too. */
+    fun chooseVisualStyle(style: VisualStyle) {
+        preferences.visualStyle = style
+        audioBars.style = style
+    }
+
+    private fun showEqualizer() {
+        EqualizerPanel.show(this, preferences, session.engine) { session.onPreferencesChanged() }
     }
 
     private fun showVolume() {
@@ -335,7 +454,116 @@ class PlayerActivity : Activity(), SessionListener {
         showControls()
     }
 
+    /** Audio's own screen, in place of a video that would only be black. */
+    private fun showAudioView() {
+        val audio = session.isAudioOnly
+        val wasShown = audioView.visibility == View.VISIBLE
+        audioView.visibility = if (audio) View.VISIBLE else View.GONE
+        if (audio != audioLayout) arrangeControls(audio)
+        if (!audio) return
+        if (!wasShown) {
+            pictureButton.visibility = View.GONE
+            showControls() // The queue may have moved here from a video with its controls hidden.
+            placeAudioCover()
+        }
+        val uri = session.mediaUri ?: return
+        if (coverLoadedFor == uri) return
+        coverLoadedFor = uri
+        audioTitle.text = MusicRules.withoutExtension(session.title)
+        audioArtist.text = ""
+        showCover(null)
+        worker.execute {
+            val retriever = MediaMetadataRetriever()
+            var cover: Bitmap? = null
+            var title: String? = null
+            var artist: String? = null
+            try {
+                retriever.setDataSource(this, uri)
+                cover = retriever.embeddedPicture?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
+                title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+                artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
+            } catch (_: RuntimeException) {
+                // No details for this file: its name is enough.
+            } finally {
+                try {
+                    retriever.release()
+                } catch (_: IOException) {
+                    // Nothing more to do with it.
+                }
+            }
+            runOnUiThread {
+                if (!isDestroyed && coverLoadedFor == uri) {
+                    showCover(cover)
+                    title?.takeIf { it.isNotBlank() }?.let { audioTitle.text = it }
+                    audioArtist.text = artist.orEmpty()
+                }
+            }
+        }
+    }
+
+    /** The song's picture and the colours taken from it, or moving bars and the theme's colours. */
+    private fun showCover(cover: Bitmap?) {
+        audioCover.setImageBitmap(cover)
+        audioCover.visibility = if (cover != null) View.VISIBLE else View.GONE
+        audioBars.visibility = if (cover != null) View.GONE else View.VISIBLE
+        audioFade.visibility = if (cover != null) View.VISIBLE else View.GONE
+        if (cover == null) {
+            audioView.setBackgroundResource(R.drawable.bg_audio)
+            return
+        }
+        val colour = Art.backgroundFrom(cover)
+        audioView.setBackgroundColor(colour)
+        audioFade.background = GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            intArrayOf(colour and TRANSPARENT_MASK, colour),
+        )
+    }
+
+    /** The picture fills what the controls leave free, and steps aside when a turned phone has too little. */
+    private fun placeAudioCover() {
+        if (!audioLayout) return
+        val free = bottomBar.top
+        if (free <= 0) return
+        val density = resources.displayMetrics.density
+        val height = free // Tall on a phone, like the reference: it crops the sides rather than leave a gap.
+        audioArt.visibility = if (height < MIN_COVER_DP * density) View.GONE else View.VISIBLE
+        val params = audioArt.layoutParams
+        if (params.height != height) {
+            params.height = height
+            audioArt.layoutParams = params
+        }
+    }
+
+    /** One set of buttons, placed for a song or for a video, so everything behaves the same in both. */
+    private fun arrangeControls(audio: Boolean) {
+        audioLayout = audio
+        val density = resources.displayMetrics.density
+        fun small() = LinearLayout.LayoutParams((ICON_DP * density).toInt(), (ICON_DP * density).toInt())
+        if (audio) {
+            place(transportRow, bottomBar, bottomBar.indexOfChild(toolRow), LinearLayout.LayoutParams(MATCH, WRAP))
+            place(repeatButton, transportRow, transportRow.childCount, small().apply { marginStart = (6 * density).toInt() })
+            place(backSeek, toolRow, 0, small())
+            place(forwardSeek, toolRow, toolRow.indexOfChild(findViewById(R.id.rotateButton)), small())
+        } else {
+            placeInVideo.forEach { place(it.view, it.parent, it.index, it.params) }
+        }
+        val onlyVideo = if (audio) View.GONE else View.VISIBLE
+        listOf(R.id.fitButton, R.id.audioButton, R.id.subtitleButton).forEach { findViewById<View>(it).visibility = onlyVideo }
+        shuffleButton.visibility = if (audio) View.VISIBLE else View.GONE
+        audioInfo.visibility = if (audio) View.VISIBLE else View.GONE
+        titleLabel.visibility = if (audio) View.INVISIBLE else View.VISIBLE
+        if (audio) bottomBar.background = null else bottomBar.setBackgroundResource(R.drawable.scrim_bottom)
+        showMediaDetails()
+        bottomBar.post { placeAudioCover() }
+    }
+
+    private fun place(view: View, parent: ViewGroup, index: Int, params: ViewGroup.LayoutParams) {
+        (view.parent as? ViewGroup)?.removeView(view)
+        parent.addView(view, index.coerceAtMost(parent.childCount), params)
+    }
+
     private fun showPlaying(playing: Boolean) {
+        audioBars.playing = playing
         playButton.setImageResource(if (playing) R.drawable.ic_pause else R.drawable.ic_play)
         playButton.contentDescription = getString(if (playing) R.string.pause else R.string.play)
     }
@@ -356,9 +584,11 @@ class PlayerActivity : Activity(), SessionListener {
         }
         repeatButton.setImageResource(icon)
         repeatButton.contentDescription = getString(label)
-        repeatButton.imageTintList =
-            getColorStateList(if (session.repeatMode == RepeatMode.OFF) R.color.text else R.color.cyan)
+        repeatButton.imageTintList = android.content.res.ColorStateList.valueOf(
+            if (session.repeatMode == RepeatMode.OFF) getColor(R.color.text) else themeColor(R.attr.accent2Color),
+        )
         nextButton.isEnabled = session.queue.hasNext || session.repeatMode == RepeatMode.ALL
+        nextButton.alpha = if (nextButton.isEnabled) 1f else DISABLED_ALPHA
     }
 
     fun pressRepeat() {
@@ -370,6 +600,7 @@ class PlayerActivity : Activity(), SessionListener {
 
     private fun onTick() {
         startMiniPlayerIfNeeded()
+        showAudioView()
         // Android can deliver lifecycle calls around entering the small window in either order.
         if (isInPictureInPictureMode && controls.visibility == View.VISIBLE) setControlsVisible(false)
         val state = session.state ?: return
@@ -392,7 +623,7 @@ class PlayerActivity : Activity(), SessionListener {
     }
 
     fun showControls() {
-        if (isInPictureInPictureMode) return
+        if (isInPictureInPictureMode || locked) return
         setControlsVisible(true)
         scheduleHideControls()
     }
@@ -512,23 +743,98 @@ class PlayerActivity : Activity(), SessionListener {
     }
 
     private fun showMore() {
+        val audio = session.isAudioOnly
         val items = buildList<Pair<Int, () -> Unit>> {
-            add(R.string.picture_and_sound to { showPictureAndSound() })
-            add(R.string.aspect_ratio to { showAspect() })
-            add(R.string.zoom to { showZoom() })
-            add(R.string.rotate_or_flip to { showTransform() })
+            if (audio) {
+                add(R.string.equalizer to { showEqualizer() })
+                add(R.string.animation_style to { showVisualStyles() })
+                add(R.string.audio to { showTracks(TrackKind.AUDIO) })
+                add(R.string.subtitles to { showTracks(TrackKind.SUBTITLE) })
+            } else {
+                add(R.string.picture_and_sound to { showPictureAndSound() })
+                add(R.string.aspect_ratio to { showAspect() })
+                add(R.string.zoom to { showZoom() })
+                add(R.string.rotate_or_flip to { showTransform() })
+            }
+            add(R.string.sleep_timer to { showSleepTimer() })
+            add(R.string.add_to_playlist to { choosePlaylist() })
+            add(R.string.lock_controls to { setLocked(true) })
             if (session.chapters().isNotEmpty()) add(R.string.chapters to { showChapters() })
             add(R.string.bookmarks to { showBookmarks() })
             add(R.string.ab_repeat to { pressAbRepeat() })
             add(R.string.sync_and_delay to { showSync() })
             add(R.string.start_over to { session.startOver() })
-            add(R.string.take_snapshot to { takeSnapshot() })
+            if (!audio) add(R.string.take_snapshot to { takeSnapshot() })
             add(R.string.media_info to { showMediaInfo() })
             add(R.string.playback_info to { showPlaybackInfo() })
         }
         AlertDialog.Builder(this)
             .setItems(items.map { getString(it.first) }.toTypedArray()) { _, which -> items[which].second() }
             .show()
+    }
+
+    private fun showSleepTimer() {
+        val minutes = SLEEP_MINUTES
+        val labels = listOf(getString(R.string.sleep_off)) + minutes.map { getString(R.string.sleep_minutes, it) }
+        val builder = AlertDialog.Builder(this)
+        val remaining = session.sleepAt?.let { it - android.os.SystemClock.elapsedRealtime() }
+        builder.setTitle(
+            if (remaining == null) {
+                getString(R.string.sleep_timer)
+            } else {
+                getString(R.string.sleep_remaining, PlaybackRules.formatTime(remaining))
+            },
+        )
+        builder.setItems(labels.toTypedArray()) { _, which ->
+            val chosen = minutes.getOrNull(which - 1)
+            session.setSleepTimer(chosen?.let { it * MS_PER_MINUTE })
+            val message = if (chosen == null) getString(R.string.sleep_off) else getString(R.string.sleep_set, chosen)
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        }
+        builder.show()
+    }
+
+    private fun choosePlaylist() {
+        val uri = session.mediaUri?.toString() ?: return
+        val title = session.title
+        val playlists = library.playlists()
+        val labels = playlists.map { it.name } + getString(R.string.new_playlist)
+        AlertDialog.Builder(this)
+            .setTitle(R.string.add_to_playlist)
+            .setItems(labels.toTypedArray()) { _, which ->
+                val playlist = playlists.getOrNull(which)
+                if (playlist != null) {
+                    addToPlaylist(playlist.id, playlist.name, uri, title)
+                } else {
+                    askPlaylistName(this, null) { name -> addToPlaylist(library.createPlaylist(name), name, uri, title) }
+                }
+            }
+            .show()
+    }
+
+    private fun addToPlaylist(id: Long, name: String, uri: String, title: String) {
+        library.addToPlaylist(id, uri, title)
+        Toast.makeText(this, getString(R.string.added_to_playlist, name), Toast.LENGTH_SHORT).show()
+    }
+
+    /** Locked, only the unlock button works: for a video in a pocket, or in a child's hands. */
+    fun setLocked(value: Boolean) {
+        locked = value
+        handler.removeCallbacks(hideUnlock)
+        unlockButton.visibility = View.GONE
+        if (value) {
+            handler.removeCallbacks(hideControls)
+            setControlsVisible(false)
+            showGesture(getString(R.string.controls_locked))
+        } else {
+            showControls()
+        }
+    }
+
+    private fun offerUnlock() {
+        unlockButton.visibility = View.VISIBLE
+        handler.removeCallbacks(hideUnlock)
+        handler.postDelayed(hideUnlock, UNLOCK_VISIBLE_MS)
     }
 
     private fun showPictureAndSound() {
@@ -857,7 +1163,8 @@ class PlayerActivity : Activity(), SessionListener {
 
     // -------------------------------------------------- picture in picture
     private fun hasPicture(): Boolean =
-        packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) && session.engine?.videoSize != null
+        packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) && session.engine?.videoSize != null &&
+            !session.isAudioOnly
 
     fun enterPicture(): Boolean {
         if (!hasPicture()) return false
@@ -909,6 +1216,7 @@ class PlayerActivity : Activity(), SessionListener {
     override fun onResume() {
         super.onResume()
         leftPicture = false
+        isInFront = true
     }
 
     // ----------------------------------------------------------- subtitles
@@ -1045,12 +1353,16 @@ class PlayerActivity : Activity(), SessionListener {
         }
 
         override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+            if (locked) {
+                offerUnlock()
+                return true
+            }
             if (controls.visibility == View.VISIBLE) setControlsVisible(false) else showControls()
             return true
         }
 
         override fun onDoubleTap(e: MotionEvent): Boolean {
-            if (!preferences.gestures) return false
+            if (!preferences.gestures || locked) return false
             val third = area.width / 3
             val step = preferences.seekStepSeconds * 1000L
             when {
@@ -1068,7 +1380,7 @@ class PlayerActivity : Activity(), SessionListener {
         }
 
         override fun onScroll(start: MotionEvent?, current: MotionEvent, dx: Float, dy: Float): Boolean {
-            if (!preferences.gestures || start == null) return false
+            if (!preferences.gestures || locked || start == null) return false
             val totalX = current.x - start.x
             val totalY = current.y - start.y
             if (mode == MODE_NONE) {
@@ -1148,6 +1460,35 @@ class PlayerActivity : Activity(), SessionListener {
         previewImage = findViewById(R.id.previewImage)
         pictureButton = findViewById(R.id.pictureButton)
         repeatButton = findViewById(R.id.repeatButton)
+        unlockButton = findViewById(R.id.unlockButton)
+        audioView = findViewById(R.id.audioView)
+        audioArt = findViewById(R.id.audioArt)
+        audioFade = findViewById(R.id.audioFade)
+        audioInfo = findViewById(R.id.audioInfo)
+        bottomBar = findViewById(R.id.bottomBar)
+        toolRow = findViewById(R.id.toolRow)
+        transportRow = findViewById(R.id.transportRow)
+        shuffleButton = findViewById(R.id.shuffleButton)
+        favouriteButton = findViewById(R.id.favouriteButton)
+        backSeek = findViewById(R.id.backButton)
+        forwardSeek = findViewById(R.id.forwardButton)
+        placeInVideo = listOf(backSeek, forwardSeek, repeatButton, transportRow).map { view ->
+            val parent = view.parent as ViewGroup
+            Placed(view, parent, parent.indexOfChild(view), view.layoutParams)
+        }
+        shuffleButton.setOnClickListener { pressShuffle() }
+        favouriteButton.setOnClickListener { pressFavourite() }
+        findViewById<View>(R.id.equalizerButton).setOnClickListener { showEqualizer() }
+        findViewById<View>(R.id.queueButton).setOnClickListener { showQueue() }
+        bottomBar.addOnLayoutChangeListener { _, _, top, _, _, _, oldTop, _, _ ->
+            if (top != oldTop) bottomBar.post { placeAudioCover() }
+        }
+        audioCover = findViewById(R.id.audioCover)
+        audioBars = findViewById(R.id.audioBars)
+        audioBars.style = preferences.visualStyle
+        audioTitle = findViewById(R.id.audioTitle)
+        audioArtist = findViewById(R.id.audioArtist)
+        unlockButton.setOnClickListener { setLocked(false) }
         applySystemBarPadding(findViewById(R.id.topBar), includeBottom = false)
         applySystemBarPadding(findViewById(R.id.bottomBar), includeTop = false)
 
@@ -1219,9 +1560,15 @@ class PlayerActivity : Activity(), SessionListener {
         const val EXTRA_QUEUE_URIS = "com.babarify.frame.QUEUE_URIS"
         const val EXTRA_QUEUE_TITLES = "com.babarify.frame.QUEUE_TITLES"
         const val EXTRA_QUEUE_INDEX = "com.babarify.frame.QUEUE_INDEX"
+        const val EXTRA_SHUFFLE = "com.babarify.frame.SHUFFLE"
+
+        /** A queue too big for an Intent, handed over by the screen that opens this one. */
+        var pendingQueue: List<QueueItem>? = null
         @SuppressLint("StaticFieldLeak") // Cleared as the screen stops.
         private var visibleScreen: PlayerActivity? = null
         val isVisible: Boolean get() = visibleScreen != null
+        var isInFront = false
+            private set
         var closeRequested: (() -> Unit)? = null
             private set
 
@@ -1230,6 +1577,17 @@ class PlayerActivity : Activity(), SessionListener {
         private const val HIDE_CONTROLS_MS = 4_000L
         private const val GESTURE_LABEL_MS = 800L
         private const val FADE_MS = 150L
+        private const val UNLOCK_VISIBLE_MS = 3_000L
+        private const val MS_PER_MINUTE = 60_000L
+        private const val MIN_COVER_DP = 96
+        private const val ICON_DP = 48
+        private const val MATCH = LinearLayout.LayoutParams.MATCH_PARENT
+        private const val WRAP = LinearLayout.LayoutParams.WRAP_CONTENT
+        private const val DISABLED_ALPHA = 0.4f
+        private const val TRANSPARENT_MASK = 0x00FFFFFF
+        private const val FAVOURITE_COLOUR = 0xFFFB7185.toInt()
+        private const val SAVED_QUEUE_AROUND = 200
+        private val SLEEP_MINUTES = listOf(15, 30, 45, 60, 90, 120)
 
         @Suppress("DEPRECATION")
         private const val LAYOUT_BEHIND_BARS = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or

@@ -10,6 +10,7 @@ import android.widget.Button
 import android.widget.ListView
 import android.widget.TextView
 import com.babarify.frame.R
+import com.babarify.frame.core.MusicRules
 import com.babarify.frame.core.PlaybackRules
 import com.babarify.frame.data.HistoryEntry
 import com.babarify.frame.data.HistoryStore
@@ -21,6 +22,7 @@ class HomeActivity : Activity() {
     private lateinit var recentList: ListView
     private lateinit var emptyLabel: TextView
     private lateinit var adapter: MediaRowAdapter
+    private lateinit var nowPlaying: NowPlayingBar
     private var entries: List<HistoryEntry> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,6 +38,7 @@ class HomeActivity : Activity() {
 
         findViewById<Button>(R.id.openButton).setOnClickListener { openPicker() }
         BottomNav.attach(this, findViewById(R.id.bottomNav))
+        nowPlaying = NowPlayingBar(this)
         recentList.setOnItemClickListener { _, _, position, _ -> play(Uri.parse(entries[position].uri)) }
         recentList.setOnItemLongClickListener { _, _, position, _ ->
             forget(entries[position].uri)
@@ -46,6 +49,12 @@ class HomeActivity : Activity() {
     override fun onStart() {
         super.onStart()
         refreshRecent()
+        nowPlaying.start()
+    }
+
+    override fun onStop() {
+        nowPlaying.stop()
+        super.onStop()
     }
 
     override fun onDestroy() {
@@ -58,7 +67,15 @@ class HomeActivity : Activity() {
         entries = history.recent()
         val pictures = library.thumbnailsByFile()
         adapter.rows = entries.map {
-            MediaRow(it.title, detail(it), pictures[it.uri], progress(it), placeholderFor(it.title))
+            val audio = placeholderFor(it.title) == R.drawable.ic_audio
+            MediaRow(
+                if (audio) MusicRules.withoutExtension(it.title) else it.title,
+                detail(it),
+                pictures[it.uri],
+                progress(it),
+                placeholderFor(it.title),
+                artUri = it.uri.takeIf { audio },
+            )
         }
         emptyLabel.visibility = if (entries.isEmpty()) View.VISIBLE else View.GONE
     }

@@ -85,6 +85,8 @@
             android:visibility="gone" />
     </FrameLayout>
 
+    <include layout="@layout/now_playing" />
+
     <LinearLayout
         android:id="@+id/bottomNav"
         style="@style/NavBar" />

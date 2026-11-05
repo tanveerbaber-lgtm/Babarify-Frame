@@ -11,6 +11,46 @@
         android:layout_height="match_parent"
         android:contentDescription="@string/video" />
 
+    <!-- Audio has no picture, so it gets its own screen rather than a black one. -->
+    <FrameLayout
+        android:id="@+id/audioView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_audio"
+        android:visibility="gone">
+
+        <!-- The file's own picture across the top if it has one, otherwise animated bars. -->
+        <FrameLayout
+            android:id="@+id/audioArt"
+            android:layout_width="match_parent"
+            android:layout_height="300dp">
+
+            <ImageView
+                android:id="@+id/audioCover"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no"
+                android:scaleType="centerCrop"
+                android:visibility="gone" />
+
+            <View
+                android:id="@+id/audioFade"
+                android:layout_width="match_parent"
+                android:layout_height="140dp"
+                android:layout_gravity="bottom"
+                android:visibility="gone" />
+
+            <com.babarify.frame.ui.EqualizerBarsView
+                android:id="@+id/audioBars"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginHorizontal="8dp"
+                android:layout_marginTop="64dp"
+                android:layout_marginBottom="8dp"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
+    </FrameLayout>
+
     <!-- Above the video, whose touch coordinates would turn with it. -->
     <View
         android:id="@+id/gestureLayer"
@@ -41,6 +81,18 @@
         android:textColor="@color/text"
         android:textSize="18sp"
         android:textStyle="bold"
+        android:visibility="gone" />
+
+    <ImageButton
+        android:id="@+id/unlockButton"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_play"
+        android:contentDescription="@string/unlock_controls"
+        android:scaleType="center"
+        android:src="@drawable/ic_lock"
+        android:tint="@color/on_accent"
         android:visibility="gone" />
 
     <!-- Touches between the controls fall through to the gesture layer. -->
@@ -92,11 +144,20 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/transportRow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:gravity="center"
             android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/shuffleButton"
+                style="@style/IconButton"
+                android:layout_marginHorizontal="6dp"
+                android:contentDescription="@string/shuffle"
+                android:src="@drawable/ic_shuffle"
+                android:visibility="gone" />
 
             <ImageButton
                 android:id="@+id/previousButton"
@@ -143,6 +204,61 @@
             android:background="@drawable/scrim_bottom"
             android:orientation="vertical">
 
+            <!-- Only for audio. -->
+            <LinearLayout
+                android:id="@+id/audioInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="20dp"
+                android:paddingEnd="8dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/audioTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:textColor="@color/text"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/audioArtist"
+                        style="@style/Text.Muted"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:singleLine="true" />
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/favouriteButton"
+                    style="@style/IconButton"
+                    android:contentDescription="@string/add_favourite"
+                    android:src="@drawable/ic_heart_outline" />
+
+                <ImageButton
+                    android:id="@+id/equalizerButton"
+                    style="@style/IconButton"
+                    android:contentDescription="@string/equalizer"
+                    android:src="@drawable/ic_equalizer" />
+
+                <ImageButton
+                    android:id="@+id/queueButton"
+                    style="@style/IconButton"
+                    android:contentDescription="@string/queue"
+                    android:src="@drawable/ic_queue" />
+            </LinearLayout>
+
             <ImageView
                 android:id="@+id/previewImage"
                 android:layout_width="160dp"
@@ -181,8 +297,10 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/toolRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingHorizontal="4dp"
                 android:paddingBottom="4dp">

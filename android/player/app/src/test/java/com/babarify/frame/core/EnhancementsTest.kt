@@ -142,6 +142,40 @@ class EnhancementsTest {
     }
 
     @Test
+    fun equalizerBarsStayInRangeAndMove() {
+        for (bar in 0 until 16) {
+            val levels = (0L until 5_000L step 40).map { EqualizerAnimation.level(bar, it) }
+            assertTrue(levels.all { it in EqualizerAnimation.REST..1f })
+            assertTrue("bar $bar should really move", levels.max() - levels.min() > 0.3f)
+        }
+        assertTrue(
+            "bars shouldn't all stand alike",
+            (0 until 16).map { EqualizerAnimation.level(it, 1_000) }.toSet().size > 8,
+        )
+    }
+
+    @Test
+    fun barsMakeAShapeAndPeaksFallSlowly() {
+        val count = 19
+        assertEquals(1f, EqualizerAnimation.envelope(9, count), 0.001f)
+        assertTrue(EqualizerAnimation.envelope(0, count) < EqualizerAnimation.envelope(5, count))
+        assertEquals(EqualizerAnimation.envelope(0, count), EqualizerAnimation.envelope(18, count), 0.001f)
+        assertEquals("jumps up at once", 0.9f, EqualizerAnimation.peak(0.2f, 0.9f), 0.001f)
+        val falling = EqualizerAnimation.peak(0.9f, 0.2f)
+        assertTrue("falls, but slowly", falling < 0.9f && falling > 0.8f)
+    }
+
+    @Test
+    fun automaticStyleVisitsEveryStyleInTurn() {
+        val styles = EqualizerAnimation.CYCLE
+        assertTrue(VisualStyle.AUTO !in styles)
+        val seen = styles.indices.map { EqualizerAnimation.autoStyle(it * EqualizerAnimation.AUTO_SWITCH_MS + 1) }
+        assertEquals(styles, seen)
+        assertEquals("goes round again", styles[0], EqualizerAnimation.autoStyle(styles.size * EqualizerAnimation.AUTO_SWITCH_MS))
+        assertEquals(styles[0], EqualizerAnimation.autoStyle(-5))
+    }
+
+    @Test
     fun queueMovesAndStopsAtItsEnds() {
         val queue = PlayQueue(listOf(QueueItem("a", "A"), QueueItem("b", "B")), 0)
         assertTrue(queue.isPlaylist)

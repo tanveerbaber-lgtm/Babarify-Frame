@@ -21,6 +21,7 @@ import com.babarify.frame.R
 import com.babarify.frame.core.LeaveAction
 import com.babarify.frame.core.PlaybackRules
 import com.babarify.frame.data.HistoryStore
+import com.babarify.frame.data.LibraryStore
 import com.babarify.frame.data.Preferences
 import com.babarify.frame.engine.PlaybackSession
 
@@ -59,6 +60,23 @@ class SettingsActivity : Activity() {
                 setText(R.string.settings)
             },
         )
+        section(R.string.section_appearance)
+        choice(getString(R.string.colour_theme, getString(ColourThemes.current(preferences).label))) {
+            val themes = ColourThemes.ALL
+            pick(themes.map { getString(it.label) }, themes.indexOf(ColourThemes.current(preferences))) { which ->
+                preferences.colourTheme = themes[which].key
+                recreate()
+            }
+        }
+
+        val visualLabel = VISUAL_STYLES.first { it.first == preferences.visualStyle }.second
+        choice(getString(R.string.animation_style_value, getString(visualLabel))) {
+            pick(VISUAL_STYLES.map { getString(it.second) }, VISUAL_STYLES.indexOfFirst { it.first == preferences.visualStyle }) { which ->
+                preferences.visualStyle = VISUAL_STYLES[which].first
+                build()
+            }
+        }
+
         section(R.string.section_playback)
         check(R.string.hardware_decoding, preferences.hardwareDecoding) { preferences.hardwareDecoding = it }
         check(R.string.resume_playback, preferences.resumePlayback) { preferences.resumePlayback = it }
@@ -147,6 +165,7 @@ class SettingsActivity : Activity() {
         try {
             history.recent(Int.MAX_VALUE).forEach { releaseFileAccess(this, it.uri) }
             history.clear()
+            LibraryStore(this).use { it.clearPlays() }
         } finally {
             history.close()
         }
