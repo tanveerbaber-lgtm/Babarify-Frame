@@ -37,6 +37,12 @@ GLYPHS = {
     "music": "",
     "drop": "",  # Download / drop target
     "subtitles": "",  # ClosedCaption
+    "shuffle": "\ue8b1",
+    "repeat": "\ue8ee",
+    "repeat_one": "\ue8ed",
+    "previous": "\ue892",
+    "next": "\ue893",
+    "queue": "\ue8fd",
     "library": "",  # Library
 }
 

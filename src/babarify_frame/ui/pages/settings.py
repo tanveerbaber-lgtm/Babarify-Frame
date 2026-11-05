@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (
 from babarify_frame.ai.models import MODELS, ModelStatus
 from babarify_frame.configuration.preferences import LANGUAGES, SEEK_STEPS_S, Preferences
 from babarify_frame.core.models import SubtitlePosition, SubtitleStyle
+from babarify_frame.core.music import STYLE_LABELS
 from babarify_frame.ui import theme
 from babarify_frame.ui.widgets import plain_text
 
@@ -119,11 +120,19 @@ class SettingsPage(QWidget):
             "Automatic uses the graphics card when it supports the format. Changing this restarts "
             "playback at the same position."
         )
+        self.visual_style = QComboBox()
+        for style, label in STYLE_LABELS.items():
+            self.visual_style.addItem(label, style.value)
+        self.visual_style.setAccessibleName("Animation for audio with no picture")
+        self.visual_style.setToolTip(
+            "Decoration for songs with no picture of their own. It doesn't follow the sound."
+        )
         playback = self._card(
             "Playback",
             [
                 ("Seek step (← →)", self.seek_step),
                 ("Hardware decoding", self.hardware_decoding),
+                ("Animation for audio with no picture", self.visual_style),
                 ("", self.remember_volume),
                 ("", self.allow_boost),
                 ("", self.seek_previews),
@@ -381,6 +390,7 @@ class SettingsPage(QWidget):
         self.allow_boost.setChecked(prefs.allow_volume_boost)
         self.seek_previews.setChecked(prefs.seek_previews)
         self.hardware_decoding.setCurrentIndex(0 if prefs.hardware_decoding else 1)
+        self.visual_style.setCurrentIndex(max(0, self.visual_style.findData(prefs.visual_style)))
         self.hide_delay.setValue(round(prefs.controls_hide_delay_ms / 1000))
         self.start_fullscreen.setChecked(prefs.start_fullscreen)
         self.subtitles_auto.setChecked(prefs.subtitles_auto)
@@ -414,6 +424,7 @@ class SettingsPage(QWidget):
             allow_volume_boost=self.allow_boost.isChecked(),
             seek_previews=self.seek_previews.isChecked(),
             hardware_decoding=bool(self.hardware_decoding.currentData()),
+            visual_style=str(self.visual_style.currentData()),
             controls_hide_delay_ms=self.hide_delay.value() * 1000,
             start_fullscreen=self.start_fullscreen.isChecked(),
             subtitles_auto=self.subtitles_auto.isChecked(),

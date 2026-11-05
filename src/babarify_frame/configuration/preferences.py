@@ -28,6 +28,7 @@ from babarify_frame.core.enhancements import (
     PictureSettings,
 )
 from babarify_frame.core.models import SubtitleStyle
+from babarify_frame.core.music import RepeatMode, VisualStyle
 
 log = logging.getLogger(__name__)
 
@@ -119,6 +120,9 @@ class Preferences:
     allow_volume_boost: bool = False  # volume above 100 % (up to 200 %); never remembered
     # Advanced media (M8)
     seek_previews: bool = True  # pictures when hovering over the seek bar (local video files)
+    # Music
+    repeat_mode: str = "off"  # a RepeatMode value
+    visual_style: str = "auto"  # a VisualStyle value
     # Local AI (M9): off until the user switches it on; nothing is uploaded
     ai_enabled: bool = False
     ai_model: str = "base"  # an ai.models.MODELS key
@@ -184,6 +188,8 @@ class Preferences:
             preferred_audio_language=_language(self.preferred_audio_language),
             preferred_subtitle_language=_language(self.preferred_subtitle_language),
             library_sort=self.library_sort if self.library_sort in LIBRARY_SORTS else "name",
+            repeat_mode=self.repeat_mode if self.repeat_mode in set(RepeatMode) else "off",
+            visual_style=self.visual_style if self.visual_style in set(VisualStyle) else "auto",
             ai_model=self.ai_model if self.ai_model in MODELS else DEFAULT_MODEL,
             ai_language=self.ai_language if self.ai_language in SPEECH_LANGUAGES else "",
             picture=self.picture.normalized(),
