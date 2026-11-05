@@ -47,6 +47,10 @@ def window(qtbot: QtBot, tmp_path: Path) -> Iterator[MainWindow]:
     app.setStyleSheet(theme.STYLESHEET)
 
 
+def real_display() -> bool:
+    return QApplication.platformName() != "offscreen"
+
+
 def choose(window: MainWindow, key: str) -> None:
     combo = window.settings.colour_theme
     combo.setCurrentIndex(combo.findData(key))
@@ -121,7 +125,8 @@ def test_light_redraws_every_button_and_the_rail_in_its_colours(
     assert THEMES[DEFAULT_THEME].text not in asked
     app = QApplication.instance()
     assert isinstance(app, QApplication)
-    assert app.styleHints().colorScheme() == Qt.ColorScheme.Light
+    if real_display():  # with no display, Qt ignores the request
+        assert app.styleHints().colorScheme() == Qt.ColorScheme.Light
     pixel = window.settings.grab().toImage().pixelColor(2, 2)
     assert pixel.name().upper() == THEMES["light"].bg
     choose(window, DEFAULT_THEME)
@@ -161,8 +166,9 @@ def test_settings_replaces_about_in_the_group_at_the_bottom_of_the_rail(window: 
     rail_buttons = [b for b in window.findChildren(QToolButton) if b.objectName() == "navButton"]
     assert "About" not in [b.text() for b in rail_buttons]
     assert {b.width() for b in rail_buttons} == {window.nav_home.width()}, "lined up"
-    for button in rail_buttons:
-        assert button.sizeHint().width() <= button.width(), f"{button.text()} would be cut off"
+    if real_display():  # with no display there is no Arial or icon font, so the sizes mean nothing
+        for button in rail_buttons:
+            assert button.sizeHint().width() <= button.width(), f"{button.text()} would be cut off"
     assert max(rail_buttons, key=lambda b: b.y()) is window.nav_animation
     gap = window.nav_settings.y() - window.nav_player.geometry().bottom()
     assert gap > window.nav_theme.y() - window.nav_settings.geometry().bottom(), (
