@@ -82,8 +82,10 @@ def test_a_video_keeps_the_video_surface(qtbot: QtBot, window: MainWindow) -> No
 
 
 def test_no_picture_shows_the_animation_and_it_moves_only_while_playing(
-    qtbot: QtBot, window: MainWindow, tmp_path: Path
+    qtbot: QtBot, window: MainWindow, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    # Windows can have animations switched off, as test machines may: that has its own test below.
+    monkeypatch.setattr("babarify_frame.ui.audio_view.animations_allowed", lambda: True)
     player = window.player
     window.show_page(player)
     player.open_path(song(tmp_path, "plain.mp3"))
@@ -93,6 +95,19 @@ def test_no_picture_shows_the_animation_and_it_moves_only_while_playing(
     qtbot.waitUntil(lambda: view.visualizer.animating)
     player.toggle_play_pause()
     qtbot.waitUntil(lambda: not view.visualizer.animating)
+
+
+def test_the_animation_stands_still_if_windows_has_animations_off(
+    qtbot: QtBot, window: MainWindow, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("babarify_frame.ui.audio_view.animations_allowed", lambda: False)
+    player = window.player
+    window.show_page(player)
+    player.open_path(song(tmp_path, "plain.mp3"))
+    qtbot.waitUntil(lambda: player.state is S.PLAYING)
+    qtbot.wait(200)
+    assert player.audio_view.visualizer.isVisible()
+    assert not player.audio_view.visualizer.animating
 
 
 def test_a_picture_in_the_file_is_shown_instead(qtbot: QtBot, window: MainWindow, tmp_path: Path) -> None:
