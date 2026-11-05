@@ -1,7 +1,7 @@
 # Changelog
 
 Released versions are published on the
-[releases page](https://github.com/tanveerbaber-lgtm/Babarify-Frame/releases). Details for Windows
+[releases page](https://github.com/tanveerbaber-lgtm/Babarify-Media-Player/releases). Details for Windows
 releases are in [`docs/release-notes/`](docs/release-notes/).
 
 ## Windows, next version (not released)
