@@ -14,7 +14,7 @@ from babarify_frame.configuration.preferences import PreferencesStore
 from babarify_frame.core.themes import DEFAULT_THEME, THEMES
 from babarify_frame.playback.adapters.mock import MockEngine
 from babarify_frame.playback.factory import EngineDescriptor, EngineFactory, EngineProbe
-from babarify_frame.ui import theme
+from babarify_frame.ui import controls, theme
 from babarify_frame.ui.app import load_icon
 from babarify_frame.ui.main_window import MainWindow
 
@@ -83,12 +83,22 @@ def test_a_saved_theme_applies_when_the_app_starts(qtbot: QtBot, tmp_path: Path)
         app.setStyleSheet(theme.STYLESHEET)
 
 
-def test_lit_buttons_take_the_new_colour(qtbot: QtBot, window: MainWindow) -> None:
+def test_lit_buttons_take_the_new_colour(
+    qtbot: QtBot, window: MainWindow, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Checks the colour asked for, not the picture: a machine without the icon font draws plain icons.
+    asked: list[str] = []
+    real_icon = controls.icon
+
+    def recording_icon(widget, name, color=theme.TEXT):  # type: ignore[no-untyped-def]
+        asked.append(color)
+        return real_icon(widget, name, color)
+
+    monkeypatch.setattr(controls, "icon", recording_icon)
     window.player.cycle_repeat()
-    before = window.player.controls.repeat_button.icon().pixmap(16, 16).toImage()
+    assert asked[-1] == THEMES[DEFAULT_THEME].accent2
     choose(window, "sunset")
-    after = window.player.controls.repeat_button.icon().pixmap(16, 16).toImage()
-    assert before != after
+    assert THEMES["sunset"].accent2 in asked
 
 
 def dialog_of(window: MainWindow):  # type: ignore[no-untyped-def]
