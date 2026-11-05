@@ -10,10 +10,12 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import replace
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import QRectF, Qt, Signal
+from PySide6.QtGui import QBrush, QColor, QLinearGradient, QPainter, QPaintEvent, QPen
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
+    QDial,
     QDialog,
     QFormLayout,
     QGridLayout,
@@ -44,6 +46,7 @@ from babarify_frame.core.enhancements import (
     EqualizerSettings,
     PictureSettings,
     VideoTransform,
+    with_bass,
 )
 from babarify_frame.core.models import EngineCapabilities
 from babarify_frame.ui import theme
@@ -69,6 +72,47 @@ def _caption(text: str) -> QLabel:
 
 def band_label(hz: int) -> str:
     return f"{hz // 1000}k" if hz >= 1000 else str(hz)
+
+
+class SoundDial(QDial):
+    """A round dial with a coloured arc. QDial supplies the mouse, keyboard and screen reader handling."""
+
+    START_DEGREES = 240  # where QDial's own travel starts and ends
+    SWEEP_DEGREES = -300
+
+    def __init__(self, name: str, low: int, high: int, text: Callable[[int], str]) -> None:
+        super().__init__()
+        self._text = text
+        self.setRange(low, high)
+        self.setFixedSize(96, 96)
+        self.setAccessibleName(name)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setToolTip(name)
+
+    def paintEvent(self, event: QPaintEvent) -> None:
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        area = QRectF(self.rect()).adjusted(8, 8, -8, -8)
+        track = QPen(QColor(theme.CONTROL_BORDER), 6)
+        track.setCapStyle(Qt.PenCapStyle.RoundCap)
+        painter.setPen(track)
+        painter.drawArc(area, self.START_DEGREES * 16, self.SWEEP_DEGREES * 16)
+        span = self.maximum() - self.minimum()
+        fraction = (self.value() - self.minimum()) / span if span else 0.0
+        if self.isEnabled() and fraction > 0:
+            gradient = QLinearGradient(area.bottomLeft(), area.topRight())
+            gradient.setColorAt(0, QColor(theme.BLUE))
+            gradient.setColorAt(1, QColor(theme.CYAN))
+            lit = QPen(QBrush(gradient), 6)
+            lit.setCapStyle(Qt.PenCapStyle.RoundCap)
+            painter.setPen(lit)
+            painter.drawArc(area, self.START_DEGREES * 16, round(self.SWEEP_DEGREES * fraction * 16))
+        if self.hasFocus():
+            painter.setPen(QPen(QColor(theme.CYAN), 1))
+            painter.drawEllipse(area.adjusted(10, 10, -10, -10))
+        painter.setPen(QColor(theme.TEXT if self.isEnabled() else theme.TEXT_DISABLED))
+        painter.drawText(area, Qt.AlignmentFlag.AlignCenter, self._text(self.value()))
+        painter.end()
 
 
 class EnhancementsDialog(QDialog):
@@ -243,18 +287,30 @@ class EnhancementsDialog(QDialog):
         bands = QGridLayout()
         self.eq_sliders: list[QSlider] = []
         self.eq_labels: list[QLabel] = []
-        self.preamp = self._eq_slider("Preamp")
-        bands.addWidget(self.preamp, 0, 0, alignment=Qt.AlignmentFlag.AlignHCenter)
-        preamp_label = QLabel("Pre")
-        bands.addWidget(preamp_label, 1, 0, alignment=Qt.AlignmentFlag.AlignHCenter)
         for i in range(EQ_BAND_COUNT):
             slider = self._eq_slider(f"Band {i + 1}")
             label = QLabel("")
-            bands.addWidget(slider, 0, i + 1, alignment=Qt.AlignmentFlag.AlignHCenter)
-            bands.addWidget(label, 1, i + 1, alignment=Qt.AlignmentFlag.AlignHCenter)
+            bands.addWidget(slider, 0, i, alignment=Qt.AlignmentFlag.AlignHCenter)
+            bands.addWidget(label, 1, i, alignment=Qt.AlignmentFlag.AlignHCenter)
             self.eq_sliders.append(slider)
             self.eq_labels.append(label)
         box.addLayout(bands)
+        self.bass = SoundDial("Bass boost", 0, 100, lambda value: f"{value} %")
+        self.preamp = SoundDial(
+            "Preamp in decibels", round(EQ_BAND_MIN_DB), round(EQ_BAND_MAX_DB), lambda value: f"{value:+d} dB"
+        )
+        dials = QHBoxLayout()
+        dials.addStretch(1)
+        for dial, name in ((self.bass, "Bass boost"), (self.preamp, "Preamp")):
+            column = QVBoxLayout()
+            column.addWidget(dial, alignment=Qt.AlignmentFlag.AlignHCenter)
+            column.addWidget(QLabel(name), alignment=Qt.AlignmentFlag.AlignHCenter)
+            dials.addLayout(column)
+            dials.addStretch(1)
+        box.addLayout(dials)
+        self._bass_at = 0
+        self.bass.valueChanged.connect(self._bass_turned)
+        self.preamp.valueChanged.connect(lambda _v: self._eq_edited(custom=True))
         box.addWidget(
             _caption(
                 f"Each band: {EQ_BAND_MIN_DB:+.0f} to {EQ_BAND_MAX_DB:+.0f} dB. Raising bands or the "
@@ -287,12 +343,26 @@ class EnhancementsDialog(QDialog):
             preset="" if preset == CUSTOM else preset,
             preamp_db=float(self.preamp.value()),
             bands_db=tuple(float(s.value()) for s in self.eq_sliders),
+            bass_pct=self.bass.value(),
         )
+
+    def _bass_turned(self, value: int) -> None:
+        if self._loading:
+            return
+        moved = with_bass(tuple(float(s.value()) for s in self.eq_sliders), self._bass_at, value)
+        self._bass_at = value
+        self._loading = True
+        for slider, band in zip(self.eq_sliders, moved, strict=True):
+            slider.setValue(round(band))
+        self._loading = False
+        self._eq_edited(custom=True)
 
     def set_equalizer(self, equalizer: EqualizerSettings, emit: bool = False) -> None:
         self._loading = True
         self.eq_enabled.setChecked(equalizer.enabled)
         self.preamp.setValue(round(equalizer.preamp_db))
+        self.bass.setValue(equalizer.bass_pct)
+        self._bass_at = equalizer.bass_pct
         for slider, value in zip(self.eq_sliders, equalizer.bands_db, strict=False):
             slider.setValue(round(value))
         index = self.eq_preset.findText(equalizer.preset) if equalizer.preset else -1
@@ -322,7 +392,7 @@ class EnhancementsDialog(QDialog):
     def _update_eq_enabled(self) -> None:
         supported = bool(self._caps and self._caps.supports_equalizer)
         on = supported and self.eq_enabled.isChecked()
-        for slider in (self.preamp, *self.eq_sliders):
+        for slider in (self.bass, self.preamp, *self.eq_sliders):
             slider.setEnabled(on)
 
     # ----------------------------------------------------------- profiles

@@ -18,6 +18,8 @@ ASPECT_RATIOS: tuple[str, ...] = ("", "16:9", "4:3", "16:10", "21:9", "2.35:1", 
 ZOOM_LEVELS: tuple[float, ...] = (0.0, 0.5, 1.0, 2.0)
 EQ_BAND_MIN_DB, EQ_BAND_MAX_DB = -20.0, 20.0
 EQ_BAND_COUNT = 10
+BASS_MAX_DB = 12.0
+BASS_WEIGHTS = (1.0, 0.8, 0.5, 0.2)  # from the lowest band up
 MAX_PROFILES = 20
 MAX_PROFILE_NAME = 60
 
@@ -96,6 +98,7 @@ class EqualizerSettings:
     preset: str = ""  # name of the engine preset the values came from, "" = custom
     preamp_db: float = 0.0
     bands_db: tuple[float, ...] = field(default=(0.0,) * EQ_BAND_COUNT)
+    bass_pct: int = 0  # where the bass dial stands; its effect is already in bands_db
 
     def normalized(self) -> EqualizerSettings:
         bands = tuple(self.bands_db[:EQ_BAND_COUNT]) + (0.0,) * max(0, EQ_BAND_COUNT - len(self.bands_db))
@@ -104,6 +107,7 @@ class EqualizerSettings:
             preset=self.preset[:60],
             preamp_db=_number(self.preamp_db, 0.0, EQ_BAND_MIN_DB, EQ_BAND_MAX_DB),
             bands_db=tuple(_number(b, 0.0, EQ_BAND_MIN_DB, EQ_BAND_MAX_DB) for b in bands),
+            bass_pct=round(_number(self.bass_pct, 0.0, 0.0, 100.0)),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -112,6 +116,7 @@ class EqualizerSettings:
             "preset": self.preset,
             "preamp_db": self.preamp_db,
             "bands_db": list(self.bands_db),
+            "bass_pct": self.bass_pct,
         }
 
     @classmethod
@@ -124,7 +129,23 @@ class EqualizerSettings:
             preset=preset if isinstance(preset := data.get("preset"), str) else "",
             preamp_db=_number(data.get("preamp_db"), 0.0, EQ_BAND_MIN_DB, EQ_BAND_MAX_DB),
             bands_db=tuple(bands) if isinstance(bands, list) else (0.0,) * EQ_BAND_COUNT,
+            bass_pct=round(_number(data.get("bass_pct"), 0.0, 0.0, 100.0)),
         ).normalized()
+
+
+def with_bass(bands_db: tuple[float, ...], old_pct: int, new_pct: int) -> tuple[float, ...]:
+    """The bass dial turns up the lowest bands by the difference it moved, which keeps changes made to
+    those bands by hand. Rounded from the dial's position, so turning it back returns them exactly."""
+
+    def lift(pct: int, weight: float) -> int:
+        return round(pct / 100 * BASS_MAX_DB * weight)
+
+    moved = []
+    for band, value in enumerate(bands_db):
+        weight = BASS_WEIGHTS[band] if band < len(BASS_WEIGHTS) else 0.0
+        shifted = value + lift(new_pct, weight) - lift(old_pct, weight)
+        moved.append(max(EQ_BAND_MIN_DB, min(EQ_BAND_MAX_DB, float(shifted))))
+    return tuple(moved)
 
 
 @dataclass(frozen=True)

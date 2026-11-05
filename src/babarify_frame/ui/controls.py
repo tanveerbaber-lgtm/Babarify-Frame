@@ -120,6 +120,8 @@ class ControlBar(QFrame):
         )
         self._has_list = False
         self._can_favourite = False
+        self._repeat = RepeatMode.OFF
+        self._shuffle_on = False
         self.title_label = self._label("", "mediaTitle", "Now playing")
         self.title_label.setMinimumWidth(40)
         plain_text(self.title_label)
@@ -237,6 +239,11 @@ class ControlBar(QFrame):
         self.previous_button.setEnabled(previous)
         self.next_button.setEnabled(next_item)
 
+    def refresh_theme(self) -> None:
+        """Lit buttons hold their colour in an icon, so they're drawn again."""
+        self.set_repeat(self._repeat)
+        self.set_shuffle(self._shuffle_on)
+
     def set_favourite(self, available: bool, favourite: bool) -> None:
         self._can_favourite = available
         self.favourite_button.setIcon(
@@ -248,10 +255,12 @@ class ControlBar(QFrame):
         self.apply_width(self.width())
 
     def set_shuffle(self, on: bool) -> None:
+        self._shuffle_on = on
         self.shuffle_button.setIcon(icon(self, "shuffle", theme.CYAN if on else theme.TEXT))
         self.shuffle_button.setAccessibleName("Shuffle is on" if on else "Shuffle is off")
 
     def set_repeat(self, mode: RepeatMode) -> None:
+        self._repeat = mode
         glyph = "repeat_one" if mode is RepeatMode.ONE else "repeat"
         self.repeat_button.setIcon(icon(self, glyph, theme.TEXT if mode is RepeatMode.OFF else theme.CYAN))
         self.repeat_button.setAccessibleName(REPEAT_NAMES[mode])

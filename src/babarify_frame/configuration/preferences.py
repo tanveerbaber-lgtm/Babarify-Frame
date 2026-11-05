@@ -29,6 +29,7 @@ from babarify_frame.core.enhancements import (
 )
 from babarify_frame.core.models import SubtitleStyle
 from babarify_frame.core.music import RepeatMode, VisualStyle
+from babarify_frame.core.themes import DEFAULT_THEME, THEMES
 
 log = logging.getLogger(__name__)
 
@@ -123,6 +124,7 @@ class Preferences:
     # Music
     repeat_mode: str = "off"  # a RepeatMode value
     visual_style: str = "auto"  # a VisualStyle value
+    colour_theme: str = DEFAULT_THEME  # a THEMES key
     # Local AI (M9): off until the user switches it on; nothing is uploaded
     ai_enabled: bool = False
     ai_model: str = "base"  # an ai.models.MODELS key
@@ -190,6 +192,7 @@ class Preferences:
             library_sort=self.library_sort if self.library_sort in LIBRARY_SORTS else "name",
             repeat_mode=self.repeat_mode if self.repeat_mode in set(RepeatMode) else "off",
             visual_style=self.visual_style if self.visual_style in set(VisualStyle) else "auto",
+            colour_theme=self.colour_theme if self.colour_theme in THEMES else DEFAULT_THEME,
             ai_model=self.ai_model if self.ai_model in MODELS else DEFAULT_MODEL,
             ai_language=self.ai_language if self.ai_language in SPEECH_LANGUAGES else "",
             picture=self.picture.normalized(),
