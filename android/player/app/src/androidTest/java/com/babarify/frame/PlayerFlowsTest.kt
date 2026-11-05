@@ -16,6 +16,7 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.babarify.frame.engine.PlaybackSession
 import com.babarify.frame.core.PlaybackState
 import com.babarify.frame.core.TrackKind
 import com.babarify.frame.data.HistoryEntry
@@ -82,8 +83,15 @@ class PlayerFlowsTest {
         return result as T
     }
 
+    /** Asks the main thread directly: onActivity first waits for it to go idle, which moving bars can delay past a clip's end. */
+    private fun positionNow(): Long {
+        var position = 0L
+        InstrumentationRegistry.getInstrumentation().runOnMainSync { position = PlaybackSession.get(InstrumentationRegistry.getInstrumentation().targetContext).positionMs }
+        return position
+    }
+
     private fun ActivityScenario<PlayerActivity>.waitForProgress(aboveMs: Long = 500) =
-        waitUntil("position above $aboveMs") { read { it.currentPositionMs } > aboveMs }
+        waitUntil("position above $aboveMs") { positionNow() > aboveMs }
 
     // M12 finding 2: Android delivers the picker's result after onStart, and the file was ignored.
     @Test
@@ -320,20 +328,23 @@ class PlayerFlowsTest {
     }
 
     @Test
-    fun theAppHasNoInternetOrStoragePermission() {
+    fun theAppHasOnlyTheAgreedPermissions() {
         val info = context.packageManager.getPackageInfo(
             context.packageName,
             android.content.pm.PackageManager.GET_PERMISSIONS,
         )
-        // Only for sound the user chose to keep playing. Nothing else may ever join this list.
-        assertEquals(
-            setOf(
-                "android.permission.FOREGROUND_SERVICE",
-                "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
-                "android.permission.WAKE_LOCK",
-            ),
-            info.requestedPermissions.orEmpty().toSet(),
+        // Sound that keeps playing, and reading songs once the user allows it. Never the internet.
+        val expected = mutableSetOf(
+            "android.permission.FOREGROUND_SERVICE",
+            "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+            "android.permission.WAKE_LOCK",
+            "android.permission.READ_MEDIA_AUDIO",
         )
+        // Android 13 and later ignore this older, wider one, because the manifest limits it to before them.
+        if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.S_V2) {
+            expected += "android.permission.READ_EXTERNAL_STORAGE"
+        }
+        assertEquals(expected.toSet(), info.requestedPermissions.orEmpty().toSet())
     }
 
     @Test

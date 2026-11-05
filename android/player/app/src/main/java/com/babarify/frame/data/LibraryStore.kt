@@ -30,6 +30,9 @@ data class PlaylistItem(val id: Long, val playlistId: Long, val position: Int, v
 
 data class Bookmark(val id: Long, val uri: String, val positionMs: Long, val label: String)
 
+/** A file in a list that's made automatically: favourites, recently played, most played. */
+data class SavedTrack(val uri: String, val title: String)
+
 /** Folders, files, playlists and bookmarks, on this phone only. Files are never changed or deleted. */
 class LibraryStore(context: Context) :
     SQLiteOpenHelper(context.applicationContext, "library.db", null, SCHEMA_VERSION) {
@@ -73,10 +76,24 @@ class LibraryStore(context: Context) :
                 label TEXT NOT NULL)""",
         )
         db.execSQL("CREATE INDEX bookmark_file ON bookmarks(uri, position_ms)")
+        createMusicTables(db)
     }
 
     // Migration N brings the schema from N-1 to N. Add one here when the schema changes.
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        if (oldVersion < 2) createMusicTables(db)
+    }
+
+    private fun createMusicTables(db: SQLiteDatabase) {
+        db.execSQL("CREATE TABLE favourites(uri TEXT PRIMARY KEY, title TEXT NOT NULL, added_at INTEGER NOT NULL)")
+        db.execSQL(
+            """CREATE TABLE plays(
+                uri TEXT PRIMARY KEY,
+                title TEXT NOT NULL,
+                times INTEGER NOT NULL,
+                last_played INTEGER NOT NULL)""",
+        )
+    }
 
     // ------------------------------------------------------------ folders
     fun addFolder(uri: String, name: String): Long {
@@ -281,6 +298,58 @@ class LibraryStore(context: Context) :
         }
     }
 
+    // ---------------------------------------------------------- favourites and plays
+    fun isFavourite(uri: String): Boolean = readableDatabase
+        .query("favourites", arrayOf("uri"), "uri = ?", arrayOf(uri), null, null, null)
+        .use { it.moveToFirst() }
+
+    fun setFavourite(uri: String, title: String, favourite: Boolean, now: Long = System.currentTimeMillis()) {
+        if (!favourite) {
+            writableDatabase.delete("favourites", "uri = ?", arrayOf(uri))
+            return
+        }
+        val values = ContentValues().apply {
+            put("uri", uri)
+            put("title", title)
+            put("added_at", now)
+        }
+        writableDatabase.insertWithOnConflict("favourites", null, values, SQLiteDatabase.CONFLICT_IGNORE)
+    }
+
+    fun favourites(): List<SavedTrack> = tracks("favourites", "added_at DESC", null)
+
+    // In two steps: Android 10's SQLite is too old for INSERT ... ON CONFLICT DO UPDATE.
+    fun recordPlay(uri: String, title: String, now: Long = System.currentTimeMillis()) {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            db.execSQL(
+                "UPDATE plays SET times = times + 1, last_played = ?, title = ? WHERE uri = ?",
+                arrayOf<Any>(now, title, uri),
+            )
+            db.execSQL(
+                "INSERT OR IGNORE INTO plays(uri, title, times, last_played) VALUES(?, ?, 1, ?)",
+                arrayOf<Any>(uri, title, now),
+            )
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    fun recentlyPlayed(limit: Int = AUTOMATIC_LIST_SIZE): List<SavedTrack> = tracks("plays", "last_played DESC", limit)
+
+    fun mostPlayed(limit: Int = AUTOMATIC_LIST_SIZE): List<SavedTrack> = tracks("plays", "times DESC, last_played DESC", limit)
+
+    fun clearPlays() {
+        writableDatabase.delete("plays", null, null)
+    }
+
+    private fun tracks(table: String, order: String, limit: Int?): List<SavedTrack> =
+        readableDatabase.query(table, arrayOf("uri", "title"), null, null, null, null, order, limit?.toString()).use { c ->
+            buildList { while (c.moveToNext()) add(SavedTrack(c.getString(0), c.getString(1))) }
+        }
+
     // ---------------------------------------------------------- bookmarks
     fun addBookmark(uri: String, positionMs: Long, label: String): Long =
         writableDatabase.insert(
@@ -309,7 +378,8 @@ class LibraryStore(context: Context) :
         writableDatabase.delete("bookmarks", "id = ?", arrayOf(id.toString()))
     }
 
-    private companion object {
-        const val SCHEMA_VERSION = 1
+    companion object {
+        private const val SCHEMA_VERSION = 2
+        const val AUTOMATIC_LIST_SIZE = 50
     }
 }

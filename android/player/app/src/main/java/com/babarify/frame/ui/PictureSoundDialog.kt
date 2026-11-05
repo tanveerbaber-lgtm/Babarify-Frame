@@ -3,7 +3,6 @@ package com.babarify.frame.ui
 import android.app.Activity
 import android.app.AlertDialog
 import android.widget.Button
-import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -11,7 +10,6 @@ import android.widget.SeekBar
 import android.widget.TextView
 import com.babarify.frame.R
 import com.babarify.frame.core.EnhancementProfile
-import com.babarify.frame.core.EqualizerSettings
 import com.babarify.frame.core.PictureSettings
 import com.babarify.frame.data.Preferences
 import com.babarify.frame.engine.PlayerEngine
@@ -125,56 +123,13 @@ object PictureSoundDialog {
         }
 
         private fun equalizerSection() {
-            val settings = preferences.equalizer
-            val enabled = CheckBox(activity).apply {
-                setText(R.string.equalizer)
-                isChecked = settings.enabled
-                minHeight = (48 * activity.resources.displayMetrics.density).toInt()
-            }
-            root.addView(enabled)
-            enabled.setOnCheckedChangeListener { _, on ->
-                preferences.equalizer = preferences.equalizer.copy(enabled = on)
-                onEqualizer()
-            }
-            val updates = ArrayList<(EqualizerSettings) -> Unit>()
-            if (engine != null) {
-                root.addView(
-                    Button(activity).apply {
-                        setText(R.string.equalizer_presets)
-                        setOnClickListener {
-                            val names = engine.equalizerPresets()
-                            AlertDialog.Builder(activity)
-                                .setItems(names.toTypedArray()) { _, which ->
-                                    val preset = engine.equalizerPreset(which)
-                                    preferences.equalizer = preset
-                                    enabled.isChecked = true
-                                    updates.forEach { it(preset) }
-                                    onEqualizer()
-                                }
-                                .show()
-                        }
-                    },
-                )
-            }
-            val preamp = slider(activity.getString(R.string.preamp), settings.preampDb, EqualizerSettings.MIN_DB, EqualizerSettings.MAX_DB) { v ->
-                preferences.equalizer = preferences.equalizer.copy(preampDb = v)
-                onEqualizer()
-            }
-            updates.add { preamp(it.preampDb) }
-            val frequencies = engine?.equalizerBandFrequencies().orEmpty()
-            for (band in 0 until EqualizerSettings.BAND_COUNT) {
-                val frequency = frequencies.getOrNull(band)?.let(::formatFrequency) ?: "${band + 1}"
-                val update = slider(frequency, settings.bandsDb[band], EqualizerSettings.MIN_DB, EqualizerSettings.MAX_DB) { v ->
-                    val current = preferences.equalizer
-                    preferences.equalizer = current.copy(bandsDb = current.bandsDb.toMutableList().also { it[band] = v })
-                    onEqualizer()
-                }
-                updates.add { update(it.bandsDb[band]) }
-            }
+            root.addView(
+                Button(activity).apply {
+                    setText(R.string.equalizer)
+                    setOnClickListener { EqualizerPanel.show(activity, preferences, engine, onEqualizer) }
+                },
+            )
         }
-
-        private fun formatFrequency(hz: Float): String =
-            if (hz >= 1000) "${(hz / 100).roundToInt() / 10f} kHz" else "${hz.roundToInt()} Hz"
 
         /** Returns a way to move the slider from code, without counting as the user's change. */
         private fun slider(label: String, value: Float, low: Float, high: Float, onChange: (Float) -> Unit): (Float) -> Unit {

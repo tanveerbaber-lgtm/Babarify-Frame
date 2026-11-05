@@ -25,17 +25,37 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="8dp" />
 
-    <Button
-        android:id="@+id/playlistsAdd"
+    <LinearLayout
+        android:id="@+id/playlistTools"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="8dp"
-        android:drawableStart="@drawable/ic_add"
-        android:drawableTint="@color/text"
-        android:paddingHorizontal="20dp"
-        android:text="@string/add_media"
-        android:visibility="gone" />
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/playlistsAdd"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:drawableStart="@drawable/ic_add"
+            android:drawableTint="@color/text"
+            android:paddingHorizontal="16dp"
+            android:text="@string/add_media" />
+
+        <Button
+            android:id="@+id/playlistsShuffle"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:drawableStart="@drawable/ic_shuffle"
+            android:drawableTint="@color/text"
+            android:paddingHorizontal="16dp"
+            android:text="@string/shuffle" />
+    </LinearLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -61,6 +81,8 @@
             android:padding="32dp"
             android:visibility="gone" />
     </FrameLayout>
+
+    <include layout="@layout/now_playing" />
 
     <LinearLayout
         android:id="@+id/bottomNav"

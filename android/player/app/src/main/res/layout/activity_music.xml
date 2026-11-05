@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/musicRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="4dp">
+
+        <TextView
+            style="@style/Text.Title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/music" />
+
+        <ImageButton
+            android:id="@+id/musicSearchButton"
+            style="@style/IconButton"
+            android:contentDescription="@string/search"
+            android:src="@drawable/ic_search" />
+
+        <ImageButton
+            android:id="@+id/musicSortButton"
+            style="@style/IconButton"
+            android:contentDescription="@string/sort"
+            android:src="@drawable/ic_sort" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/musicSearch"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="4dp"
+        android:autofillHints=""
+        android:background="@drawable/bg_search"
+        android:drawableStart="@drawable/ic_search"
+        android:drawablePadding="10dp"
+        android:drawableTint="@color/text_muted"
+        android:hint="@string/search"
+        android:imeOptions="actionSearch"
+        android:inputType="text"
+        android:paddingHorizontal="16dp"
+        android:singleLine="true"
+        android:textColor="@color/text"
+        android:textColorHint="@color/text_muted"
+        android:visibility="gone" />
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="4dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView android:id="@+id/tabSongs" style="@style/MusicTab" android:text="@string/songs" />
+            <TextView android:id="@+id/tabAlbums" style="@style/MusicTab" android:text="@string/albums" />
+            <TextView android:id="@+id/tabArtists" style="@style/MusicTab" android:text="@string/artists" />
+            <TextView android:id="@+id/tabFolders" style="@style/MusicTab" android:text="@string/folders" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <LinearLayout
+        android:id="@+id/musicActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/musicCount"
+            style="@style/Text.Muted"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/musicShuffle"
+                style="@style/PillButton"
+                android:layout_width="0dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:drawableStart="@drawable/ic_shuffle"
+                android:text="@string/shuffle" />
+
+            <Button
+                android:id="@+id/musicPlay"
+                style="@style/PillButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:drawableStart="@drawable/ic_play"
+                android:text="@string/play" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ListView
+            android:id="@+id/musicList"
+            style="@style/MediaList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <GridView
+            android:id="@+id/musicGrid"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:listSelector="@drawable/bg_row"
+            android:numColumns="2"
+            android:padding="8dp"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/musicPrompt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_audio"
+                android:tint="?attr/accent2Color" />
+
+            <TextView
+                android:id="@+id/musicPromptText"
+                style="@style/Text.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="20dp"
+                android:gravity="center" />
+
+            <Button
+                android:id="@+id/musicPromptButton"
+                style="@style/PrimaryButton"
+                android:layout_width="wrap_content"
+                android:layout_height="56dp" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <include layout="@layout/now_playing" />
+
+    <LinearLayout
+        android:id="@+id/bottomNav"
+        style="@style/NavBar" />
+</LinearLayout>

@@ -30,6 +30,7 @@ class LibraryActivity : Activity() {
     private lateinit var scanner: LibraryScanner
     private lateinit var session: PlaybackSession
     private lateinit var adapter: MediaRowAdapter
+    private lateinit var nowPlaying: NowPlayingBar
     private lateinit var status: TextView
     private lateinit var search: EditText
     private var entries: List<MediaEntry> = emptyList()
@@ -69,12 +70,19 @@ class LibraryActivity : Activity() {
         findViewById<View>(R.id.foldersButton).setOnClickListener { showFolders() }
         findViewById<View>(R.id.sortButton).setOnClickListener { chooseSort() }
         BottomNav.attach(this, findViewById(R.id.bottomNav))
+        nowPlaying = NowPlayingBar(this)
     }
 
     override fun onStart() {
         super.onStart()
         refresh()
         scanner.scan()
+        nowPlaying.start()
+    }
+
+    override fun onStop() {
+        nowPlaying.stop()
+        super.onStop()
     }
 
     override fun onDestroy() {

@@ -13,16 +13,22 @@
     <color name="warning">#F59E0B</color>
 
     <style name="Theme.Babarify" parent="android:Theme.Material.NoActionBar">
-        <item name="android:colorBackground">@color/background</item>
-        <item name="android:windowBackground">@color/background</item>
-        <item name="android:colorPrimary">@color/surface</item>
-        <item name="android:colorAccent">@color/cyan</item>
-        <item name="android:colorControlActivated">@color/cyan</item>
-        <item name="android:colorButtonNormal">@color/surface_raised</item>
+        <item name="bgColor">@color/background</item>
+        <item name="surfaceColor">@color/surface</item>
+        <item name="raisedColor">@color/surface_raised</item>
+        <item name="borderColor">@color/border</item>
+        <item name="accentColor">@color/accent</item>
+        <item name="accent2Color">@color/cyan</item>
+        <item name="android:colorBackground">?attr/bgColor</item>
+        <item name="android:windowBackground">?attr/bgColor</item>
+        <item name="android:colorPrimary">?attr/surfaceColor</item>
+        <item name="android:colorAccent">?attr/accent2Color</item>
+        <item name="android:colorControlActivated">?attr/accent2Color</item>
+        <item name="android:colorButtonNormal">?attr/raisedColor</item>
         <item name="android:textColorPrimary">@color/text</item>
         <item name="android:textColorSecondary">@color/text_muted</item>
-        <item name="android:statusBarColor">@color/background</item>
-        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="android:statusBarColor">?attr/bgColor</item>
+        <item name="android:navigationBarColor">?attr/surfaceColor</item>
         <item name="android:buttonStyle">@style/SoftButton</item>
         <item name="android:seekBarStyle">@style/Slider</item>
         <item name="android:alertDialogTheme">@style/Theme.Babarify.Dialog</item>
@@ -36,10 +42,83 @@
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
 
+    <!-- Colour themes, laid over the theme above. All dark, so the text colours stay readable. -->
+    <style name="Colours.Sunset" parent="">
+        <item name="bgColor">#160A12</item>
+        <item name="surfaceColor">#241320</item>
+        <item name="raisedColor">#351C2E</item>
+        <item name="borderColor">#4A2A40</item>
+        <item name="accentColor">#F97316</item>
+        <item name="accent2Color">#FB7185</item>
+    </style>
+
+    <style name="Colours.Forest" parent="">
+        <item name="bgColor">#06130F</item>
+        <item name="surfaceColor">#0D211B</item>
+        <item name="raisedColor">#153228</item>
+        <item name="borderColor">#214A3B</item>
+        <item name="accentColor">#10B981</item>
+        <item name="accent2Color">#5EEAD4</item>
+    </style>
+
+    <style name="Colours.Violet" parent="">
+        <item name="bgColor">#0E0A1C</item>
+        <item name="surfaceColor">#191233</item>
+        <item name="raisedColor">#251B49</item>
+        <item name="borderColor">#3A2C69</item>
+        <item name="accentColor">#8B5CF6</item>
+        <item name="accent2Color">#E879F9</item>
+    </style>
+
+    <style name="Colours.Amber" parent="">
+        <item name="bgColor">#11100B</item>
+        <item name="surfaceColor">#1E1B12</item>
+        <item name="raisedColor">#2C281A</item>
+        <item name="borderColor">#443D27</item>
+        <item name="accentColor">#F59E0B</item>
+        <item name="accent2Color">#FDE047</item>
+    </style>
+
+    <style name="Colours.Rose" parent="">
+        <item name="bgColor">#170A10</item>
+        <item name="surfaceColor">#27111B</item>
+        <item name="raisedColor">#3A1828</item>
+        <item name="borderColor">#55253C</item>
+        <item name="accentColor">#E11D48</item>
+        <item name="accent2Color">#F9A8D4</item>
+    </style>
+
+    <style name="Theme.Babarify.Panel">
+        <item name="android:windowBackground">?attr/bgColor</item>
+    </style>
+
+    <style name="PillButton" parent="SoftButton">
+        <item name="android:layout_height">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:drawablePadding">6dp</item>
+        <item name="android:paddingHorizontal">16dp</item>
+        <item name="android:drawableTint">?attr/accent2Color</item>
+    </style>
+
+    <style name="MusicTab" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:background">@drawable/bg_tab</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingHorizontal">12dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
     <style name="Theme.Babarify.Dialog" parent="android:Theme.Material.Dialog.Alert">
         <item name="android:windowBackground">@drawable/bg_dialog</item>
-        <item name="android:colorAccent">@color/cyan</item>
-        <item name="android:colorControlActivated">@color/cyan</item>
+        <item name="android:colorAccent">?attr/accent2Color</item>
+        <item name="android:colorControlActivated">?attr/accent2Color</item>
         <item name="android:textColorPrimary">@color/text</item>
         <item name="android:textColorSecondary">@color/text_muted</item>
         <item name="android:buttonStyle">@style/SoftButton</item>
@@ -49,7 +128,7 @@
 
     <style name="DialogAction" parent="android:Widget.Material.Button.Borderless.Colored">
         <item name="android:textAllCaps">false</item>
-        <item name="android:textColor">@color/cyan</item>
+        <item name="android:textColor">?attr/accent2Color</item>
     </style>
 
     <style name="SoftButton" parent="android:Widget.Material.Button">
@@ -93,7 +172,7 @@
     </style>
 
     <style name="Text.Section" parent="">
-        <item name="android:textColor">@color/cyan</item>
+        <item name="android:textColor">?attr/accent2Color</item>
         <item name="android:textSize">13sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:letterSpacing">0.04</item>
@@ -111,13 +190,13 @@
         <item name="android:layout_weight">1</item>
         <item name="android:minHeight">48dp</item>
         <item name="android:textAllCaps">false</item>
-        <item name="android:textColor">@color/cyan</item>
+        <item name="android:textColor">?attr/accent2Color</item>
     </style>
 
     <style name="NavBar" parent="">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">64dp</item>
-        <item name="android:background">@color/surface</item>
+        <item name="android:background">?attr/surfaceColor</item>
         <item name="android:orientation">horizontal</item>
     </style>
 

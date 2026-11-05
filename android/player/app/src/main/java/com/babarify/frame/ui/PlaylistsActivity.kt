@@ -10,17 +10,31 @@ import android.widget.Button
 import android.widget.ListView
 import android.widget.TextView
 import com.babarify.frame.R
+import com.babarify.frame.core.MusicRules
+import com.babarify.frame.core.SongSort
 import com.babarify.frame.data.LibraryStore
 import com.babarify.frame.data.MediaEntry
+import com.babarify.frame.data.MusicLibrary
 import com.babarify.frame.data.Playlist
 import com.babarify.frame.data.PlaylistItem
+import com.babarify.frame.data.SavedTrack
 import com.babarify.frame.engine.PlaybackSession
+
+/** Lists that fill themselves in. */
+enum class AutoList(val label: Int, val icon: Int, val colour: Int) {
+    FAVOURITES(R.string.auto_favourites, R.drawable.ic_heart, 0xFFFB7185.toInt()),
+    RECENTLY_PLAYED(R.string.auto_recent, R.drawable.ic_history, 0xFF60A5FA.toInt()),
+    MOST_PLAYED(R.string.auto_top, R.drawable.ic_trending, 0xFFFBBF24.toInt()),
+    RECENTLY_ADDED(R.string.auto_new, R.drawable.ic_new, 0xFF34D399.toInt()),
+}
 
 class PlaylistsActivity : Activity() {
     private lateinit var store: LibraryStore
     private lateinit var adapter: MediaRowAdapter
+    private lateinit var nowPlaying: NowPlayingBar
     private lateinit var empty: TextView
     private var playlists: List<Playlist> = emptyList()
+    private var automatic: List<AutoList> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,17 +42,24 @@ class PlaylistsActivity : Activity() {
         applySystemBarPadding(findViewById(R.id.playlistsRoot))
         store = LibraryStore(this)
         adapter = MediaRowAdapter(this)
+        nowPlaying = NowPlayingBar(this)
         empty = findViewById(R.id.playlistsEmpty)
         empty.setText(R.string.no_playlists)
         BottomNav.attach(this, findViewById(R.id.bottomNav))
         val list = findViewById<ListView>(R.id.playlistsList)
         list.adapter = adapter
         list.setOnItemClickListener { _, _, position, _ ->
-            openPlaylist(playlists[position].id, playlists[position].name)
+            val auto = automatic.getOrNull(position)
+            if (auto != null) {
+                openAutomatic(auto)
+            } else {
+                val playlist = playlists[position - automatic.size]
+                openPlaylist(playlist.id, playlist.name)
+            }
         }
         list.setOnItemLongClickListener { _, _, position, _ ->
-            manage(playlists[position])
-            true
+            playlists.getOrNull(position - automatic.size)?.let(::manage)
+            position >= automatic.size
         }
         findViewById<Button>(R.id.playlistsAction).apply {
             setText(R.string.new_playlist)
@@ -54,6 +75,12 @@ class PlaylistsActivity : Activity() {
     override fun onStart() {
         super.onStart()
         refresh()
+        nowPlaying.start()
+    }
+
+    override fun onStop() {
+        nowPlaying.stop()
+        super.onStop()
     }
 
     override fun onDestroy() {
@@ -63,10 +90,32 @@ class PlaylistsActivity : Activity() {
 
     private fun refresh() {
         playlists = store.playlists()
-        adapter.rows = playlists.map {
-            MediaRow(it.name, getString(R.string.playlist_count, it.itemCount), placeholder = R.drawable.ic_playlist)
+        automatic = AutoList.entries.filter { it != AutoList.RECENTLY_ADDED || MusicLibrary.allowed(this) }
+        adapter.rows = automatic.map(::automaticRow) + playlists.map {
+            MediaRow(it.name, fileCount(it.itemCount), placeholder = R.drawable.ic_playlist)
         }
-        empty.visibility = if (playlists.isEmpty()) View.VISIBLE else View.GONE
+        empty.visibility = View.GONE
+    }
+
+    private fun fileCount(count: Int): String =
+        if (count == 1) getString(R.string.playlist_count_one) else getString(R.string.playlist_count, count)
+
+    private fun automaticRow(list: AutoList): MediaRow {
+        val detail = when (list) {
+            AutoList.FAVOURITES -> fileCount(store.favourites().size)
+            AutoList.RECENTLY_PLAYED -> fileCount(store.recentlyPlayed().size)
+            AutoList.MOST_PLAYED -> fileCount(store.mostPlayed().size)
+            AutoList.RECENTLY_ADDED -> getString(R.string.auto_new_detail)
+        }
+        return MediaRow(getString(list.label), detail, placeholder = list.icon, iconColour = list.colour)
+    }
+
+    private fun openAutomatic(list: AutoList) {
+        startActivity(
+            Intent(this, PlaylistActivity::class.java)
+                .putExtra(PlaylistActivity.EXTRA_AUTO, list.name)
+                .putExtra(PlaylistActivity.EXTRA_NAME, getString(list.label)),
+        )
     }
 
     private fun openPlaylist(id: Long, name: String) {
@@ -106,8 +155,10 @@ class PlaylistsActivity : Activity() {
 class PlaylistActivity : Activity() {
     private lateinit var store: LibraryStore
     private lateinit var adapter: MediaRowAdapter
+    private lateinit var nowPlaying: NowPlayingBar
     private lateinit var empty: TextView
     private var playlistId = 0L
+    private var automatic: AutoList? = null
     private var items: List<PlaylistItem> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -116,16 +167,22 @@ class PlaylistActivity : Activity() {
         applySystemBarPadding(findViewById(R.id.playlistsRoot))
         store = LibraryStore(this)
         adapter = MediaRowAdapter(this)
+        nowPlaying = NowPlayingBar(this)
         playlistId = intent.getLongExtra(EXTRA_ID, 0)
+        automatic = AutoList.entries.firstOrNull { it.name == intent.getStringExtra(EXTRA_AUTO) }
         findViewById<TextView>(R.id.playlistsTitle).text = intent.getStringExtra(EXTRA_NAME).orEmpty()
         empty = findViewById(R.id.playlistsEmpty)
-        empty.setText(R.string.playlist_empty)
+        empty.setText(if (automatic == null) R.string.playlist_empty else R.string.auto_empty)
         findViewById<View>(R.id.bottomNav).visibility = View.GONE
         val list = findViewById<ListView>(R.id.playlistsList)
         list.adapter = adapter
         list.setOnItemClickListener { _, _, position, _ -> play(position) }
         list.setOnItemLongClickListener { _, _, position, _ ->
-            manage(items[position])
+            when (automatic) {
+                null -> manage(items[position])
+                AutoList.FAVOURITES -> removeFavourite(items[position])
+                else -> Unit
+            }
             true
         }
         findViewById<Button>(R.id.playlistsAction).apply {
@@ -133,15 +190,25 @@ class PlaylistActivity : Activity() {
             setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_play, 0, 0, 0)
             setOnClickListener { if (items.isNotEmpty()) play(0) }
         }
-        findViewById<Button>(R.id.playlistsAdd).apply {
-            visibility = View.VISIBLE
+        findViewById<View>(R.id.playlistTools).visibility = View.VISIBLE
+        findViewById<View>(R.id.playlistsAdd).apply {
+            visibility = if (automatic == null) View.VISIBLE else View.GONE
             setOnClickListener { chooseWhereToAddFrom() }
+        }
+        findViewById<View>(R.id.playlistsShuffle).setOnClickListener {
+            if (items.isNotEmpty()) playQueue(items.shuffled(), 0)
         }
     }
 
     override fun onStart() {
         super.onStart()
         refresh()
+        nowPlaying.start()
+    }
+
+    override fun onStop() {
+        nowPlaying.stop()
+        super.onStop()
     }
 
     override fun onDestroy() {
@@ -150,9 +217,53 @@ class PlaylistActivity : Activity() {
     }
 
     private fun refresh() {
-        items = store.playlistItems(playlistId)
-        adapter.rows = items.map { MediaRow(it.title, "", placeholder = placeholderFor(it.title)) }
+        val list = automatic
+        if (list == AutoList.RECENTLY_ADDED) {
+            Thread {
+                val newest = MusicRules.sorted(MusicLibrary.songs(this), SongSort.RECENTLY_ADDED)
+                    .take(LibraryStore.AUTOMATIC_LIST_SIZE)
+                    .map { SavedTrack(it.uri, it.fileName) }
+                runOnUiThread { if (!isDestroyed) showItems(saved(newest)) }
+            }.start()
+            return
+        }
+        showItems(
+            when (list) {
+                null -> store.playlistItems(playlistId)
+                AutoList.FAVOURITES -> saved(store.favourites())
+                AutoList.RECENTLY_PLAYED -> saved(store.recentlyPlayed())
+                AutoList.MOST_PLAYED -> saved(store.mostPlayed())
+                AutoList.RECENTLY_ADDED -> emptyList()
+            },
+        )
+    }
+
+    private fun saved(tracks: List<SavedTrack>) = tracks.mapIndexed { index, track ->
+        PlaylistItem(index.toLong(), 0, index, track.uri, track.title)
+    }
+
+    private fun showItems(shown: List<PlaylistItem>) {
+        items = shown
+        adapter.rows = items.map {
+            val audio = placeholderFor(it.title) == R.drawable.ic_audio
+            MediaRow(
+                if (audio) MusicRules.withoutExtension(it.title) else it.title,
+                "",
+                placeholder = placeholderFor(it.title),
+                artUri = it.uri.takeIf { audio },
+            )
+        }
         empty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+    }
+
+    private fun removeFavourite(item: PlaylistItem) {
+        AlertDialog.Builder(this)
+            .setTitle(MusicRules.withoutExtension(item.title))
+            .setItems(arrayOf(getString(R.string.remove_favourite))) { _, _ ->
+                store.setFavourite(item.uri, item.title, false)
+                refresh()
+            }
+            .show()
     }
 
     /** The library if it has anything, or files from anywhere through the system's picker. */
@@ -223,12 +334,14 @@ class PlaylistActivity : Activity() {
     /** For tests. */
     val shownItems: List<PlaylistItem> get() = items
 
-    private fun play(index: Int) {
+    private fun play(index: Int) = playQueue(items, index)
+
+    private fun playQueue(queue: List<PlaylistItem>, index: Int) {
         startActivity(
             Intent(this, PlayerActivity::class.java)
-                .setData(Uri.parse(items[index].uri))
-                .putStringArrayListExtra(PlayerActivity.EXTRA_QUEUE_URIS, ArrayList(items.map { it.uri }))
-                .putStringArrayListExtra(PlayerActivity.EXTRA_QUEUE_TITLES, ArrayList(items.map { it.title }))
+                .setData(Uri.parse(queue[index].uri))
+                .putStringArrayListExtra(PlayerActivity.EXTRA_QUEUE_URIS, ArrayList(queue.map { it.uri }))
+                .putStringArrayListExtra(PlayerActivity.EXTRA_QUEUE_TITLES, ArrayList(queue.map { it.title }))
                 .putExtra(PlayerActivity.EXTRA_QUEUE_INDEX, index),
         )
     }
@@ -251,6 +364,7 @@ class PlaylistActivity : Activity() {
     companion object {
         const val EXTRA_ID = "com.babarify.frame.PLAYLIST_ID"
         const val EXTRA_NAME = "com.babarify.frame.PLAYLIST_NAME"
+        const val EXTRA_AUTO = "com.babarify.frame.PLAYLIST_AUTO"
         private const val REQUEST_FILES = 4
     }
 }

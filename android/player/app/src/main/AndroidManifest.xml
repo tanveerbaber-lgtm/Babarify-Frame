@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    No storage or internet permission on purpose: files come through the system picker or another
-    app's share. The three below are only for sound that keeps playing after leaving: audio files, and video if chosen.
+    No internet permission on purpose. Videos and other files still come through the system picker or another
+    app's share. The first three below are only for sound that keeps playing after leaving: audio files, and video
+    if chosen. The last two read songs only, are asked for when the user taps to find their music, and are optional.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
 
     <application
+        android:name=".ui.BabarifyApp"
         android:allowBackup="false"
         android:dataExtractionRules="@xml/no_backup"
         android:icon="@mipmap/ic_launcher"
@@ -41,6 +47,12 @@
         </activity>
         <activity
             android:name=".ui.AboutActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.MusicActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.MusicGroupActivity"
             android:exported="false" />
         <activity
             android:name=".ui.LibraryActivity"

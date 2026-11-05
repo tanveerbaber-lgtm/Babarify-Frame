@@ -110,8 +110,15 @@ class FeatureFlowsTest {
         return result as T
     }
 
+    /** Asks the main thread directly: onActivity first waits for it to go idle, which moving bars can delay past a clip's end. */
+    private fun positionNow(): Long {
+        var position = 0L
+        InstrumentationRegistry.getInstrumentation().runOnMainSync { position = PlaybackSession.get(InstrumentationRegistry.getInstrumentation().targetContext).positionMs }
+        return position
+    }
+
     private fun ActivityScenario<PlayerActivity>.waitForProgress(aboveMs: Long = 500) =
-        waitUntil("position above $aboveMs", 180_000) { read { it.currentPositionMs } > aboveMs }
+        waitUntil("position above $aboveMs", 180_000) { positionNow() > aboveMs }
 
     /** What's really on screen, which includes colour filters and view rotation. */
     private fun screen(): Bitmap = instrumentation.uiAutomation.takeScreenshot()
@@ -393,6 +400,178 @@ class FeatureFlowsTest {
             val before = scenario.read { it.currentPositionMs }
             waitUntil("still playing") { scenario.read { it.currentPositionMs } > before + 1_000 }
             waitUntil("controls hidden", 2_000) { scenario.read { it.controlsView.visibility } == View.GONE }
+        }
+    }
+
+    // ------------------------------------------------------------ audio screen
+    // The owner's report: the screen went black about 3 seconds after a song started.
+    @Test
+    fun audioKeepsItsControlsAndHasItsOwnScreen() {
+        open("audio_60s.m4a").use { scenario ->
+            scenario.waitForProgress()
+            waitUntil("audio screen", 3_000) { scenario.read { it.findViewById<View>(R.id.audioView).visibility } == View.VISIBLE }
+            SystemClock.sleep(7_000) // Well past when a video's controls hide.
+            assertEquals(View.VISIBLE, scenario.read { it.controlsView.visibility })
+            val title = scenario.read { it.findViewById<android.widget.TextView>(R.id.audioTitle).text.toString() }
+            assertEquals("audio_60s", title)
+            assertEquals(View.GONE, scenario.read { it.findViewById<View>(R.id.fitButton).visibility })
+            // What's on screen, under the controls, isn't black.
+            assertTrue(averageBrightness(screen()) > 3)
+        }
+    }
+
+    @Test
+    fun audioWithNoPictureGetsBarsThatMoveOnlyWhilePlaying() {
+        open("audio_60s.m4a").use { scenario ->
+            scenario.waitForProgress()
+            waitUntil("bars shown", 3_000) { scenario.read { it.findViewById<View>(R.id.audioBars).isShown } }
+            assertEquals(View.GONE, scenario.read { it.findViewById<View>(R.id.audioCover).visibility })
+            fun bars() = scenario.read { it.findViewById<com.babarify.frame.ui.EqualizerBarsView>(R.id.audioBars) }
+            if (android.animation.ValueAnimator.areAnimatorsEnabled()) {
+                waitUntil("bars moving", 3_000) { scenario.read { bars().animating } }
+            }
+            scenario.onActivity { it.findViewById<View>(R.id.playButton).performClick() }
+            waitUntil("bars rest when paused", 3_000) { !scenario.read { bars().animating } }
+        }
+    }
+
+    @Test
+    fun animationStylesCanBeChosenAndAreRemembered() {
+        val before = session().preferences.visualStyle
+        try {
+            open("audio_60s.m4a").use { scenario ->
+                scenario.waitForProgress()
+                fun bars() = scenario.read { it.findViewById<com.babarify.frame.ui.EqualizerBarsView>(R.id.audioBars) }
+                for (style in com.babarify.frame.core.EqualizerAnimation.CYCLE) {
+                    scenario.onActivity { it.chooseVisualStyle(style) }
+                    waitUntil("$style shown", 5_000) { scenario.read { bars().shownStyle } == style }
+                    SystemClock.sleep(300) // Each one draws without trouble.
+                }
+                assertEquals(com.babarify.frame.core.EqualizerAnimation.CYCLE.last(), session().preferences.visualStyle)
+                // A style chosen earlier applies to the next screen too.
+                assertEquals(session().preferences.visualStyle, scenario.read { bars().style })
+            }
+        } finally {
+            session().preferences.visualStyle = before
+        }
+    }
+
+    @Test
+    fun audioWithAPictureShowsThePictureInstead() {
+        open("audio_cover.mp3").use { scenario ->
+            scenario.waitForProgress()
+            waitUntil("picture shown", 5_000) { scenario.read { it.findViewById<View>(R.id.audioCover).isShown } }
+            assertEquals(View.GONE, scenario.read { it.findViewById<View>(R.id.audioBars).visibility })
+            assertEquals("Test song", scenario.read { it.findViewById<android.widget.TextView>(R.id.audioTitle).text.toString() })
+            assertEquals("Test artist", scenario.read { it.findViewById<android.widget.TextView>(R.id.audioArtist).text.toString() })
+        }
+    }
+
+    @Test
+    fun aVideoHasNoAudioScreen() {
+        open("long_60s.mp4").use { scenario ->
+            scenario.waitForProgress()
+            assertEquals(View.GONE, scenario.read { it.findViewById<View>(R.id.audioView).visibility })
+            assertEquals(View.VISIBLE, scenario.read { it.findViewById<View>(R.id.fitButton).visibility })
+        }
+    }
+
+    // ----------------------------------------------------------- sleep and lock
+    @Test
+    fun theSleepTimerPausesAndKeepsThePlace() {
+        open("long_60s.mp4").use { scenario ->
+            scenario.waitForProgress()
+            scenario.onActivity { session().setSleepTimer(1_500) }
+            assertNotNull(session().sleepAt)
+            waitUntil("paused by the timer", 5_000) { scenario.read { it.playbackState } == PlaybackState.PAUSED }
+            assertNull(session().sleepAt)
+            assertTrue(scenario.read { it.currentPositionMs } > 500)
+        }
+    }
+
+    @Test
+    fun aSleepTimerCanBeTurnedOff() {
+        open("long_60s.mp4").use { scenario ->
+            scenario.waitForProgress()
+            scenario.onActivity {
+                session().setSleepTimer(1_000)
+                session().setSleepTimer(null)
+            }
+            SystemClock.sleep(2_000)
+            assertEquals(PlaybackState.PLAYING, scenario.read { it.playbackState })
+        }
+    }
+
+    @Test
+    fun lockedControlsIgnoreTouchesUntilUnlocked() {
+        open("long_60s.mp4").use { scenario ->
+            scenario.waitForProgress()
+            scenario.onActivity {
+                session().setVolumeLevel(50)
+                it.setLocked(true)
+            }
+            assertEquals(View.GONE, scenario.read { it.controlsView.visibility })
+            swipe(scenario, 0.8f, 0.7f, 0.8f, 0.3f)
+            assertEquals("a swipe does nothing while locked", 50, session().volume)
+            val tapped = SystemClock.uptimeMillis()
+            scenario.onActivity { activity ->
+                val layer = activity.findViewById<View>(R.id.gestureLayer)
+                for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
+                    val event = MotionEvent.obtain(tapped, SystemClock.uptimeMillis(), action, layer.width / 2f, layer.height / 2f, 0)
+                    layer.dispatchTouchEvent(event)
+                    event.recycle()
+                }
+            }
+            waitUntil("unlock offered", 3_000) { scenario.read { it.findViewById<View>(R.id.unlockButton).visibility } == View.VISIBLE }
+            assertEquals(View.GONE, scenario.read { it.controlsView.visibility })
+            scenario.onActivity { it.findViewById<View>(R.id.unlockButton).performClick() }
+            assertFalse(scenario.read { it.isLocked })
+            assertEquals(View.VISIBLE, scenario.read { it.controlsView.visibility })
+        }
+    }
+
+    // ---------------------------------------------------------- now playing bar
+    @Test
+    fun theNowPlayingBarControlsMusicThatPlaysOn() {
+        open("audio_60s.m4a").use { it.waitForProgress(1_000) }
+        ActivityScenario.launch(HomeActivity::class.java).use { home ->
+            waitUntil("bar shown", 3_000) { home.read { it.findViewById<View>(R.id.nowPlaying).visibility } == View.VISIBLE }
+            assertEquals("audio_60s", home.read { it.findViewById<android.widget.TextView>(R.id.nowPlayingTitle).text.toString() })
+            home.onActivity { it.findViewById<View>(R.id.nowPlayingToggle).performClick() }
+            waitUntil("paused from the bar", 5_000) { session().state == PlaybackState.PAUSED }
+            home.onActivity { it.findViewById<View>(R.id.nowPlayingClose).performClick() }
+            waitUntil("closed from the bar", 5_000) { session().engine == null }
+            assertEquals(View.GONE, home.read { it.findViewById<View>(R.id.nowPlaying).visibility })
+        }
+    }
+
+    @Test
+    fun noBarWhenNothingIsPlaying() {
+        ActivityScenario.launch(HomeActivity::class.java).use { home ->
+            SystemClock.sleep(500)
+            assertEquals(View.GONE, home.read { it.findViewById<View>(R.id.nowPlaying).visibility })
+        }
+    }
+
+    // -------------------------------------------------------------- shuffle
+    @Test
+    fun shufflePlaysEveryFileInThePlaylist() {
+        val id = library.createPlaylist("Mixed")
+        val names = listOf("audio_60s.m4a", "c_audio_aac.m4a", "long_60s.mp4", "s_sidecar_720p.mp4")
+        names.forEach { library.addToPlaylist(id, TestMediaProvider.uri(it).toString(), it) }
+        val player = instrumentation.addMonitor(PlayerActivity::class.java.name, null, false)
+        try {
+            val intent = Intent(context, PlaylistActivity::class.java).putExtra(PlaylistActivity.EXTRA_ID, id)
+            ActivityScenario.launch<PlaylistActivity>(intent).use { scenario ->
+                scenario.onActivity { it.findViewById<View>(R.id.playlistsShuffle).performClick() }
+                val opened = instrumentation.waitForMonitorWithTimeout(player, 8_000)
+                assertNotNull(opened)
+                assertEquals(names.toSet(), session().queue.items.map { it.title }.toSet())
+                assertEquals(names.size, session().queue.items.size)
+                opened!!.finish()
+            }
+        } finally {
+            instrumentation.removeMonitor(player)
         }
     }
 
@@ -795,6 +974,7 @@ class FeatureFlowsTest {
     @Test
     fun theBottomTabsOpenTheirScreens() {
         val tabs = listOf(
+            R.id.navMusic to com.babarify.frame.ui.MusicActivity::class.java,
             R.id.navLibrary to LibraryActivity::class.java,
             R.id.navPlaylists to PlaylistsActivity::class.java,
             R.id.navSettings to SettingsActivity::class.java,

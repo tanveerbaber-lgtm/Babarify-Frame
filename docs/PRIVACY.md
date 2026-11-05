@@ -46,15 +46,19 @@ Questions about privacy: open an issue in the project's repository.
 
 ## Android
 
-The Android app has no internet permission, so it cannot send anything anywhere, and no storage
-permission. It reads only the files you open and the folders you add to the library, and it never
-changes them. The library, playlists, bookmarks, settings, recent files and your place in them stay on
-the phone, are excluded from backup and device transfer, and can be cleared or removed in the app. A
+The Android app has no internet permission, so it cannot send anything anywhere. It reads the files you
+open and the folders you add to the library, and it never changes them. If you tap *Find my music* and allow
+it, the app also reads the list of songs on the phone, with their names, artists, albums and pictures, and
+plays them. Android's permission for this is `READ_MEDIA_AUDIO` (`READ_EXTERNAL_STORAGE` on Android 12 and
+earlier, where it can also see other files). The app works without it, and you can take it back in Android's
+settings. The library, playlists, favourites, bookmarks, settings, recent files, how often you played each
+song and your place in them stay on the phone, are excluded from backup and device transfer, and can be
+cleared or removed in the app. *Settings → Privacy* switches off play history and clears it. A
 subtitle file you add is copied into the app's private cache so the player can read it. Uninstalling
 removes all of this, except snapshots you chose to take, which are saved in `Pictures/Babarify Frame`
 for you to keep.
 
-Its only permissions are for sound that keeps playing after you leave: `FOREGROUND_SERVICE`,
+Its other permissions are for sound that keeps playing after you leave: `FOREGROUND_SERVICE`,
 `FOREGROUND_SERVICE_MEDIA_PLAYBACK` and `WAKE_LOCK`. Audio files always keep playing, even after closing
 the app, until you close them from the notification. Video does so only if you choose that in *Settings →
 When you leave a video*; otherwise leaving stops it. While sound plays on, the notification shows the file's

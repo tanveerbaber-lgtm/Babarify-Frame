@@ -7,8 +7,10 @@ import com.babarify.frame.core.LeaveAction
 import com.babarify.frame.core.PictureSettings
 import com.babarify.frame.core.PlaybackRules
 import com.babarify.frame.core.RepeatMode
+import com.babarify.frame.core.SongSort
 import com.babarify.frame.core.SortOrder
 import com.babarify.frame.core.SubtitleStyle
+import com.babarify.frame.core.VisualStyle
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -75,6 +77,23 @@ class Preferences(context: Context) {
     var repeatMode: RepeatMode
         get() = enumValue("repeat_mode", RepeatMode.OFF)
         set(value) = store.edit().putString("repeat_mode", value.name).apply()
+
+    var musicSort: SongSort
+        get() = enumValue("music_sort", SongSort.TITLE)
+        set(value) = store.edit().putString("music_sort", value.name).apply()
+
+    var visualStyle: VisualStyle
+        get() = enumValue("visual_style", VisualStyle.AUTO)
+        set(value) = store.edit().putString("visual_style", value.name).apply()
+
+    var colourTheme: String
+        get() = store.getString("colour_theme", null).orEmpty()
+        set(value) = store.edit().putString("colour_theme", value).apply()
+
+    /** Where the equalizer's bass dial stands, from 0 to 1. */
+    var equalizerBass: Float
+        get() = store.getFloat("equalizer_bass", 0f).coerceIn(0f, 1f)
+        set(value) = store.edit().putFloat("equalizer_bass", value.coerceIn(0f, 1f)).apply()
 
     var librarySort: SortOrder
         get() = enumValue("library_sort", SortOrder.NAME)

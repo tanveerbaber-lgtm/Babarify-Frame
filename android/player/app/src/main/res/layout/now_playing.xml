@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A floating card. Swipe it sideways to change song. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/nowPlaying"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginBottom="6dp"
+    android:background="?attr/raisedColor"
+    android:clickable="true"
+    android:elevation="6dp"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:visibility="gone">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="68dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="10dp"
+        android:paddingEnd="4dp">
+
+        <ImageView
+            android:id="@+id/nowPlayingArt"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/bg_thumb"
+            android:importantForAccessibility="no"
+            android:scaleType="center" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/nowPlayingTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textColor="@color/text"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/nowPlayingArtist"
+                style="@style/Text.Muted"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textSize="13sp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/nowPlayingToggle"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_play"
+            android:contentDescription="@string/pause"
+            android:scaleType="center"
+            android:src="@drawable/ic_pause"
+            android:tint="@color/on_accent" />
+
+        <ImageButton
+            android:id="@+id/nowPlayingNext"
+            style="@style/IconButton"
+            android:contentDescription="@string/next"
+            android:src="@drawable/ic_next" />
+
+        <ImageButton
+            android:id="@+id/nowPlayingClose"
+            style="@style/IconButton"
+            android:contentDescription="@string/close_mini_player"
+            android:src="@drawable/ic_close" />
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/nowPlayingProgress"
+        style="@android:style/Widget.Material.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:importantForAccessibility="no"
+        android:max="1000"
+        android:progressDrawable="@drawable/row_progress" />
+</LinearLayout>

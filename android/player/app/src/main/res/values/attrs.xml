@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The colours a theme can change. See ColourThemes. -->
+    <attr name="bgColor" format="color" />
+    <attr name="surfaceColor" format="color" />
+    <attr name="raisedColor" format="color" />
+    <attr name="borderColor" format="color" />
+    <attr name="accentColor" format="color" />
+    <attr name="accent2Color" format="color" />
+</resources>

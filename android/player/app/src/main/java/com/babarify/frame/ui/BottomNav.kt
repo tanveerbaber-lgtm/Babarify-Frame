@@ -13,6 +13,7 @@ import com.babarify.frame.R
 object BottomNav {
     private val TABS = listOf(
         R.id.navHome to HomeActivity::class.java,
+        R.id.navMusic to MusicActivity::class.java,
         R.id.navLibrary to LibraryActivity::class.java,
         R.id.navPlaylists to PlaylistsActivity::class.java,
         R.id.navSettings to SettingsActivity::class.java,
@@ -23,7 +24,7 @@ object BottomNav {
         for ((id, target) in TABS) {
             val tab = container.findViewById<LinearLayout>(id)
             val current = target == activity.javaClass
-            val colour = activity.getColor(if (current) R.color.cyan else R.color.text_muted)
+            val colour = if (current) activity.themeColor(R.attr.accent2Color) else activity.getColor(R.color.text_muted)
             (tab.getChildAt(0) as ImageView).imageTintList = android.content.res.ColorStateList.valueOf(colour)
             (tab.getChildAt(1) as TextView).setTextColor(colour)
             tab.isSelected = current
