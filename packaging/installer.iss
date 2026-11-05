@@ -3,7 +3,7 @@
 ;
 ; Per-user install (no administrator rights) to %LOCALAPPDATA%\Programs\Babarify Media Player.
 ; The same AppId makes a newer installer upgrade in place (and an older one roll back). An upgrade
-; from when the app was called Babarify Frame stays in that folder, and keeps its data folders.
+; from when the app was called Babarify Frame moves it out of that folder; its data folders stay.
 ; File associations are optional (unticked) and only add "Open with" entries: Babarify never
 ; takes over a file type; Windows asks the user to choose defaults.
 ; User data (settings, library, history, bookmarks, generated subtitles, models, logs) is kept
@@ -26,6 +26,7 @@ AppCopyright=Copyright (C) 2026 Tanveer Baber. Licensed under the GNU GPL v3 or 
 VersionInfoVersion={#AppVersion}
 DefaultDirName={localappdata}\Programs\{#AppName}
 DefaultGroupName={#AppName}
+UsePreviousAppDir=no
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
@@ -103,6 +104,31 @@ Type: filesandordirs; Name: "{app}\engines"
 Type: filesandordirs; Name: "{app}\ai"
 
 [Code]
+function OldFolder(): String;
+begin
+  Result := ExpandConstant('{localappdata}\Programs\Babarify Frame');
+end;
+
+{ Files can't be taken out of the old folder while the app runs from it, and Windows only closes
+  apps that use the new folder. A folder can't be renamed while a file in it is open, so this finds out. }
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  Result := '';
+  if DirExists(OldFolder()) then
+  begin
+    if RenameFile(OldFolder(), OldFolder() + '.moving') then
+      RenameFile(OldFolder() + '.moving', OldFolder())
+    else
+      Result := 'Please close Babarify Media Player, then run this installer again.';
+  end;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if (CurStep = ssPostInstall) and DirExists(OldFolder()) then
+    DelTree(OldFolder(), True, True, True);
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   Roaming, Local: String;
