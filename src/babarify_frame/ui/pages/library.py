@@ -556,7 +556,7 @@ class LibraryPage(QWidget):
         if has_folders and not total:
             self.empty_title.setText("No media found yet")
             self.empty_body.setText(
-                "The library folders hold no video or audio files that Babarify Frame recognises, "
+                "The library folders hold no video or audio files that Babarify Media Player recognises, "
                 "or the scan has not finished. Add another folder or rescan."
             )
         self.remove_missing_button.setVisible(missing > 0)

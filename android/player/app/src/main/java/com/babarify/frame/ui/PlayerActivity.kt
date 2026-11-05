@@ -1049,7 +1049,7 @@ class PlayerActivity : Activity(), SessionListener {
             .show()
     }
 
-    /** A picture of what's on screen, saved to Pictures/Babarify Frame. No permission is needed for this. */
+    /** A picture of what's on screen, saved to Pictures/Babarify Media Player. No permission is needed for this. */
     fun takeSnapshot() {
         val bitmap = video.bitmap
         if (bitmap == null || session.engine?.videoSize == null) {
@@ -1075,7 +1075,7 @@ class PlayerActivity : Activity(), SessionListener {
         val values = ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, name)
             put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-            put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/Babarify Frame")
+            put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/Babarify Media Player")
             put(MediaStore.Images.Media.IS_PENDING, 1)
         }
         val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) ?: return null

@@ -3,7 +3,7 @@ idle hides the controls, mouse movement brings them back.
 
 This sends REAL mouse input (SendInput) and briefly moves the cursor, then restores it.
 Safety: before every click it asks Windows which top-level window owns the target point and
-aborts unless it is the Babarify Frame window, so it can never click into another app.
+aborts unless it is the Babarify Media Player window, so it can never click into another app.
 Uses a throw-away settings folder.
 
 Usage:  python tools/real_input_check.py

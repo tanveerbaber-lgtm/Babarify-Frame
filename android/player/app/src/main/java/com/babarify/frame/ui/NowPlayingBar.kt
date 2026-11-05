@@ -33,6 +33,7 @@ class NowPlayingBar(private val activity: Activity) : SessionListener {
     private val next = activity.findViewById<ImageButton>(R.id.nowPlayingNext)
     private val progress = activity.findViewById<ProgressBar>(R.id.nowPlayingProgress)
     private val density = activity.resources.displayMetrics.density
+    private val light = ColourThemes.isLight(ColourThemes.current(session.preferences))
     private val handler = Handler(Looper.getMainLooper())
     private val refreshNow = Runnable { refresh() }
     private var shownFor: Uri? = null
@@ -129,7 +130,7 @@ class NowPlayingBar(private val activity: Activity) : SessionListener {
             shownFor = uri
             val audio = !PlaybackRules.isVideoName(session.title)
             Art.show(art, uri.toString(), if (audio) R.drawable.ic_audio else R.drawable.ic_movie, ART_CORNERS_DP) { picture ->
-                showCardColour(picture?.let(Art::backgroundFrom) ?: activity.themeColor(R.attr.raisedColor))
+                showCardColour(picture?.let { Art.backgroundFrom(it, light) } ?: activity.themeColor(R.attr.raisedColor))
             }
             artist.visibility = View.GONE
             Art.tags(bar, uri) { songTitle, name ->

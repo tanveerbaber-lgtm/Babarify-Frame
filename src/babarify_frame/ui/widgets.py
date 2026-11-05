@@ -43,6 +43,8 @@ GLYPHS = {
     "previous": "\ue892",
     "next": "\ue893",
     "queue": "\ue8fd",
+    "theme": "\ue790",
+    "animation": "\ue9e9",
     "heart": "\ue00b",
     "heart_filled": "\ueb52",
     "library": "",  # Library

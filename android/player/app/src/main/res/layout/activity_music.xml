@@ -44,14 +44,14 @@
         android:background="@drawable/bg_search"
         android:drawableStart="@drawable/ic_search"
         android:drawablePadding="10dp"
-        android:drawableTint="@color/text_muted"
+        android:drawableTint="?attr/inkMutedColor"
         android:hint="@string/search"
         android:imeOptions="actionSearch"
         android:inputType="text"
         android:paddingHorizontal="16dp"
         android:singleLine="true"
-        android:textColor="@color/text"
-        android:textColorHint="@color/text_muted"
+        android:textColor="?attr/inkColor"
+        android:textColorHint="?attr/inkMutedColor"
         android:visibility="gone" />
 
     <HorizontalScrollView

@@ -138,7 +138,7 @@ class DialControl @JvmOverloads constructor(context: Context, attrs: AttributeSe
     }
     private val knob = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = context.themeColor(R.attr.raisedColor) }
     private val label = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = context.getColor(R.color.text)
+        color = context.themeColor(R.attr.inkColor)
         textAlign = Paint.Align.CENTER
         textSize = 18 * density
         isFakeBoldText = true
@@ -298,7 +298,7 @@ object EqualizerPanel {
             textSize = 11f
             gravity = Gravity.CENTER
             maxLines = 1
-            setTextColor(activity.getColor(R.color.text_muted))
+            setTextColor(activity.themeColor(R.attr.inkMutedColor))
         }
 
         private fun frequencyLabel(hz: Float): String =
@@ -311,7 +311,7 @@ object EqualizerPanel {
                 val chip = TextView(activity).apply {
                     text = name
                     setBackgroundResource(R.drawable.bg_chip)
-                    setTextColor(activity.getColor(R.color.text))
+                    setTextColor(activity.themeColor(R.attr.inkColor))
                     gravity = Gravity.CENTER
                     minHeight = (CHIP_DP * density).toInt()
                     setPadding((16 * density).toInt(), 0, (16 * density).toInt(), 0)

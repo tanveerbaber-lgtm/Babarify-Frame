@@ -1,4 +1,4 @@
-# Known issues — Babarify Frame beta
+# Known issues — Babarify Media Player beta
 
 Last updated: 2026-11-01 (0.9.1). Please do not report these again, but do add details to the
 linked issue if you have new information.

@@ -78,7 +78,7 @@
         android:background="@drawable/bg_pill"
         android:paddingHorizontal="20dp"
         android:paddingVertical="10dp"
-        android:textColor="@color/text"
+        android:textColor="?attr/inkColor"
         android:textSize="18sp"
         android:textStyle="bold"
         android:visibility="gone" />
@@ -92,7 +92,7 @@
         android:contentDescription="@string/unlock_controls"
         android:scaleType="center"
         android:src="@drawable/ic_lock"
-        android:tint="@color/on_accent"
+        android:tint="?attr/onAccentColor"
         android:visibility="gone" />
 
     <!-- Touches between the controls fall through to the gesture layer. -->
@@ -124,7 +124,7 @@
                 android:layout_weight="1"
                 android:ellipsize="middle"
                 android:singleLine="true"
-                android:textColor="@color/text"
+                android:textColor="?attr/inkColor"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -181,7 +181,7 @@
                 android:scaleType="fitCenter"
                 android:padding="16dp"
                 android:src="@drawable/ic_pause"
-                android:tint="@color/on_accent" />
+                android:tint="?attr/onAccentColor" />
 
             <Button
                 android:id="@+id/forwardButton"
@@ -227,7 +227,7 @@
                         android:layout_height="wrap_content"
                         android:ellipsize="end"
                         android:maxLines="2"
-                        android:textColor="@color/text"
+                        android:textColor="?attr/inkColor"
                         android:textSize="22sp"
                         android:textStyle="bold" />
 

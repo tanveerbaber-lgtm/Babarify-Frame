@@ -1,4 +1,4 @@
-# Babarify Frame
+# Babarify Media Player
 
 **Every Frame, Better.** A free, privacy-focused media player by Babarify.
 
@@ -75,7 +75,7 @@ search what is said. It runs on this PC only; nothing is uploaded. Install with
 | N / P | Next / previous in playlist |
 | Home | Start over (after an automatic resume) |
 | Ctrl+E | Picture & Sound: brightness, contrast, colour, aspect, crop, zoom, rotation, equalizer, profiles |
-| Shift+S | Snapshot to Pictures\Babarify Frame |
+| Shift+S | Snapshot to Pictures\Babarify Media Player |
 | . / , | Next / previous frame |
 | L | A-B repeat (set A, set B, off) |
 | V / B | Next subtitle track / next audio track |
@@ -138,7 +138,7 @@ docs/          architecture, decisions (ADRs), milestone reports
 
 ## License
 
-Babarify Frame is free software, licensed under the **GNU General Public License v3 or later**
+Babarify Media Player is free software, licensed under the **GNU General Public License v3 or later**
 ([LICENSE](LICENSE)). Releases bundle libVLC, Qt/PySide6 and other components under their own
 licences; see `THIRD_PARTY_NOTICES.txt` in the program folder and [RELEASING.md](docs/RELEASING.md).
 Privacy: [docs/PRIVACY.md](docs/PRIVACY.md).

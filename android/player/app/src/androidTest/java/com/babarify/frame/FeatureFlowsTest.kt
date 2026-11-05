@@ -971,6 +971,43 @@ class FeatureFlowsTest {
         }
     }
 
+    // Dark controls on video couldn't be read, so the player keeps the dark colours in a light theme.
+    @Test
+    fun theLightThemeColoursTheMainScreensButNotThePlayer() {
+        val preferences = session().preferences
+        val before = preferences.colourTheme
+        fun background(activity: android.app.Activity): Int {
+            val value = android.util.TypedValue()
+            activity.theme.resolveAttribute(R.attr.bgColor, value, true)
+            return value.data
+        }
+        fun ink(activity: android.app.Activity): Int {
+            val value = android.util.TypedValue()
+            activity.theme.resolveAttribute(R.attr.inkColor, value, true)
+            return value.data
+        }
+        try {
+            preferences.colourTheme = "light"
+            ActivityScenario.launch(HomeActivity::class.java).use { home ->
+                assertEquals(0xFFF5F7FB.toInt(), home.read { background(it) })
+                assertEquals(0xFF111827.toInt(), home.read { ink(it) })
+            }
+            // Android's dark theme drew these labels white, which couldn't be seen on a light page.
+            ActivityScenario.launch(com.babarify.frame.ui.SettingsActivity::class.java).use { settings ->
+                settings.read { activity ->
+                    val label = android.widget.RadioButton(activity)
+                    assertEquals(0xFF111827.toInt(), label.currentTextColor)
+                }
+            }
+            open("audio_60s.m4a").use { player ->
+                assertEquals(context.getColor(R.color.background), player.read { background(it) })
+                assertEquals(context.getColor(R.color.text), player.read { ink(it) })
+            }
+        } finally {
+            preferences.colourTheme = before
+        }
+    }
+
     @Test
     fun theBottomTabsOpenTheirScreens() {
         val tabs = listOf(

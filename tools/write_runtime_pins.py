@@ -22,7 +22,7 @@ def main() -> int:
     version = tomllib.loads((ROOT / "pyproject.toml").read_text("utf-8"))["project"]["version"]
     pins = sorted(f"{dist.metadata['Name']}=={dist.version}" for dist in closure())
     OUTPUT.parent.mkdir(exist_ok=True)
-    OUTPUT.write_text(f"# Babarify Frame {version} for Windows\n" + "\n".join(pins) + "\n", "utf-8")
+    OUTPUT.write_text(f"# Babarify Media Player {version} for Windows\n" + "\n".join(pins) + "\n", "utf-8")
     print(f"{len(pins)} packages written to {OUTPUT}")
     return 0
 

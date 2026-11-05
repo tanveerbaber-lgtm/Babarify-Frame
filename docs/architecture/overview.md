@@ -1,4 +1,4 @@
-# Babarify Frame — Architecture Overview (M10)
+# Babarify Media Player — Architecture Overview (M10)
 
 This describes the code as it exists at the end of Milestone 4. The product-level
 architecture and roadmap are in the
@@ -212,7 +212,7 @@ Therefore:
   instance key and a change restarts the engine at the same position (like subtitle style).
   Picture values are always re-applied by switching the adjust filter off and on (R30).
 - `PlayerPage` owns per-file geometry (reset on open), session rotation, A-B repeat (checked
-  on the 100 ms position poll), frame stepping and snapshots (`Pictures\Babarify Frame`).
+  on the 100 ms position poll), frame stepping and snapshots (`Pictures\Babarify Media Player`).
   Picture, equalizer and profiles persist in preferences. Volume boost (up to 200 %) is
   opt-in and never remembered.
 - `ui/enhancements.py`: the Picture & Sound panel (Ctrl+E), built from capabilities.
@@ -295,8 +295,8 @@ Off until *Settings → AI features* is switched on; local only (owner decision)
 
 ## Packaging and release (M10)
 
-- Release layout (per-user install, `%LOCALAPPDATA%\Programs\Babarify Frame`):
-  `Babarify Frame.exe` and `_internal\` (PyInstaller; Python, Qt/PySide6 as separate DLLs),
+- Release layout (per-user install, `%LOCALAPPDATA%\Programs\Babarify Media Player`):
+  `Babarify Media Player.exe` and `_internal\` (PyInstaller; Python, Qt/PySide6 as separate DLLs),
   `engines\vlc\` (curated libVLC: 259 of 360 plugins, `tools/vlc_plugins.py`), and the optional
   `ai\babarify-ai-worker.exe` (+ its own `_internal`), plus licence, notices and privacy texts.
 - A frozen app loads libVLC only from its own `engines` folder (`_engine_paths.bundled_dir`):

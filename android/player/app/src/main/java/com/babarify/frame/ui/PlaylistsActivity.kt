@@ -21,11 +21,11 @@ import com.babarify.frame.data.SavedTrack
 import com.babarify.frame.engine.PlaybackSession
 
 /** Lists that fill themselves in. */
-enum class AutoList(val label: Int, val icon: Int, val colour: Int) {
-    FAVOURITES(R.string.auto_favourites, R.drawable.ic_heart, 0xFFFB7185.toInt()),
-    RECENTLY_PLAYED(R.string.auto_recent, R.drawable.ic_history, 0xFF60A5FA.toInt()),
-    MOST_PLAYED(R.string.auto_top, R.drawable.ic_trending, 0xFFFBBF24.toInt()),
-    RECENTLY_ADDED(R.string.auto_new, R.drawable.ic_new, 0xFF34D399.toInt()),
+enum class AutoList(val label: Int, val icon: Int, val colour: Int, val lightColour: Int) {
+    FAVOURITES(R.string.auto_favourites, R.drawable.ic_heart, 0xFFFB7185.toInt(), 0xFFBE123C.toInt()),
+    RECENTLY_PLAYED(R.string.auto_recent, R.drawable.ic_history, 0xFF60A5FA.toInt(), 0xFF1D4ED8.toInt()),
+    MOST_PLAYED(R.string.auto_top, R.drawable.ic_trending, 0xFFFBBF24.toInt(), 0xFFB45309.toInt()),
+    RECENTLY_ADDED(R.string.auto_new, R.drawable.ic_new, 0xFF34D399.toInt(), 0xFF15803D.toInt()),
 }
 
 class PlaylistsActivity : Activity() {
@@ -107,7 +107,7 @@ class PlaylistsActivity : Activity() {
             AutoList.MOST_PLAYED -> fileCount(store.mostPlayed().size)
             AutoList.RECENTLY_ADDED -> getString(R.string.auto_new_detail)
         }
-        return MediaRow(getString(list.label), detail, placeholder = list.icon, iconColour = list.colour)
+        return MediaRow(getString(list.label), detail, placeholder = list.icon, iconColour = if (ColourThemes.isLight(ColourThemes.current(PlaybackSession.get(this).preferences))) list.lightColour else list.colour)
     }
 
     private fun openAutomatic(list: AutoList) {

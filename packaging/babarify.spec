@@ -1,6 +1,6 @@
-# PyInstaller spec for Babarify Frame (M10). Build with tools/build_release.py, not directly.
+# PyInstaller spec for Babarify Media Player (M10). Build with tools/build_release.py, not directly.
 # Two folders:
-#   Babarify Frame\           the player (windowed; no speech engine inside)
+#   Babarify Media Player\           the player (windowed; no speech engine inside)
 #   ai\babarify-ai-worker.exe  the local transcription worker (console, started hidden; M9),
 #                             an optional installer component (about 240 MB)
 # libVLC is not collected here: build_release.py copies the curated engine to engines/vlc.
@@ -47,7 +47,7 @@ app_exe = EXE(
     app.scripts,
     [],
     exclude_binaries=True,
-    name="Babarify Frame",
+    name="Babarify Media Player",
     icon=ICON,
     version=VERSION_FILE,
     console=False,
@@ -64,5 +64,5 @@ worker_exe = EXE(
     console=True,
     upx=False,
 )
-COLLECT(app_exe, app.binaries, app.datas, name="Babarify Frame", upx=False)
+COLLECT(app_exe, app.binaries, app.datas, name="Babarify Media Player", upx=False)
 COLLECT(worker_exe, worker.binaries, worker.datas, name="ai", upx=False)

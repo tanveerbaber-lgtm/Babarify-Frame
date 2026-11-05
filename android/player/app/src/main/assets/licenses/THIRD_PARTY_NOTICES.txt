@@ -1,4 +1,4 @@
-Babarify Frame for Android includes the following components.
+Babarify Media Player for Android includes the following components.
 
 libVLC for Android 3.7.7 (org.videolan.android:libvlc-all)
   (c) the VideoLAN team and the authors of its bundled libraries.

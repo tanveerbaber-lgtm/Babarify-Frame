@@ -39,7 +39,9 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMainWindow,
+    QMenu,
     QMessageBox,
+    QSizePolicy,
     QStackedWidget,
     QToolButton,
     QVBoxLayout,
@@ -53,6 +55,7 @@ from babarify_frame.core.enhancements import EqualizerSettings
 from babarify_frame.core.models import SUBTITLE_EXTENSIONS, MediaInfo, PlaybackState
 from babarify_frame.core.music import SLEEP_MINUTES, STYLE_LABELS, VisualStyle
 from babarify_frame.core.network import is_network_uri
+from babarify_frame.core.themes import THEMES
 from babarify_frame.library.database import LibraryDatabase
 from babarify_frame.library.models import HistoryEntry
 from babarify_frame.library.service import LibraryService
@@ -78,7 +81,7 @@ from babarify_frame.ui.network import NetworkStreamDialog
 from babarify_frame.ui.pages.home import SHORTCUTS, HomePage
 from babarify_frame.ui.pages.library import LibraryPage
 from babarify_frame.ui.pages.player import VOLUME_STEP, PlayerPage
-from babarify_frame.ui.pages.settings import SettingsPage
+from babarify_frame.ui.pages.settings import SettingsPage, theme_swatch
 from babarify_frame.ui.report import ReportDialog
 from babarify_frame.ui.subtitles import SUBTITLE_FILTER
 from babarify_frame.ui.widgets import format_time, glyph_icon
@@ -140,6 +143,7 @@ class MainWindow(QMainWindow):
         row = QHBoxLayout(root)
         row.setContentsMargins(0, 0, 0, 0)
         row.setSpacing(0)
+        self._nav_icons: list[tuple[QToolButton, str]] = []
         self._rail = self._build_rail(icon)
         row.addWidget(self._rail)
         row.addWidget(self._pages, stretch=1)
@@ -149,13 +153,14 @@ class MainWindow(QMainWindow):
         self._connect_pages()
         self.statusBar().showMessage(f"Version {__version__} · Local-only · No telemetry")
         self._restore_geometry()
+        self.statusBar().setVisible(self._prefs.show_status_bar)
         self.show_page(self.home)
 
     # ------------------------------------------------------------ layout
     def _build_rail(self, icon: QIcon) -> QFrame:
         rail = QFrame()
         rail.setObjectName("navRail")
-        rail.setFixedWidth(84)
+        rail.setFixedWidth(100)  # the longest label, Animation, has to fit
         box = QVBoxLayout(rail)
         box.setContentsMargins(0, theme.L, 0, theme.M)
         box.setSpacing(theme.XS)
@@ -170,13 +175,20 @@ class MainWindow(QMainWindow):
         self.nav_library = self._nav_button("library", "Library", "Library (Ctrl+L)", self.library)
         self.nav_player = self._nav_button("now_playing", "Playing", "Now Playing (Ctrl+2)", self.player)
         self.nav_settings = self._nav_button("settings", "Settings", "Settings (Ctrl+3)", self.settings)
-        for button in (self.nav_home, self.nav_library, self.nav_player, self.nav_settings):
+        for button in (self.nav_home, self.nav_library, self.nav_player):
             box.addWidget(button)
         box.addStretch(1)
-        about = self._nav_button("info", "About", f"About {PRODUCT_NAME}", None)
-        about.setCheckable(False)
-        about.clicked.connect(self._show_about)
-        box.addWidget(about)
+        box.addWidget(self.nav_settings)
+        self.nav_theme = self._nav_button("theme", "Theme", "Change the colour theme", None)
+        self.nav_theme.setCheckable(False)
+        self.nav_theme.setAccessibleName("Colour theme")
+        self.nav_theme.clicked.connect(self._show_theme_menu)
+        box.addWidget(self.nav_theme)
+        self.nav_animation = self._nav_button("animation", "Animation", "Animation for audio", None)
+        self.nav_animation.setCheckable(False)
+        self.nav_animation.setAccessibleName("Animation for audio")
+        self.nav_animation.clicked.connect(self._show_animation_menu)
+        box.addWidget(self.nav_animation)
         return rail
 
     def _nav_button(self, glyph: str, text: str, tip: str, page: QWidget | None) -> QToolButton:
@@ -185,6 +197,7 @@ class MainWindow(QMainWindow):
         button.setText(text)
         button.setToolTip(tip)
         button.setAccessibleName(text if text != "Playing" else "Now Playing")
+        self._nav_icons.append((button, glyph))
         nav_icon = glyph_icon(glyph, theme.TEXT, theme.TEXT_DISABLED, size=48)
         if nav_icon is not None:
             button.setIcon(nav_icon)
@@ -192,6 +205,7 @@ class MainWindow(QMainWindow):
         button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
         button.setCheckable(True)
         button.setFixedHeight(60)
+        button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         if page is not None:
             self._nav.addButton(button)
             button.clicked.connect(lambda _=False, p=page: self.show_page(p))
@@ -366,6 +380,11 @@ class MainWindow(QMainWindow):
         view_menu.addAction(self.info_action)
         view_menu.addAction(self.media_info_action)
         view_menu.addAction(self.spoken_search_action)
+        self.status_bar_action = QAction("Status &bar", self)
+        self.status_bar_action.setCheckable(True)
+        self.status_bar_action.setChecked(self._prefs.show_status_bar)
+        self.status_bar_action.toggled.connect(self._choose_status_bar)
+        view_menu.addAction(self.status_bar_action)
         self.animation_menu = view_menu.addMenu("&Animation for audio")
         self.animation_menu.aboutToShow.connect(self._fill_animation_menu)
         help_menu = menus.addMenu("&Help")
@@ -872,6 +891,10 @@ class MainWindow(QMainWindow):
         notice = db.recovered or db.read_only_reason
         if notice:  # after the engine's own status line, so it is not overwritten
             self.statusBar().showMessage(notice)
+            # Too important to leave on a bar that may be hidden: the library was replaced or not opened.
+            box = QMessageBox(QMessageBox.Icon.Warning, "Library", notice, parent=self)
+            box.setTextFormat(Qt.TextFormat.PlainText)
+            box.open()
         self._update_actions()
 
     def _on_video_started(self) -> None:
@@ -899,8 +922,9 @@ class MainWindow(QMainWindow):
             self.showMaximized()
         else:
             self.showNormal()
-        for widget in (self._rail, self.menuBar(), self.statusBar()):
+        for widget in (self._rail, self.menuBar()):
             widget.show()
+        self.statusBar().setVisible(self._prefs.show_status_bar)
 
     # -------------------------------------------------------- preferences
     def _restore_geometry(self) -> None:
@@ -935,10 +959,17 @@ class MainWindow(QMainWindow):
         )
         self.player.set_preferences(self._prefs)
         self._store.save(self._prefs)
+        self.status_bar_action.setChecked(self._prefs.show_status_bar)
+        if not self.isFullScreen():
+            self.statusBar().setVisible(self._prefs.show_status_bar)
         if theme_changed:
             self._apply_colour_theme(self._prefs.colour_theme)
-            self.player.controls.refresh_theme()
+            self.player.refresh_theme()
             self.home.refresh_theme()
+            for button, glyph in self._nav_icons:
+                nav_icon = glyph_icon(glyph, theme.TEXT, theme.TEXT_DISABLED, size=48)
+                if nav_icon is not None:
+                    button.setIcon(nav_icon)
             self._home_dirty = True  # Its cards hold pictures drawn in the old colours.
         if history_toggled:
             self._home_dirty = True
@@ -948,6 +979,35 @@ class MainWindow(QMainWindow):
     def shuffle_list(self, paths: list[str]) -> None:
         self.show_page(self.player)
         self.player.play_queue(paths, random.randrange(len(paths)), shuffle=True)
+
+    def build_theme_menu(self) -> QMenu:
+        """Every theme, one click away. Choosing one goes through Settings, so both always agree."""
+        menu = QMenu(self)
+        for key, palette in THEMES.items():
+            action = menu.addAction(theme_swatch(palette.accent, palette.accent2), palette.label)
+            action.setCheckable(True)
+            action.setChecked(key == self._prefs.colour_theme)
+            action.triggered.connect(lambda _=False, chosen=key: self.choose_colour_theme(chosen))
+        return menu
+
+    def build_animation_menu(self) -> QMenu:
+        menu = QMenu(self)
+        for style, label in STYLE_LABELS.items():
+            action = menu.addAction(label)
+            action.setCheckable(True)
+            action.setChecked(self._prefs.visual_style == style.value)
+            action.triggered.connect(lambda _=False, s=style: self._choose_animation(s))
+        return menu
+
+    def _show_animation_menu(self) -> None:
+        self.build_animation_menu().exec(self.nav_animation.mapToGlobal(self.nav_animation.rect().topRight()))
+
+    def _show_theme_menu(self) -> None:
+        self.build_theme_menu().exec(self.nav_theme.mapToGlobal(self.nav_theme.rect().topRight()))
+
+    def choose_colour_theme(self, key: str) -> None:
+        combo = self.settings.colour_theme
+        combo.setCurrentIndex(max(0, combo.findData(key)))
 
     def _on_repeat_changed(self, mode: object) -> None:
         self._prefs = replace(self._prefs, repeat_mode=str(mode))
@@ -985,6 +1045,15 @@ class MainWindow(QMainWindow):
             action.setChecked(self._prefs.visual_style == style.value)
             action.triggered.connect(lambda _=False, s=style: self._choose_animation(s))
 
+    def _choose_status_bar(self, shown: bool) -> None:
+        if shown == self._prefs.show_status_bar:
+            return
+        self._prefs = replace(self._prefs, show_status_bar=shown)
+        self.settings.set_preferences(self._prefs)
+        self._store.save(self._prefs)
+        if not self.isFullScreen():
+            self.statusBar().setVisible(shown)
+
     def _choose_animation(self, style: VisualStyle) -> None:
         self._prefs = replace(self._prefs, visual_style=style.value)
         self.player.set_preferences(self._prefs)
@@ -998,6 +1067,9 @@ class MainWindow(QMainWindow):
         theme.apply_theme(key)
         app = QGuiApplication.instance()
         if isinstance(app, QApplication):
+            # Windows draws the title bar and some small parts of controls, and follows this for them.
+            scheme = Qt.ColorScheme.Light if theme.is_light() else Qt.ColorScheme.Unknown
+            app.styleHints().setColorScheme(scheme)
             app.setStyleSheet(theme.STYLESHEET)
 
     def _final_preferences(self) -> Preferences:
@@ -1072,7 +1144,7 @@ class MainWindow(QMainWindow):
             "<tr><td><b>N / P</b></td><td>Next / previous in playlist</td></tr>"
             "<tr><td><b>Home</b></td><td>Start over</td></tr>"
             "<tr><td><b>Ctrl+E</b></td><td>Picture &amp; Sound</td></tr>"
-            "<tr><td><b>Shift+S</b></td><td>Snapshot (Pictures\\Babarify Frame)</td></tr>"
+            "<tr><td><b>Shift+S</b></td><td>Snapshot (Pictures\\Babarify Media Player)</td></tr>"
             "<tr><td><b>. / ,</b></td><td>Next / previous frame</td></tr>"
             "<tr><td><b>L</b></td><td>A-B repeat (set A, set B, off)</td></tr>"
             "<tr><td><b>V / B</b></td><td>Next subtitle / audio track</td></tr>"

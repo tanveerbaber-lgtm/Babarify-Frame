@@ -42,7 +42,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:singleLine="true"
-                android:textColor="@color/text"
+                android:textColor="?attr/inkColor"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
@@ -65,7 +65,7 @@
             android:contentDescription="@string/pause"
             android:scaleType="center"
             android:src="@drawable/ic_pause"
-            android:tint="@color/on_accent" />
+            android:tint="?attr/onAccentColor" />
 
         <ImageButton
             android:id="@+id/nowPlayingNext"

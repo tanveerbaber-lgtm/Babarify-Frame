@@ -9,7 +9,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from PySide6.QtCore import QTimer
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QFont, QIcon
 from PySide6.QtWidgets import QApplication
 
 from babarify_frame import BRAND, PRODUCT_NAME, __version__, app_log
@@ -19,7 +19,7 @@ from babarify_frame.playback.factory import EngineFactory, default_factory
 from babarify_frame.playback.media_probe import MediaProbe
 from babarify_frame.playback.preview import FramePreview
 from babarify_frame.ui.main_window import MainWindow
-from babarify_frame.ui.theme import STYLESHEET
+from babarify_frame.ui.theme import FONT_BODY, FONT_FAMILY, STYLESHEET
 
 ICON_DIR = Path(__file__).resolve().parent.parent / "resources" / "icons"
 APP_USER_MODEL_ID = "Babarify.Frame"
@@ -91,6 +91,7 @@ def main(argv: Sequence[str] | None = None, factory: EngineFactory | None = None
     app.setApplicationName(PRODUCT_NAME)
     app.setOrganizationName(BRAND)
     app.setApplicationVersion(__version__)
+    app.setFont(QFont(FONT_FAMILY, FONT_BODY))  # For what the stylesheet doesn't reach, like some dialogs.
     app.setStyleSheet(STYLESHEET)
     icon = load_icon()
     app.setWindowIcon(icon)

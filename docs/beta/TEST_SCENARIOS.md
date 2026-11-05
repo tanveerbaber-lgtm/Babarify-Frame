@@ -8,10 +8,10 @@ in public (a report never needs the file itself).
 
 | ID | Steps | Pass when |
 |---|---|---|
-| INS-1 | Check the installer: `Get-FileHash .\BabarifyFrame-<version>-setup.exe -Algorithm SHA256` | The hash matches `SHA256SUMS.txt` |
+| INS-1 | Check the installer: `Get-FileHash .\BabarifyMediaPlayer-<version>-setup.exe -Algorithm SHA256` | The hash matches `SHA256SUMS.txt` |
 | INS-2 | Run the installer (Full). Note what SmartScreen shows. | Installs without administrator rights; Start menu entry; the app starts |
 | INS-3 | Install with *Compact* | Installs; *Settings → AI features* says the component is not installed |
-| INS-4 | Tick "Open with", then right-click a video → Open with | Babarify Frame is offered; your default player is unchanged |
+| INS-4 | Tick "Open with", then right-click a video → Open with | Babarify Media Player is offered; your default player is unchanged |
 | INS-5 | Install a newer beta over the old one | Settings, library and history are still there |
 | INS-6 | Uninstall from *Settings → Apps*; answer **No** to deleting data | Program gone; reinstalling shows your settings again |
 | INS-7 | Uninstall again; answer **Yes** | `%APPDATA%\Babarify` and `%LOCALAPPDATA%\Babarify` are gone; your media untouched |

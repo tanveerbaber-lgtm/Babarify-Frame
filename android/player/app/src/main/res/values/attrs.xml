@@ -7,4 +7,9 @@
     <attr name="borderColor" format="color" />
     <attr name="accentColor" format="color" />
     <attr name="accent2Color" format="color" />
+    <attr name="inkColor" format="color" />
+    <attr name="inkMutedColor" format="color" />
+    <attr name="onAccentColor" format="color" />
+    <attr name="rippleTint" format="color" />
+    <attr name="trackColor" format="color" />
 </resources>

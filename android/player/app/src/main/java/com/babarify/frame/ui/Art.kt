@@ -59,7 +59,7 @@ object Art {
             image.setPadding(0, 0, 0, 0)
             image.scaleType = ImageView.ScaleType.CENTER
         }
-        image.imageTintList = image.context.getColorStateList(R.color.text_muted)
+        image.imageTintList = android.content.res.ColorStateList.valueOf(image.context.themeColor(R.attr.inkMutedColor))
         image.setImageResource(placeholder)
         if (uri == null || synchronized(noPicture) { uri in noPicture }) return
         val context = image.context.applicationContext
@@ -135,10 +135,15 @@ object Art {
     }
 
     /** A dark colour from the picture, to fill the screen around it. Dark enough for white text. */
-    fun backgroundFrom(picture: Bitmap): Int {
+    fun backgroundFrom(picture: Bitmap, light: Boolean = false): Int {
         val one = Bitmap.createScaledBitmap(picture.copy(Bitmap.Config.ARGB_8888, false), 1, 1, true)
         val hsv = FloatArray(3)
         Color.colorToHSV(one.getPixel(0, 0), hsv)
+        if (light) {
+            hsv[1] = hsv[1].coerceAtMost(0.22f)
+            hsv[2] = 0.95f
+            return Color.HSVToColor(hsv)
+        }
         hsv[1] = (hsv[1] * 1.3f).coerceAtMost(0.8f)
         hsv[2] = (hsv[2] * 0.5f).coerceIn(0.1f, 0.3f)
         return Color.HSVToColor(hsv)

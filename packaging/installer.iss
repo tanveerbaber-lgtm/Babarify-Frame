@@ -1,8 +1,9 @@
-; Babarify Frame installer (M10). Built by tools/build_release.py, which defines AppVersion,
+; Babarify Media Player installer (M10). Built by tools/build_release.py, which defines AppVersion,
 ; DistDir and OutputDir and writes build\assoc.iss (one entry per media extension).
 ;
-; Per-user install (no administrator rights) to %LOCALAPPDATA%\Programs\Babarify Frame.
-; The same AppId makes a newer installer upgrade in place (and an older one roll back).
+; Per-user install (no administrator rights) to %LOCALAPPDATA%\Programs\Babarify Media Player.
+; The same AppId makes a newer installer upgrade in place (and an older one roll back). An upgrade
+; from when the app was called Babarify Frame stays in that folder, and keeps its data folders.
 ; File associations are optional (unticked) and only add "Open with" entries: Babarify never
 ; takes over a file type; Windows asks the user to choose defaults.
 ; User data (settings, library, history, bookmarks, generated subtitles, models, logs) is kept
@@ -11,8 +12,8 @@
 #ifndef AppVersion
   #error AppVersion must be defined (/DAppVersion=x.y.z)
 #endif
-#define AppName "Babarify Frame"
-#define AppExe "Babarify Frame.exe"
+#define AppName "Babarify Media Player"
+#define AppExe "Babarify Media Player.exe"
 #define ProgId "BabarifyFrame.Media"
 
 [Setup]
@@ -32,7 +33,7 @@ ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0.17763
 LicenseFile={#SourcePath}\..\LICENSE
 OutputDir={#OutputDir}
-OutputBaseFilename=BabarifyFrame-{#AppVersion}-setup
+OutputBaseFilename=BabarifyMediaPlayer-{#AppVersion}-setup
 SetupIconFile={#SourcePath}\..\src\babarify_frame\resources\icons\babarify-frame.ico
 UninstallDisplayIcon={app}\{#AppExe}
 UninstallDisplayName={#AppName}
@@ -53,7 +54,7 @@ Name: "compact"; Description: "Compact installation (about 240 MB smaller, no AI
 Name: "custom"; Description: "Custom installation"; Flags: iscustom
 
 [Components]
-Name: "main"; Description: "Babarify Frame"; Types: full compact custom; Flags: fixed
+Name: "main"; Description: "Babarify Media Player"; Types: full compact custom; Flags: fixed
 Name: "ai"; Description: "Local AI features: subtitles from speech, spoken-word search (runs on this PC; about 240 MB)"; Types: full
 
 [Tasks]
@@ -62,6 +63,10 @@ Name: "openwith"; Description: "Offer {#AppName} in ""Open with"" for video and 
 
 [InstallDelete]
 ; An upgrade replaces the program folder completely, so no file of an older version is left.
+; The first three are from when the app was called Babarify Frame.
+Type: files; Name: "{app}\Babarify Frame.exe"
+Type: files; Name: "{autoprograms}\Babarify Frame.lnk"
+Type: files; Name: "{autodesktop}\Babarify Frame.lnk"
 Type: filesandordirs; Name: "{app}\_internal"
 Type: filesandordirs; Name: "{app}\engines"
 Type: filesandordirs; Name: "{app}\ai"
@@ -75,6 +80,9 @@ Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
 
 [Registry]
+; Left by versions called Babarify Frame.
+Root: HKCU; Subkey: "Software\Classes\Applications\Babarify Frame.exe"; Flags: deletekey dontcreatekey
+Root: HKCU; Subkey: "Software\RegisteredApplications"; ValueType: none; ValueName: "Babarify Frame"; Flags: deletevalue dontcreatekey
 ; "Open with" support and an entry in Settings > Default apps (only with the openwith task).
 Root: HKCU; Subkey: "Software\Classes\{#ProgId}"; ValueType: string; ValueName: ""; ValueData: "Media file ({#AppName})"; Flags: uninsdeletekey; Tasks: openwith
 Root: HKCU; Subkey: "Software\Classes\{#ProgId}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#AppExe},0"; Tasks: openwith
@@ -104,7 +112,7 @@ begin
     Roaming := ExpandConstant('{userappdata}\Babarify\Frame');
     Local := ExpandConstant('{localappdata}\Babarify\Frame');
     if (DirExists(Roaming) or DirExists(Local)) and
-       (MsgBox('Also delete your Babarify Frame data on this PC?' + #13#10 + #13#10 +
+       (MsgBox('Also delete your Babarify Media Player data on this PC?' + #13#10 + #13#10 +
                'Settings, library, history, bookmarks, generated subtitles, speech models and logs.' + #13#10 +
                'Your media files are never touched. Choose No to keep them for a later install.',
                mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES) then

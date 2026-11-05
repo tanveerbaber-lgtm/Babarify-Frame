@@ -82,11 +82,11 @@ def main() -> int:
         subprocess.run(
             [str(BUILD_TOOLS / "apksigner.bat"), "verify", "--print-certs", str(built)], check=True
         )
-        target = output / f"BabarifyFrame-{name}-{abi}.apk"
+        target = output / f"BabarifyMediaPlayer-{name}-{abi}.apk"
         shutil.copy2(built, target)
         produced.append(target)
 
-    source = output / f"BabarifyFrame-{name}-source.zip"
+    source = output / f"BabarifyMediaPlayer-{name}-source.zip"
     subprocess.run(["git", "archive", "--format=zip", "-o", str(source), "HEAD"], cwd=ROOT, check=True)
     produced.append(source)
 

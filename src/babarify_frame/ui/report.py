@@ -50,7 +50,7 @@ def report_text(
     log_lines: list[str],
 ) -> str:
     lines = [
-        f"Babarify Frame {__version__}",
+        f"Babarify Media Player {__version__}",
         f"Windows: {platform.platform()} ({platform.machine()})",
     ]
     lines += [f"{key}: {value}" for key, value in diagnostics.items()]

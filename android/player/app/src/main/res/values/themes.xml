@@ -19,14 +19,21 @@
         <item name="borderColor">@color/border</item>
         <item name="accentColor">@color/accent</item>
         <item name="accent2Color">@color/cyan</item>
+        <item name="inkColor">@color/text</item>
+        <item name="inkMutedColor">@color/text_muted</item>
+        <item name="onAccentColor">@color/on_accent</item>
+        <item name="rippleTint">#33FFFFFF</item>
+        <item name="trackColor">#66FFFFFF</item>
+        <item name="android:colorControlNormal">?attr/inkMutedColor</item>
         <item name="android:colorBackground">?attr/bgColor</item>
         <item name="android:windowBackground">?attr/bgColor</item>
         <item name="android:colorPrimary">?attr/surfaceColor</item>
         <item name="android:colorAccent">?attr/accent2Color</item>
         <item name="android:colorControlActivated">?attr/accent2Color</item>
         <item name="android:colorButtonNormal">?attr/raisedColor</item>
-        <item name="android:textColorPrimary">@color/text</item>
-        <item name="android:textColorSecondary">@color/text_muted</item>
+        <item name="android:textColorPrimary">?attr/inkColor</item>
+        <item name="android:textColorSecondary">?attr/inkMutedColor</item>
+        <item name="android:textColorPrimaryDisableOnly">?attr/inkColor</item>
         <item name="android:statusBarColor">?attr/bgColor</item>
         <item name="android:navigationBarColor">?attr/surfaceColor</item>
         <item name="android:buttonStyle">@style/SoftButton</item>
@@ -42,7 +49,27 @@
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
 
-    <!-- Colour themes, laid over the theme above. All dark, so the text colours stay readable. -->
+    <!-- For Home, the library, playlists and Settings. The player stays dark: its controls sit on video. -->
+    <style name="Colours.Light" parent="">
+        <item name="bgColor">#F5F7FB</item>
+        <item name="surfaceColor">#FFFFFF</item>
+        <item name="raisedColor">#EAEEF5</item>
+        <item name="borderColor">#D5DCE8</item>
+        <item name="accentColor">#1D4ED8</item>
+        <item name="accent2Color">#0E7490</item>
+        <item name="inkColor">#111827</item>
+        <item name="inkMutedColor">#55627A</item>
+        <item name="onAccentColor">#FFFFFF</item>
+        <item name="rippleTint">#22000000</item>
+        <item name="trackColor">#55111827</item>
+        <item name="android:textColorHint">#55627A</item>
+        <item name="android:colorForeground">#111827</item>
+        <item name="android:colorBackgroundFloating">#FFFFFF</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <!-- Colour themes, laid over the theme above. These are dark, so the text colours stay readable. -->
     <style name="Colours.Sunset" parent="">
         <item name="bgColor">#160A12</item>
         <item name="surfaceColor">#241320</item>
@@ -119,8 +146,10 @@
         <item name="android:windowBackground">@drawable/bg_dialog</item>
         <item name="android:colorAccent">?attr/accent2Color</item>
         <item name="android:colorControlActivated">?attr/accent2Color</item>
-        <item name="android:textColorPrimary">@color/text</item>
-        <item name="android:textColorSecondary">@color/text_muted</item>
+        <item name="android:textColorPrimary">?attr/inkColor</item>
+        <item name="android:textColorSecondary">?attr/inkMutedColor</item>
+        <item name="android:textColorAlertDialogListItem">?attr/inkColor</item>
+        <item name="android:textColorPrimaryDisableOnly">?attr/inkColor</item>
         <item name="android:buttonStyle">@style/SoftButton</item>
         <item name="android:seekBarStyle">@style/Slider</item>
         <item name="android:buttonBarButtonStyle">@style/DialogAction</item>
@@ -134,7 +163,7 @@
     <style name="SoftButton" parent="android:Widget.Material.Button">
         <item name="android:background">@drawable/bg_soft_button</item>
         <item name="android:textAllCaps">false</item>
-        <item name="android:textColor">@color/text</item>
+        <item name="android:textColor">?attr/inkColor</item>
         <item name="android:stateListAnimator">@null</item>
         <item name="android:minHeight">48dp</item>
     </style>
@@ -147,27 +176,27 @@
 
     <style name="PrimaryButton" parent="SoftButton">
         <item name="android:background">@drawable/bg_primary</item>
-        <item name="android:textColor">@color/on_accent</item>
+        <item name="android:textColor">?attr/onAccentColor</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:drawableTint">@color/on_accent</item>
+        <item name="android:drawableTint">?attr/onAccentColor</item>
         <item name="android:drawablePadding">8dp</item>
         <item name="android:paddingHorizontal">20dp</item>
     </style>
 
     <style name="Text.Title" parent="">
-        <item name="android:textColor">@color/text</item>
+        <item name="android:textColor">?attr/inkColor</item>
         <item name="android:textSize">24sp</item>
         <item name="android:textStyle">bold</item>
     </style>
 
     <style name="Text.Body" parent="">
-        <item name="android:textColor">@color/text</item>
+        <item name="android:textColor">?attr/inkColor</item>
         <item name="android:textSize">16sp</item>
     </style>
 
     <style name="Text.Muted" parent="">
-        <item name="android:textColor">@color/text_muted</item>
+        <item name="android:textColor">?attr/inkMutedColor</item>
         <item name="android:textSize">14sp</item>
     </style>
 
@@ -179,7 +208,7 @@
     </style>
 
     <style name="Text.Time" parent="">
-        <item name="android:textColor">@color/text</item>
+        <item name="android:textColor">?attr/inkColor</item>
         <item name="android:textSize">13sp</item>
         <item name="android:fontFamily">monospace</item>
     </style>
@@ -236,7 +265,7 @@
         <item name="android:layout_height">48dp</item>
         <item name="android:background">@drawable/bg_round</item>
         <item name="android:scaleType">center</item>
-        <item name="android:tint">@color/text</item>
+        <item name="android:tint">?attr/inkColor</item>
     </style>
 
     <style name="TransportSeek" parent="">
@@ -248,12 +277,12 @@
         <item name="android:padding">0dp</item>
         <item name="android:paddingTop">6dp</item>
         <item name="android:gravity">center</item>
-        <item name="android:textColor">@color/text</item>
+        <item name="android:textColor">?attr/inkColor</item>
         <item name="android:textSize">13sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:stateListAnimator">@null</item>
-        <item name="android:backgroundTint">@color/text</item>
+        <item name="android:backgroundTint">?attr/inkColor</item>
     </style>
 
     <style name="ToolText" parent="">
@@ -265,12 +294,12 @@
         <item name="android:minHeight">0dp</item>
         <item name="android:padding">0dp</item>
         <item name="android:gravity">center</item>
-        <item name="android:textColor">@color/text</item>
+        <item name="android:textColor">?attr/inkColor</item>
         <item name="android:textSize">13sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:stateListAnimator">@null</item>
-        <item name="android:drawableTint">@color/text</item>
+        <item name="android:drawableTint">?attr/inkColor</item>
     </style>
 
     <style name="ToolIcon" parent="">
@@ -279,6 +308,6 @@
         <item name="android:layout_weight">1</item>
         <item name="android:background">@drawable/bg_row</item>
         <item name="android:scaleType">center</item>
-        <item name="android:tint">@color/text</item>
+        <item name="android:tint">?attr/inkColor</item>
     </style>
 </resources>

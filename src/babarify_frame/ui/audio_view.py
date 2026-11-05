@@ -70,11 +70,14 @@ def animations_allowed() -> bool:
 
 
 def colour_from(image: QImage) -> QColor:
-    """A dark colour from the picture, to fill the screen around it. Dark enough for light text."""
+    """A colour from the picture, to fill the screen around it: pale in a light theme, otherwise dark,
+    so the theme's text stays readable on it."""
     pixel = image.scaled(
         1, 1, Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation
     )
     colour = pixel.pixelColor(0, 0)
+    if theme.is_light():
+        return QColor.fromHsvF(max(0.0, colour.hueF()), min(0.22, colour.saturationF()), 0.95)
     return QColor.fromHsvF(
         max(0.0, colour.hueF()),
         min(0.8, colour.saturationF() * 1.3),
@@ -345,6 +348,7 @@ class AudioView(QFrame):
         super().__init__(parent)
         self.setObjectName("audioView")
         self._colour: QColor | None = None
+        self._image: QImage | None = None
         box = QVBoxLayout(self)
         box.setContentsMargins(theme.XL, theme.XL, theme.XL, theme.L)
         box.setSpacing(theme.S)
@@ -378,7 +382,12 @@ class AudioView(QFrame):
     def set_picture(self, image: QImage | None) -> None:
         self.cover.set_image(image)
         self._art.setCurrentWidget(self.cover if image is not None else self.visualizer)
+        self._image = image
         self._colour = colour_from(image) if image is not None else None
+        self.update()
+
+    def refresh_theme(self) -> None:
+        self._colour = colour_from(self._image) if self._image is not None else None
         self.update()
 
     def set_playing(self, playing: bool) -> None:

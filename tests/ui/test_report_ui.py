@@ -50,7 +50,7 @@ def test_report_contains_versions_but_no_private_details_by_default(
     window.player._media_name = media.name
     dialog = window.show_report()
     text = dialog.text.toPlainText()
-    assert f"Babarify Frame {__version__}" in text and "Windows:" in text
+    assert f"Babarify Media Player {__version__}" in text and "Windows:" in text
     assert "Media video: h264 1920x1080" in text and "engine: mock" in text
     assert "Secret holiday" not in text and "Recent log" not in text
     dialog.include_name.setChecked(True)
