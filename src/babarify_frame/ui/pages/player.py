@@ -17,7 +17,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from PySide6.QtCore import QPoint, QSize, Qt, QTimer, Signal
-from PySide6.QtGui import QCursor
+from PySide6.QtGui import QCursor, QImage
 from PySide6.QtWidgets import (
     QFrame,
     QLabel,
@@ -29,6 +29,7 @@ from PySide6.QtWidgets import (
 )
 
 from babarify_frame.configuration.preferences import Preferences, language_matches
+from babarify_frame.core.cover_art import read_embedded_picture
 from babarify_frame.core.enhancements import (
     PICTURE_RANGES,
     EqualizerSettings,
@@ -38,6 +39,7 @@ from babarify_frame.core.enhancements import (
 from babarify_frame.core.errors import ErrorCode, PlaybackError
 from babarify_frame.core.events import ErrorOccurred, MediaInfoChanged, Notice, StateChanged
 from babarify_frame.core.models import (
+    AUDIO_EXTENSIONS,
     Chapter,
     EngineCapabilities,
     EngineOptions,
@@ -46,6 +48,7 @@ from babarify_frame.core.models import (
     TrackInfo,
     TrackKind,
 )
+from babarify_frame.core.music import RepeatMode, VisualStyle, index_after_end, shuffled
 from babarify_frame.core.network import is_network_uri, stream_display_name
 from babarify_frame.library.database import LibraryDatabase, LibraryError
 from babarify_frame.library.history import SAVE_INTERVAL_MS, resume_position
@@ -55,6 +58,7 @@ from babarify_frame.playback.controller import PlaybackController
 from babarify_frame.playback.factory import EngineFactory
 from babarify_frame.playback.preview import FramePreview
 from babarify_frame.ui import theme
+from babarify_frame.ui.audio_view import AudioView
 from babarify_frame.ui.bridge import UiBridge
 from babarify_frame.ui.controls import VOLUME_MIN, ControlBar
 from babarify_frame.ui.seek_preview import PreviewPopup, SeekPreview
@@ -87,6 +91,7 @@ HAS_MEDIA = frozenset({S.LOADING, S.PLAYING, S.PAUSED, S.BUFFERING, S.ENDED})
 SEEKABLE = frozenset({S.PLAYING, S.PAUSED, S.BUFFERING, S.ENDED})
 TRACK_STATES = frozenset({S.PLAYING, S.PAUSED, S.BUFFERING, S.ENDED})  # engines accept track changes
 CHAPTER_RESTART_MS = 3000  # "previous chapter" within this of a chapter start goes one further back
+MAX_PICTURE_SIDE = 2048  # a huge cover is scaled down as it's read
 
 
 @dataclass(frozen=True)
@@ -115,6 +120,9 @@ class PlayerPage(QWidget):
     enhancements_reset = Signal()  # the engine was (re)created: refresh controls from capabilities
     bookmarks_changed = Signal()  # M8: the current file's bookmarks changed (or another file opened)
     media_info_changed = Signal()  # M8: tracks, tags or chapters of the current file changed
+    queue_requested = Signal()  # the window shows the queue
+    queue_changed = Signal()  # the list, its order or the place in it changed
+    repeat_changed = Signal(object)  # RepeatMode, for the window to persist
 
     def __init__(
         self,
@@ -153,6 +161,13 @@ class PlayerPage(QWidget):
         self._resumed_from_history = False
         self._queue: list[str] = []
         self._queue_index = -1
+        self._ordered_queue: list[str] | None = None  # the order to go back to when shuffle is on
+        self._repeat = RepeatMode(prefs.repeat_mode)
+        self._sleep_timer = QTimer(self)
+        self._sleep_timer.setSingleShot(True)
+        self._sleep_timer.timeout.connect(self._sleep_now)
+        self._picture_bridge = UiBridge(self)
+        self._picture_bridge.delivered.connect(self._on_picture_read)
         # Picture and sound (M7)
         self._transform = VideoTransform.NONE  # this session only; applied when the engine is created
         self._geometry: tuple[str, str, float] = ("", "", 0.0)  # per file
@@ -182,6 +197,8 @@ class PlayerPage(QWidget):
         self.controls = ControlBar()
         layout.addWidget(self.controls)
         self._connect_controls()
+        self.controls.set_repeat(self._repeat)
+        self.audio_view.visualizer.set_style_choice(VisualStyle(prefs.visual_style))
         self.controls.set_volume(prefs.volume)
         self.controls.set_muted(prefs.muted)
         self.controls.set_title("")
@@ -225,8 +242,10 @@ class PlayerPage(QWidget):
         box.addWidget(self._message_action, alignment=Qt.AlignmentFlag.AlignHCenter)
         self.video = VideoSurface()
         self.video.double_clicked.connect(self.fullscreen_requested)
+        self.audio_view = AudioView()
         self._stage.addWidget(page)
         self._stage.addWidget(self.video)
+        self._stage.addWidget(self.audio_view)
         return self._stage
 
     def _connect_controls(self) -> None:
@@ -240,6 +259,11 @@ class PlayerPage(QWidget):
         c.mute_clicked.connect(self.toggle_mute)
         c.rate_selected.connect(self.set_rate)
         c.fullscreen_clicked.connect(self.fullscreen_requested)
+        c.previous_clicked.connect(self.previous_in_queue)
+        c.next_clicked.connect(self.next_in_queue)
+        c.shuffle_clicked.connect(self.toggle_shuffle)
+        c.repeat_clicked.connect(self.cycle_repeat)
+        c.queue_clicked.connect(self.queue_requested)
         c.tracks_menu_opening.connect(self._fill_tracks_menu)
         c.seek.hovered.connect(self._on_seek_hover)
         c.seek.hover_left.connect(self._on_seek_left)
@@ -343,6 +367,7 @@ class PlayerPage(QWidget):
     def open_path(self, path: str, *, autoplay: bool = True, keep_queue: bool = False) -> None:
         if not keep_queue:
             self._queue, self._queue_index = [], -1
+            self._ordered_queue = None
         if not self.engine_is_ready:
             self._pending_open = path  # opened once the engine is ready
             return
@@ -378,7 +403,10 @@ class PlayerPage(QWidget):
         # Update first: an engine may report failure while open() is still running, and the
         # (queued) error event must win over these defaults.
         self.title_changed.emit(self._media_name)
+        self._show_queue_state()
         self._stage.setCurrentWidget(self.video)
+        if self._named_as_audio(path):
+            self._show_audio_view()
         try:
             self._controller.open(path, autoplay=autoplay)
         except PlaybackError as exc:
@@ -608,6 +636,7 @@ class PlayerPage(QWidget):
         if not paths:
             return
         self._queue = list(paths)
+        self._ordered_queue = None
         self._queue_index = max(0, min(start, len(paths) - 1)) - 1
         self.next_in_queue()
 
@@ -623,7 +652,10 @@ class PlayerPage(QWidget):
             return
         index = self._queue_index + direction
         skipped = 0
-        while 0 <= index < len(self._queue):
+        length = len(self._queue)
+        if self._repeat is RepeatMode.ALL and direction > 0 and index >= length:
+            index = 0  # Repeating everything goes round from the end.
+        while 0 <= index < length and skipped < length:
             path = self._queue[index]
             if "://" in path or os.path.exists(path):
                 self._queue_index = index
@@ -635,7 +667,141 @@ class PlayerPage(QWidget):
                 return
             skipped += 1
             index += direction
+            if self._repeat is RepeatMode.ALL and direction > 0 and index >= length:
+                index = 0
         self.status_changed.emit("End of playlist" if direction > 0 else "Start of playlist")
+
+    def play_queue_item(self, index: int) -> None:
+        """Jump to one of the queue's files, as when it's chosen from the list."""
+        if 0 <= index < len(self._queue):
+            self._queue_index = index - 1
+            self.next_in_queue()
+
+    @property
+    def can_go_next(self) -> bool:
+        return bool(self._queue) and (
+            self._queue_index < len(self._queue) - 1 or self._repeat is RepeatMode.ALL
+        )
+
+    @property
+    def can_go_previous(self) -> bool:
+        return self._queue_index > 0
+
+    @property
+    def shuffle_on(self) -> bool:
+        return self._ordered_queue is not None
+
+    def toggle_shuffle(self) -> None:
+        """Random order and back. What's playing carries on; only what comes next changes."""
+        if len(self._queue) < 2:
+            self.status_changed.emit("Shuffle needs a playlist")
+            return
+        if self._ordered_queue is None:
+            self._ordered_queue = list(self._queue)
+            self._queue = shuffled(self._queue, self._queue_index)
+            self._queue_index = 0
+        else:
+            current = self._queue[self._queue_index]
+            self._queue = self._ordered_queue
+            self._ordered_queue = None
+            self._queue_index = self._queue.index(current)
+        self.status_changed.emit("Shuffle on" if self.shuffle_on else "Shuffle off")
+        self._show_queue_state()
+
+    @property
+    def repeat_mode(self) -> RepeatMode:
+        return self._repeat
+
+    def cycle_repeat(self) -> None:
+        """Off, then this file, then everything."""
+        self._repeat = self._repeat.next()
+        self.controls.set_repeat(self._repeat)
+        self.status_changed.emit(self.controls.repeat_button.accessibleName())
+        self.repeat_changed.emit(self._repeat)
+        self._show_queue_state()
+
+    def _show_queue_state(self) -> None:
+        has_list = len(self._queue) > 1
+        self.controls.set_list_available(has_list)
+        self.controls.set_list_controls(previous=self.can_go_previous, next_item=self.can_go_next)
+        self.controls.set_shuffle(self.shuffle_on)
+        self.queue_changed.emit()
+
+    # ---------------------------------------------------------- sleep timer
+    @property
+    def sleep_remaining_ms(self) -> int | None:
+        return self._sleep_timer.remainingTime() if self._sleep_timer.isActive() else None
+
+    def set_sleep_timer(self, minutes: int | None) -> None:
+        """Pause after this long; None cancels it."""
+        if minutes is None:
+            self._sleep_timer.stop()
+            self.status_changed.emit("Sleep timer off")
+            return
+        self._sleep_timer.start(minutes * 60_000)
+        self.status_changed.emit(f"Playback will pause in {minutes} minutes")
+
+    def _sleep_now(self) -> None:
+        if self._state in (S.PLAYING, S.BUFFERING):
+            self.toggle_play_pause()
+        self.status_changed.emit("Paused by the sleep timer")
+
+    # ---------------------------------------------------------- audio screen
+    @staticmethod
+    def _named_as_audio(path: str | None) -> bool:
+        """A song's cover can look like a video track to the engine, so its name counts too."""
+        if not path or "://" in path:
+            return False
+        return Path(path).suffix.lower() in AUDIO_EXTENSIONS
+
+    def _show_audio_view(self) -> None:
+        self._is_audio_only = True
+        path = self._current_uri
+        if self._stage.currentWidget() is not self.audio_view:
+            self.audio_view.set_details(Path(self._media_name).stem or self._media_name, "")
+            self.audio_view.set_picture(None)
+            if path and "://" not in path:
+                self._read_picture(path)
+        self.audio_view.set_playing(self._state is S.PLAYING)
+        self._stage.setCurrentWidget(self.audio_view)
+
+    def _read_picture(self, path: str) -> None:
+        def work() -> None:
+            image: QImage | None = None
+            data = read_embedded_picture(path)
+            if data:
+                loaded = QImage.fromData(data)
+                if not loaded.isNull():
+                    image = (
+                        loaded.scaled(
+                            MAX_PICTURE_SIDE,
+                            MAX_PICTURE_SIDE,
+                            Qt.AspectRatioMode.KeepAspectRatio,
+                            Qt.TransformationMode.SmoothTransformation,
+                        )
+                        if max(loaded.width(), loaded.height()) > MAX_PICTURE_SIDE
+                        else loaded
+                    )
+            if not self._closing:
+                self._picture_bridge.post((path, image))
+
+        threading.Thread(target=work, name="cover-read", daemon=True).start()
+
+    def _on_picture_read(self, result: object) -> None:
+        if not isinstance(result, tuple):
+            return
+        path, image = result
+        if path == self._current_uri and self._is_audio_only:
+            self.audio_view.set_picture(image)
+
+    def _show_audio_details(self, info: MediaInfo) -> None:
+        tags = dict(info.metadata)
+        name = Path(self._media_name).stem or self._media_name
+        title = tags.get("Title", "").strip()
+        # libVLC gives the file's name as the title when there is no tag.
+        if not title or title in (self._media_name, name):
+            title = name
+        self.audio_view.set_details(title, tags.get("Artist", "").strip())
 
     def seek_to(self, position_ms: int) -> None:
         if self._state in SEEKABLE:
@@ -697,6 +863,7 @@ class PlayerPage(QWidget):
         )
         previews_changed = prefs.seek_previews != self._prefs.seek_previews
         self._prefs = prefs
+        self.audio_view.visualizer.set_style_choice(VisualStyle(prefs.visual_style))
         if previews_changed:
             info = self._controller.media_info() if self.engine_is_ready else None
             if prefs.seek_previews and info is not None:
@@ -1054,6 +1221,7 @@ class PlayerPage(QWidget):
         if (
             self._idle_ms >= self._prefs.controls_hide_delay_ms
             and self._state is S.PLAYING
+            and not self._is_audio_only  # Only a video has a picture to clear the way for.
             and not self.controls.seek.user_dragging
         ):
             self._hide_controls()
@@ -1093,6 +1261,7 @@ class PlayerPage(QWidget):
             seek=self.is_seekable,
         )
         self.controls.set_playing(state in (S.PLAYING, S.BUFFERING))
+        self.audio_view.set_playing(state is S.PLAYING)
         status = {
             S.LOADING: f"Opening {self._media_name}…",
             S.BUFFERING: "Buffering…",
@@ -1103,6 +1272,8 @@ class PlayerPage(QWidget):
             self.status_changed.emit(status)
         elif state is S.PLAYING:
             self._show_engine_status()
+            if self._is_audio_only and self._stage.currentWidget() is not self.audio_view:
+                self._stage.setCurrentWidget(self.audio_view)  # Played again after stopping.
             if not self._is_audio_only and not self._video_announced:
                 info = self._controller.media_info()
                 if info is not None and info.video_codec:
@@ -1124,8 +1295,7 @@ class PlayerPage(QWidget):
                 QTimer.singleShot(0, lambda: self.seek_to(a))
                 return
             self._record_finished()
-            if self._queue and self._queue_index < len(self._queue) - 1:
-                QTimer.singleShot(0, self.next_in_queue)
+            self._after_end()
         if state in TRACK_STATES:
             self._maybe_apply_tracks()
         if state is S.READY and self._media_name:
@@ -1135,11 +1305,25 @@ class PlayerPage(QWidget):
             self._show_controls()
         self.state_changed.emit(state)
 
+    def _after_end(self) -> None:
+        """Repeat this file, move on through the list, or stop."""
+        path = self._current_uri
+        if self._queue:
+            following = index_after_end(self._queue_index, len(self._queue), self._repeat)
+            if following == self._queue_index and path is not None:
+                QTimer.singleShot(0, lambda: self.open_path(path, keep_queue=True))
+            elif following is not None:
+                QTimer.singleShot(0, lambda: self.play_queue_item(following))
+        elif self._repeat is not RepeatMode.OFF and path is not None:
+            QTimer.singleShot(0, lambda: self.open_path(path))
+
     def _apply_media_info(self, info: MediaInfo) -> None:
         self._duration_ms = info.duration_ms
         self._update_marks()
+        named_audio = self._named_as_audio(self._current_uri)
         if (
-            info.video_codec
+            not named_audio
+            and info.video_codec
             and info.duration_ms
             and self._current_uri
             and not is_network_uri(self._current_uri)
@@ -1147,10 +1331,9 @@ class PlayerPage(QWidget):
             self._set_preview(self._current_uri)
         self.media_info_changed.emit()
         self.controls.set_position(self._controller.status().position_ms, info.duration_ms)
-        if info.video_codec is None and info.audio_codec is not None:
-            self._is_audio_only = True
-            self._show_message("music", self._media_name, f"Audio · {info.audio_codec}")
-            self._message_action.hide()
+        if info.audio_codec is not None and (info.video_codec is None or named_audio):
+            self._show_audio_view()
+            self._show_audio_details(info)
         elif self._state in (S.PLAYING, S.PAUSED, S.BUFFERING, S.LOADING):
             self._stage.setCurrentWidget(self.video)
         self._apply_state(self._state)  # also applies track preferences once tracks are known
@@ -1216,6 +1399,7 @@ class PlayerPage(QWidget):
             self._sync_dialog.close()
         self._position_timer.stop()
         self._cursor_timer.stop()
+        self._sleep_timer.stop()
         self._popup.hide()
         if self._preview is not None:
             self._preview.shutdown()

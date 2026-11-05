@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
 )
 
 from babarify_frame.configuration.preferences import PLAYBACK_RATES
+from babarify_frame.core.music import RepeatMode
 from babarify_frame.ui import theme
 from babarify_frame.ui.widgets import SeekSlider, format_time, glyph_icon, plain_text
 
@@ -36,6 +37,17 @@ _FALLBACK = {
     "fullscreen": QStyle.StandardPixmap.SP_TitleBarMaxButton,
     "exit_fullscreen": QStyle.StandardPixmap.SP_TitleBarNormalButton,
     "subtitles": QStyle.StandardPixmap.SP_FileDialogDetailedView,
+    "shuffle": QStyle.StandardPixmap.SP_BrowserReload,
+    "repeat": QStyle.StandardPixmap.SP_BrowserReload,
+    "repeat_one": QStyle.StandardPixmap.SP_BrowserReload,
+    "previous": QStyle.StandardPixmap.SP_MediaSkipBackward,
+    "next": QStyle.StandardPixmap.SP_MediaSkipForward,
+    "queue": QStyle.StandardPixmap.SP_FileDialogListView,
+}
+REPEAT_NAMES = {
+    RepeatMode.OFF: "Repeat is off",
+    RepeatMode.ONE: "Repeating this file",
+    RepeatMode.ALL: "Repeating all",
 }
 
 
@@ -58,6 +70,11 @@ class ControlBar(QFrame):
     rate_selected = Signal(float)
     fullscreen_clicked = Signal()
     tracks_menu_opening = Signal(QMenu)  # fill the menu from the current tracks
+    previous_clicked = Signal()
+    next_clicked = Signal()
+    shuffle_clicked = Signal()
+    repeat_clicked = Signal()
+    queue_clicked = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -88,6 +105,14 @@ class ControlBar(QFrame):
         self.stop_button = self._button("stop", "Stop", "Stop (S)", self.stop_clicked)
         self.back_button = self._button("back", "Back", "Back (←)", self.back_clicked)
         self.forward_button = self._button("forward", "Forward", "Forward (→)", self.forward_clicked)
+        self.previous_button = self._button("previous", "Previous", "Previous (P)", self.previous_clicked)
+        self.next_button = self._button("next", "Next", "Next (N)", self.next_clicked)
+        self.shuffle_button = self._button("shuffle", "Shuffle is off", "Shuffle (Z)", self.shuffle_clicked)
+        self.repeat_button = self._button(
+            "repeat", REPEAT_NAMES[RepeatMode.OFF], "Repeat (R)", self.repeat_clicked
+        )
+        self.queue_button = self._button("queue", "Queue", "Queue (Q)", self.queue_clicked)
+        self._has_list = False
         self.title_label = self._label("", "mediaTitle", "Now playing")
         self.title_label.setMinimumWidth(40)
         plain_text(self.title_label)
@@ -136,11 +161,21 @@ class ControlBar(QFrame):
             "fullscreen", "Fullscreen", "Fullscreen (F)", self.fullscreen_clicked
         )
 
-        for widget in (self.play_button, self.back_button, self.forward_button, self.stop_button):
+        for widget in (
+            self.play_button,
+            self.previous_button,
+            self.back_button,
+            self.forward_button,
+            self.next_button,
+            self.stop_button,
+        ):
             row.addWidget(widget)
         row.addSpacing(theme.S)
         row.addWidget(self.title_label, stretch=1)
         for trailing in (
+            self.shuffle_button,
+            self.repeat_button,
+            self.queue_button,
             self.tracks_button,
             self.speed_button,
             self.mute_button,
@@ -151,6 +186,7 @@ class ControlBar(QFrame):
             row.addWidget(trailing)
         outer.addLayout(row)
         self._title = ""
+        self.set_list_available(False)
 
     # ------------------------------------------------------------ build
     def _label(self, text: str, name: str, accessible: str) -> QLabel:
@@ -183,6 +219,25 @@ class ControlBar(QFrame):
             widget.setEnabled(seek)
         self.speed_button.setEnabled(play)
         self.tracks_button.setEnabled(play)
+
+    def set_list_available(self, available: bool) -> None:
+        """Previous, next, shuffle and queue only mean something with a list to move through."""
+        self._has_list = available
+        self.apply_width(self.width())
+
+    def set_list_controls(self, *, previous: bool, next_item: bool) -> None:
+        self.previous_button.setEnabled(previous)
+        self.next_button.setEnabled(next_item)
+
+    def set_shuffle(self, on: bool) -> None:
+        self.shuffle_button.setIcon(icon(self, "shuffle", theme.CYAN if on else theme.TEXT))
+        self.shuffle_button.setAccessibleName("Shuffle is on" if on else "Shuffle is off")
+
+    def set_repeat(self, mode: RepeatMode) -> None:
+        glyph = "repeat_one" if mode is RepeatMode.ONE else "repeat"
+        self.repeat_button.setIcon(icon(self, glyph, theme.TEXT if mode is RepeatMode.OFF else theme.CYAN))
+        self.repeat_button.setAccessibleName(REPEAT_NAMES[mode])
+        self.repeat_button.setToolTip(f"{REPEAT_NAMES[mode]} (R)")
 
     def set_position(self, position_ms: int, duration_ms: int | None) -> None:
         if duration_ms is not None and self.seek.maximum() != duration_ms:
@@ -250,6 +305,11 @@ class ControlBar(QFrame):
         self.speed_button.setVisible(not narrow)
         self.back_button.setVisible(not narrow)
         self.forward_button.setVisible(not narrow)
+        self.repeat_button.setVisible(not narrow)
+        self.previous_button.setVisible(self._has_list)
+        self.next_button.setVisible(self._has_list)
+        self.shuffle_button.setVisible(self._has_list and not compact)
+        self.queue_button.setVisible(self._has_list and not narrow)
         self._elide_title()
 
     def _elide_title(self) -> None:

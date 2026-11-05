@@ -4,6 +4,17 @@ Released versions are published on the
 [releases page](https://github.com/tanveerbaber-lgtm/Babarify-Frame/releases). Details for Windows
 releases are in [`docs/release-notes/`](docs/release-notes/).
 
+## Windows, next version (not released)
+
+- New: audio has its own screen, with the song's picture, title and artist, and colours taken from the picture.
+  Songs with no picture get an animation: mirrored bars with a reflection, capsules, waves, a circle or lights.
+  They change by themselves while a song plays, or you can choose one. They don't follow the sound.
+- New: repeat off, this file or all, remembered between sessions.
+- New: shuffle, and a queue you can jump around in, for playlists.
+- New: a sleep timer that pauses playback.
+- Changed: in full screen, audio keeps its controls until you hide them.
+- New: volume from 1 to 100, with optional boost to 200 (already on main, listed here until released).
+
 ## Android 0.2.0-beta (not released)
 
 Brings the Android app close to the Windows app. Not yet published.

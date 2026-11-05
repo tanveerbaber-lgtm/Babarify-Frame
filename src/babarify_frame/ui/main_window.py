@@ -49,6 +49,7 @@ from babarify_frame.ai import models as ai_models
 from babarify_frame.configuration.preferences import Preferences, PreferencesStore, WindowGeometry
 from babarify_frame.core.enhancements import EqualizerSettings
 from babarify_frame.core.models import SUBTITLE_EXTENSIONS, MediaInfo, PlaybackState
+from babarify_frame.core.music import SLEEP_MINUTES, STYLE_LABELS, VisualStyle
 from babarify_frame.core.network import is_network_uri
 from babarify_frame.library.database import LibraryDatabase
 from babarify_frame.library.models import HistoryEntry
@@ -66,6 +67,7 @@ from babarify_frame.ui.ai import (
     ai_installed,
     generated_size,
 )
+from babarify_frame.ui.audio_view import QueueDialog
 from babarify_frame.ui.bookmarks import BookmarksDialog
 from babarify_frame.ui.diagnostics import PlaybackInfoDialog
 from babarify_frame.ui.enhancements import EnhancementsDialog
@@ -213,6 +215,9 @@ class MainWindow(QMainWindow):
         self.next_action = self._action("&Next in playlist", [K(Qt.Key.Key_N)], p.next_in_queue)
         self.previous_action = self._action("P&revious in playlist", [K(Qt.Key.Key_P)], p.previous_in_queue)
         self.start_over_action = self._action("Start &over", [K(Qt.Key.Key_Home)], p.start_over)
+        self.shuffle_action = self._action("S&huffle", [K(Qt.Key.Key_Z)], p.toggle_shuffle)
+        self.repeat_action = self._action("&Repeat: off, this file, all", [K(Qt.Key.Key_R)], p.cycle_repeat)
+        self.queue_action = self._action("&Queue…", [K(Qt.Key.Key_Q)], self.show_queue)
         # Playback actions: enabled only on the Now Playing page (see module docstring).
         self.play_action = self._action(
             "&Play/Pause", [K(Qt.Key.Key_Space), K(Qt.Key.Key_MediaTogglePlayPause)], p.toggle_play_pause
@@ -318,6 +323,11 @@ class MainWindow(QMainWindow):
         play_menu.addSeparator()
         play_menu.addAction(self.next_action)
         play_menu.addAction(self.previous_action)
+        play_menu.addAction(self.shuffle_action)
+        play_menu.addAction(self.repeat_action)
+        play_menu.addAction(self.queue_action)
+        self.sleep_menu = play_menu.addMenu("S&leep timer")
+        self.sleep_menu.aboutToShow.connect(self._fill_sleep_menu)
         play_menu.addSeparator()
         for action in (self.volume_up_action, self.volume_down_action, self.mute_action):
             play_menu.addAction(action)
@@ -349,6 +359,8 @@ class MainWindow(QMainWindow):
         view_menu.addAction(self.info_action)
         view_menu.addAction(self.media_info_action)
         view_menu.addAction(self.spoken_search_action)
+        self.animation_menu = view_menu.addMenu("&Animation for audio")
+        self.animation_menu.aboutToShow.connect(self._fill_animation_menu)
         help_menu = menus.addMenu("&Help")
         help_menu.addAction(shortcuts_action)
         help_menu.addAction(self.report_action)
@@ -362,6 +374,9 @@ class MainWindow(QMainWindow):
         self.player.status_changed.connect(self.statusBar().showMessage)
         self.player.title_changed.connect(self._set_media_title)
         self.player.state_changed.connect(lambda _state: self._update_actions())
+        self.player.queue_changed.connect(self._update_actions)
+        self.player.queue_requested.connect(self.show_queue)
+        self.player.repeat_changed.connect(self._on_repeat_changed)
         self.player.engine_ready.connect(self._on_engine_ready)
         self.player.video_started.connect(self._on_video_started)
         self.settings.preferences_changed.connect(self._on_preferences_changed)
@@ -445,9 +460,12 @@ class MainWindow(QMainWindow):
         for action in (self.volume_up_action, self.volume_down_action, self.mute_action):
             action.setEnabled(on_player and ready)
         self.fullscreen_action.setEnabled(on_player)
-        queue, index = p.queue
-        self.next_action.setEnabled(on_player and index < len(queue) - 1)
-        self.previous_action.setEnabled(on_player and index > 0)
+        queue, _index = p.queue
+        self.next_action.setEnabled(on_player and p.can_go_next)
+        self.previous_action.setEnabled(on_player and p.can_go_previous)
+        self.shuffle_action.setEnabled(on_player and len(queue) > 1)
+        self.repeat_action.setEnabled(on_player)
+        self.queue_action.setEnabled(on_player and len(queue) > 1)
         self.start_over_action.setEnabled(on_player and p.is_seekable)
         caps = p.capabilities_or_none()
         playing_video = p.has_media and p.state in (PlaybackState.PLAYING, PlaybackState.PAUSED)
@@ -894,6 +912,7 @@ class MainWindow(QMainWindow):
             prefs,
             volume=self._prefs.volume,
             muted=self._prefs.muted,
+            repeat_mode=self._prefs.repeat_mode,
             window=self._prefs.window,
             library_sort=self._prefs.library_sort,
             picture=self._prefs.picture,
@@ -906,6 +925,48 @@ class MainWindow(QMainWindow):
             self._home_dirty = True
         self._refresh_ai_status()
         self._update_actions()
+
+    def _on_repeat_changed(self, mode: object) -> None:
+        self._prefs = replace(self._prefs, repeat_mode=str(mode))
+        self.settings.set_preferences(self._prefs)
+        self._store.save(self._prefs)
+
+    def show_queue(self) -> None:
+        queue, index = self.player.queue
+        if len(queue) < 2:
+            self.statusBar().showMessage("No playlist is playing")
+            return
+        names = [Path(path).stem if "://" not in path else path for path in queue]
+        QueueDialog(names, index, self.player.play_queue_item, self).open()
+
+    def _fill_sleep_menu(self) -> None:
+        self.sleep_menu.clear()
+        remaining = self.player.sleep_remaining_ms
+        off = self.sleep_menu.addAction("Off")
+        off.setCheckable(True)
+        off.setChecked(remaining is None)
+        off.triggered.connect(lambda: self.player.set_sleep_timer(None))
+        if remaining is not None:
+            left = self.sleep_menu.addAction(f"Pausing in {format_time(remaining)}")
+            left.setEnabled(False)
+        self.sleep_menu.addSeparator()
+        for minutes in SLEEP_MINUTES:
+            action = self.sleep_menu.addAction(f"{minutes} minutes")
+            action.triggered.connect(lambda _=False, m=minutes: self.player.set_sleep_timer(m))
+
+    def _fill_animation_menu(self) -> None:
+        self.animation_menu.clear()
+        for style, label in STYLE_LABELS.items():
+            action = self.animation_menu.addAction(label)
+            action.setCheckable(True)
+            action.setChecked(self._prefs.visual_style == style.value)
+            action.triggered.connect(lambda _=False, s=style: self._choose_animation(s))
+
+    def _choose_animation(self, style: VisualStyle) -> None:
+        self._prefs = replace(self._prefs, visual_style=style.value)
+        self.player.set_preferences(self._prefs)
+        self.settings.set_preferences(self._prefs)
+        self._store.save(self._prefs)
 
     def _final_preferences(self) -> Preferences:
         normal = self.normalGeometry() if (self.isMaximized() or self.isFullScreen()) else self.geometry()
@@ -972,6 +1033,9 @@ class MainWindow(QMainWindow):
             "<tr><td><b>Ctrl+1 / 2 / 3</b>&nbsp;&nbsp;</td><td>Home / Now Playing / Settings</td></tr>"
             "<tr><td><b>Ctrl+I</b></td><td>Playback info</td></tr>"
             "<tr><td><b>Ctrl+L</b></td><td>Library</td></tr>"
+            "<tr><td><b>Z</b></td><td>Shuffle</td></tr>"
+            "<tr><td><b>R</b></td><td>Repeat: off, this file, all</td></tr>"
+            "<tr><td><b>Q</b></td><td>Queue</td></tr>"
             "<tr><td><b>N / P</b></td><td>Next / previous in playlist</td></tr>"
             "<tr><td><b>Home</b></td><td>Start over</td></tr>"
             "<tr><td><b>Ctrl+E</b></td><td>Picture &amp; Sound</td></tr>"
