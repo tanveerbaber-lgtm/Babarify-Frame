@@ -152,6 +152,15 @@ def test_a_chosen_animation_is_remembered(qtbot: QtBot, window: MainWindow, tmp_
     assert window.settings.visual_style.currentData() == "circle"
 
 
+def test_choosing_an_animation_in_settings_applies_it(
+    qtbot: QtBot, window: MainWindow, tmp_path: Path
+) -> None:
+    combo = window.settings.visual_style
+    combo.setCurrentIndex(combo.findData("lights"))
+    assert window.player.audio_view.visualizer.style_choice is VisualStyle.LIGHTS
+    assert PreferencesStore(tmp_path / "settings.json").load().visual_style == "lights"
+
+
 def test_repeat_is_remembered(qtbot: QtBot, window: MainWindow, tmp_path: Path) -> None:
     window.player.cycle_repeat()
     assert window.player.repeat_mode is RepeatMode.ONE

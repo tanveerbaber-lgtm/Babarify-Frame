@@ -140,8 +140,10 @@ class HomePage(QWidget):
         zone.setContentsMargins(theme.XL, theme.XL, theme.XL, theme.XL)
         zone.setSpacing(theme.M)
         drop_icon = glyph_icon("drop", theme.CYAN, theme.TEXT_DISABLED, size=48)
+        self._drop_icon: QLabel | None = None
         if drop_icon is not None:
             icon_label = QLabel()
+            self._drop_icon = icon_label
             icon_label.setPixmap(drop_icon.pixmap(QSize(40, 40)))
             zone.addWidget(icon_label, alignment=Qt.AlignmentFlag.AlignHCenter)
         zone.addWidget(
@@ -217,6 +219,11 @@ class HomePage(QWidget):
         self.continue_cards: list[QToolButton] = []
         panel.hide()
         return panel
+
+    def refresh_theme(self) -> None:
+        icon = glyph_icon("drop", theme.CYAN, theme.TEXT_DISABLED, size=48)
+        if self._drop_icon is not None and icon is not None:
+            self._drop_icon.setPixmap(icon.pixmap(QSize(40, 40)))
 
     def set_history(
         self,

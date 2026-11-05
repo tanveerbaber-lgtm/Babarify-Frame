@@ -3,9 +3,14 @@
 Dark, premium surfaces; blue -> cyan for interactive accents; green for "on/active"
 confirmation. Every colour, spacing step, radius and type size used by the UI is defined
 here so the look stays consistent (M3 acceptance: branding and spacing consistency).
+
+Colour themes replace the colours below (``apply_theme``), so code reads them as ``theme.BG`` when it
+draws, rather than keeping a copy, and text colours stay the same so every theme reads alike.
 """
 
 from __future__ import annotations
+
+from babarify_frame.core.themes import DEFAULT_THEME, THEMES
 
 # Colour
 BG = "#070B15"  # window background
@@ -33,11 +38,17 @@ RADIUS_S, RADIUS_M, RADIUS_L = 6, 10, 16
 # Type scale (pt)
 FONT_CAPTION, FONT_BODY, FONT_SUBTITLE, FONT_TITLE, FONT_DISPLAY = 9, 10, 12, 15, 24
 
-ACCENT_GRADIENT = f"qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {BLUE}, stop:1 {CYAN})"
 FONT_STACK = '"Segoe UI Variable Text", "Segoe UI", sans-serif'
 MONO_STACK = '"Cascadia Mono", "Consolas", monospace'
 
-STYLESHEET = f"""
+
+def _accent_gradient() -> str:
+    return f"qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {BLUE}, stop:1 {CYAN})"
+
+
+def build_stylesheet() -> str:
+    accent_gradient = _accent_gradient()
+    return f"""
 * {{ font-family: {FONT_STACK}; font-size: {FONT_BODY}pt; color: {TEXT}; }}
 QMainWindow, QWidget#root, QDialog {{ background: {BG}; }}
 QTabWidget > QWidget, QTabWidget QStackedWidget > QWidget {{ background: {BG}; }}
@@ -103,7 +114,7 @@ QPushButton {{
 QPushButton:hover {{ background: {SURFACE_PRESSED}; }}
 QPushButton:disabled {{ color: {TEXT_DISABLED}; }}
 QPushButton#primary {{
-    background: {ACCENT_GRADIENT}; border: none; color: #04101F; font-weight: 600;
+    background: {accent_gradient}; border: none; color: #04101F; font-weight: 600;
     padding: {M}px {XL}px; font-size: {FONT_SUBTITLE}pt;
 }}
 QPushButton#primary:hover {{ background: {CYAN}; }}
@@ -111,7 +122,7 @@ QToolButton {{ border: none; border-radius: {RADIUS_S}px; padding: {XS}px; }}
 QToolButton:hover {{ background: {SURFACE_RAISED}; }}
 QToolButton:pressed {{ background: {SURFACE_PRESSED}; }}
 QToolButton:disabled {{ background: transparent; }}
-QToolButton#playButton {{ background: {ACCENT_GRADIENT}; border-radius: 20px; }}
+QToolButton#playButton {{ background: {accent_gradient}; border-radius: 20px; }}
 QToolButton#playButton:hover {{ background: {CYAN}; }}
 QToolButton#playButton:disabled {{ background: {SURFACE_RAISED}; }}
 QToolButton#speedButton {{ font-family: {MONO_STACK}; font-size: {FONT_CAPTION}pt; padding: {XS}px {S}px; }}
@@ -127,7 +138,7 @@ QFrame#controlBar {{ background: {SURFACE}; border-top: 1px solid {BORDER}; }}
 
 /* Sliders */
 QSlider::groove:horizontal {{ height: 4px; background: {CONTROL_BORDER}; border-radius: 2px; }}
-QSlider::sub-page:horizontal {{ background: {ACCENT_GRADIENT}; border-radius: 2px; }}
+QSlider::sub-page:horizontal {{ background: {accent_gradient}; border-radius: 2px; }}
 QSlider::sub-page:horizontal:disabled {{ background: {BORDER}; }}
 QSlider::handle:horizontal {{ background: {TEXT}; width: 12px; margin: -5px 0; border-radius: 6px; }}
 QSlider::handle:horizontal:hover {{ background: {CYAN}; }}
@@ -135,7 +146,7 @@ QSlider::handle:horizontal:disabled {{ background: {TEXT_DISABLED}; }}
 QSlider#seek::groove:horizontal {{ height: 5px; }}
 QSlider[boost="true"]::sub-page:horizontal {{ background: {AMBER}; }}
 QSlider::groove:vertical {{ width: 4px; background: {CONTROL_BORDER}; border-radius: 2px; }}
-QSlider::add-page:vertical {{ background: {ACCENT_GRADIENT}; border-radius: 2px; }}
+QSlider::add-page:vertical {{ background: {accent_gradient}; border-radius: 2px; }}
 QSlider::add-page:vertical:disabled {{ background: {BORDER}; }}
 QSlider::handle:vertical {{ background: {TEXT}; height: 12px; margin: 0 -5px; border-radius: 6px; }}
 QSlider::handle:vertical:disabled {{ background: {TEXT_DISABLED}; }}
@@ -187,3 +198,22 @@ QToolButton#continueCard:hover {{ background: {SURFACE_RAISED}; }}
 QStatusBar {{ background: {BG}; color: {TEXT_MUTED}; }}
 QStatusBar::item {{ border: none; }}
 """
+
+
+current_theme = DEFAULT_THEME
+ACCENT_GRADIENT = _accent_gradient()
+STYLESHEET = build_stylesheet()
+
+
+def apply_theme(key: str) -> None:
+    """Switch every colour. The caller gives the application the new ``STYLESHEET``."""
+    global ACCENT_GRADIENT, BG, BLUE, BORDER, CONTROL_BORDER, CYAN, STYLESHEET
+    global SURFACE, SURFACE_PRESSED, SURFACE_RAISED, TEXT_MUTED, current_theme
+    current_theme = key if key in THEMES else DEFAULT_THEME
+    palette = THEMES[current_theme]
+    BG, SURFACE, SURFACE_RAISED = palette.bg, palette.surface, palette.raised
+    SURFACE_PRESSED, BORDER = palette.pressed, palette.border
+    CONTROL_BORDER, TEXT_MUTED = palette.control_border, palette.muted
+    BLUE, CYAN = palette.accent, palette.accent2
+    ACCENT_GRADIENT = _accent_gradient()
+    STYLESHEET = build_stylesheet()

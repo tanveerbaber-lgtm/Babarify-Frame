@@ -32,6 +32,7 @@ from PySide6.QtGui import (
     QKeySequence,
 )
 from PySide6.QtWidgets import (
+    QApplication,
     QButtonGroup,
     QFileDialog,
     QFrame,
@@ -103,6 +104,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self._store = store or PreferencesStore()
         self._prefs = self._store.load()
+        self._apply_colour_theme(self._prefs.colour_theme)
         # Without a service (tests, or a library that could not open) the app keeps an in-memory one.
         self.library_service = library or LibraryService(LibraryDatabase(None))
         self._was_maximized = False
@@ -917,6 +919,7 @@ class MainWindow(QMainWindow):
         if not isinstance(prefs, Preferences):
             return
         history_toggled = prefs.remember_history != self._prefs.remember_history
+        theme_changed = prefs.colour_theme != self._prefs.colour_theme
         if not prefs.ai_enabled and self.subtitle_job.running:
             self.subtitle_job.cancel()  # switching AI off stops work in progress
         self._prefs = replace(
@@ -932,6 +935,11 @@ class MainWindow(QMainWindow):
         )
         self.player.set_preferences(self._prefs)
         self._store.save(self._prefs)
+        if theme_changed:
+            self._apply_colour_theme(self._prefs.colour_theme)
+            self.player.controls.refresh_theme()
+            self.home.refresh_theme()
+            self._home_dirty = True  # Its cards hold pictures drawn in the old colours.
         if history_toggled:
             self._home_dirty = True
         self._refresh_ai_status()
@@ -982,6 +990,15 @@ class MainWindow(QMainWindow):
         self.player.set_preferences(self._prefs)
         self.settings.set_preferences(self._prefs)
         self._store.save(self._prefs)
+
+    @staticmethod
+    def _apply_colour_theme(key: str) -> None:
+        if key == theme.current_theme:
+            return
+        theme.apply_theme(key)
+        app = QGuiApplication.instance()
+        if isinstance(app, QApplication):
+            app.setStyleSheet(theme.STYLESHEET)
 
     def _final_preferences(self) -> Preferences:
         normal = self.normalGeometry() if (self.isMaximized() or self.isFullScreen()) else self.geometry()

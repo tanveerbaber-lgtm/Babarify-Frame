@@ -6,7 +6,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QFontDatabase
+from PySide6.QtGui import QColor, QFontDatabase, QIcon, QLinearGradient, QPainter, QPixmap
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -26,6 +26,7 @@ from babarify_frame.ai.models import MODELS, ModelStatus
 from babarify_frame.configuration.preferences import LANGUAGES, SEEK_STEPS_S, Preferences
 from babarify_frame.core.models import SubtitlePosition, SubtitleStyle
 from babarify_frame.core.music import STYLE_LABELS
+from babarify_frame.core.themes import THEMES
 from babarify_frame.ui import theme
 from babarify_frame.ui.widgets import plain_text
 
@@ -59,6 +60,22 @@ def _select(combo: QComboBox, value: object, custom_label: str) -> None:
         combo.addItem(custom_label, value)
         index = combo.count() - 1
     combo.setCurrentIndex(index)
+
+
+def _swatch(start: str, end: str) -> QIcon:
+    """A theme's colours, beside its name in the list."""
+    pixmap = QPixmap(16, 16)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    gradient = QLinearGradient(0, 0, 16, 16)
+    gradient.setColorAt(0, QColor(start))
+    gradient.setColorAt(1, QColor(end))
+    painter.setPen(Qt.PenStyle.NoPen)
+    painter.setBrush(gradient)
+    painter.drawRoundedRect(0, 0, 16, 16, 4, 4)
+    painter.end()
+    return QIcon(pixmap)
 
 
 def _label(text: str, name: str) -> QLabel:
@@ -127,12 +144,22 @@ class SettingsPage(QWidget):
         self.visual_style.setToolTip(
             "Decoration for songs with no picture of their own. It doesn't follow the sound."
         )
+        self.colour_theme = QComboBox()
+        self.colour_theme.setAccessibleName("Colour theme")
+        for key, palette in THEMES.items():
+            self.colour_theme.addItem(_swatch(palette.accent, palette.accent2), palette.label, key)
+        appearance = self._card(
+            "Appearance",
+            [
+                ("Colour theme", self.colour_theme),
+                ("Animation for audio with no picture", self.visual_style),
+            ],
+        )
         playback = self._card(
             "Playback",
             [
                 ("Seek step (← →)", self.seek_step),
                 ("Hardware decoding", self.hardware_decoding),
-                ("Animation for audio with no picture", self.visual_style),
                 ("", self.remember_volume),
                 ("", self.allow_boost),
                 ("", self.seek_previews),
@@ -233,7 +260,7 @@ class SettingsPage(QWidget):
         self.reset_button.setAccessibleName("Reset settings to defaults")
         self.reset_button.clicked.connect(self._reset)
 
-        for widget in (playback, subtitles, fullscreen, privacy, ai):
+        for widget in (appearance, playback, subtitles, fullscreen, privacy, ai):
             column.addWidget(widget)
         column.addWidget(self.reset_button, alignment=Qt.AlignmentFlag.AlignLeft)
         column.addStretch(1)
@@ -248,6 +275,8 @@ class SettingsPage(QWidget):
         self.allow_boost.toggled.connect(self._changed)
         self.seek_previews.toggled.connect(self._changed)
         self.hardware_decoding.currentIndexChanged.connect(self._changed)
+        self.visual_style.currentIndexChanged.connect(self._changed)
+        self.colour_theme.currentIndexChanged.connect(self._changed)
         self.hide_delay.valueChanged.connect(self._changed)
         self.start_fullscreen.toggled.connect(self._changed)
         self.subtitles_auto.toggled.connect(self._changed)
@@ -391,6 +420,7 @@ class SettingsPage(QWidget):
         self.seek_previews.setChecked(prefs.seek_previews)
         self.hardware_decoding.setCurrentIndex(0 if prefs.hardware_decoding else 1)
         self.visual_style.setCurrentIndex(max(0, self.visual_style.findData(prefs.visual_style)))
+        self.colour_theme.setCurrentIndex(max(0, self.colour_theme.findData(prefs.colour_theme)))
         self.hide_delay.setValue(round(prefs.controls_hide_delay_ms / 1000))
         self.start_fullscreen.setChecked(prefs.start_fullscreen)
         self.subtitles_auto.setChecked(prefs.subtitles_auto)
@@ -425,6 +455,7 @@ class SettingsPage(QWidget):
             seek_previews=self.seek_previews.isChecked(),
             hardware_decoding=bool(self.hardware_decoding.currentData()),
             visual_style=str(self.visual_style.currentData()),
+            colour_theme=str(self.colour_theme.currentData()),
             controls_hide_delay_ms=self.hide_delay.value() * 1000,
             start_fullscreen=self.start_fullscreen.isChecked(),
             subtitles_auto=self.subtitles_auto.isChecked(),
