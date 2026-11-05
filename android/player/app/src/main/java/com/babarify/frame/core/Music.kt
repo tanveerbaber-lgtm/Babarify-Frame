@@ -11,6 +11,7 @@ data class Song(
     val fileName: String,
     val durationMs: Long,
     val addedAt: Long,
+    val year: Int? = null,
 )
 
 enum class GroupKind { ALBUM, ARTIST, FOLDER }
@@ -18,7 +19,7 @@ enum class GroupKind { ALBUM, ARTIST, FOLDER }
 /** An album, artist or folder. A blank [title] means the file doesn't say, and the screen words that. */
 data class SongGroup(val kind: GroupKind, val key: String, val title: String, val songs: List<Song>)
 
-enum class SongSort { TITLE, ARTIST, RECENTLY_ADDED, DURATION }
+enum class SongSort { TITLE, ARTIST, FOLDER, RECENTLY_ADDED, OLDEST_ADDED, MOST_PLAYED, YEAR, DURATION }
 
 object MusicRules {
     private const val UNKNOWN = "<unknown>"
@@ -58,11 +59,16 @@ object MusicRules {
         }.sortedWith(compareBy({ it.title.isEmpty() }, { it.title.lowercase() }))
     }
 
-    fun sorted(songs: List<Song>, sort: SongSort): List<Song> = when (sort) {
+    /** [plays] says how many times each song has been played, by its uri, for sorting by that. */
+    fun sorted(songs: List<Song>, sort: SongSort, plays: Map<String, Int> = emptyMap()): List<Song> = when (sort) {
         SongSort.TITLE -> songs.sortedBy { it.title.lowercase() }
         SongSort.ARTIST -> songs.sortedWith(compareBy({ it.artist == null }, { it.artist?.lowercase() }, { it.title.lowercase() }))
         SongSort.RECENTLY_ADDED -> songs.sortedWith(compareBy({ -it.addedAt }, { it.title.lowercase() }))
         SongSort.DURATION -> songs.sortedWith(compareBy({ -it.durationMs }, { it.title.lowercase() }))
+        SongSort.OLDEST_ADDED -> songs.sortedWith(compareBy({ it.addedAt }, { it.title.lowercase() }))
+        SongSort.FOLDER -> songs.sortedWith(compareBy({ it.folder.lowercase() }, { it.title.lowercase() }))
+        SongSort.YEAR -> songs.sortedWith(compareBy({ it.year == null }, { -(it.year ?: 0) }, { it.title.lowercase() }))
+        SongSort.MOST_PLAYED -> songs.sortedWith(compareBy({ -(plays[it.uri] ?: 0) }, { it.title.lowercase() }))
     }
 
     fun search(songs: List<Song>, text: String): List<Song> {

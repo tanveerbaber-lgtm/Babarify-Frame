@@ -56,6 +56,7 @@ from babarify_frame.core.models import SUBTITLE_EXTENSIONS, MediaInfo, PlaybackS
 from babarify_frame.core.music import SLEEP_MINUTES, STYLE_LABELS, VisualStyle
 from babarify_frame.core.network import is_network_uri
 from babarify_frame.core.themes import THEMES
+from babarify_frame.library import backup
 from babarify_frame.library.database import LibraryDatabase
 from babarify_frame.library.models import HistoryEntry
 from babarify_frame.library.service import LibraryService
@@ -79,7 +80,7 @@ from babarify_frame.ui.enhancements import EnhancementsDialog
 from babarify_frame.ui.media_info import MediaInfoDialog
 from babarify_frame.ui.network import NetworkStreamDialog
 from babarify_frame.ui.pages.home import SHORTCUTS, HomePage
-from babarify_frame.ui.pages.library import LibraryPage
+from babarify_frame.ui.pages.library import HiddenFilesDialog, LibraryPage
 from babarify_frame.ui.pages.player import VOLUME_STEP, PlayerPage
 from babarify_frame.ui.pages.settings import SettingsPage, theme_swatch
 from babarify_frame.ui.report import ReportDialog
@@ -408,9 +409,14 @@ class MainWindow(QMainWindow):
         self.settings.preferences_changed.connect(self._on_preferences_changed)
         # Library and history (M6)
         self.settings.clear_history_requested.connect(self.clear_history)
+        self.settings.hidden_files_requested.connect(self.show_hidden_files)
+        self.settings.backup_requested.connect(self.back_up)
+        self.settings.restore_requested.connect(self.restore_from_backup)
         self.library.play_requested.connect(self.open_path)
         self.library.play_list_requested.connect(self.play_list)
         self.library.shuffle_requested.connect(self.shuffle_list)
+        self.library.play_next_requested.connect(self.player.play_next)
+        self.library.add_to_queue_requested.connect(self.player.add_to_queue)
         self.player.favourites_changed.connect(self.library.refresh_current_tab)
         self.library.status_changed.connect(self.statusBar().showMessage)
         self.library.sort_changed.connect(self._on_library_sort)
@@ -816,6 +822,63 @@ class MainWindow(QMainWindow):
         self.library_service.db.remove_history(path)
         self.refresh_home()
         self.statusBar().showMessage("Removed from history")
+
+    def back_up(self) -> None:
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Back up settings and playlists", "babarify-backup.json", "Backup (*.json)"
+        )
+        if not path:
+            return
+        try:
+            backup.write_backup(Path(path), backup.build_backup(self._prefs, self.library_service.db))
+        except OSError as exc:
+            QMessageBox.warning(self, "Back up", f"The backup couldn't be saved.\n{exc}")
+            return
+        self._notify_status("Backup saved")
+
+    def restore_from_backup(self) -> None:
+        path, _ = QFileDialog.getOpenFileName(self, "Restore from a backup", "", "Backup (*.json)")
+        if not path:
+            return
+        try:
+            data = backup.read_backup(Path(path))
+        except backup.BackupError as exc:
+            QMessageBox.warning(self, "Restore", str(exc))
+            return
+        answer = QMessageBox.question(
+            self,
+            "Restore",
+            "Your settings are replaced by the ones in the file. Playlists, favourites and hidden files are "
+            "added to the ones you have.",
+        )
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+        restored = backup.restore_lists(data, self.library_service.db)
+        prefs = Preferences.from_dict(data.get("preferences", {}))
+        self.settings.set_preferences(prefs)
+        self._on_preferences_changed(prefs)
+        self._prefs = replace(
+            self._prefs,
+            repeat_mode=prefs.repeat_mode,
+            library_sort=prefs.library_sort,
+            picture=prefs.picture,
+            equalizer=prefs.equalizer,
+            profiles=prefs.profiles,
+        )
+        self.player.set_preferences(self._prefs)
+        self._store.save(self._prefs)
+        self.library.playlists.refresh()
+        self.library.refresh()
+        self._notify_status(
+            f"Restored. New playlists: {restored.playlists}. New favourites: {restored.favourites}."
+        )
+
+    def _notify_status(self, text: str) -> None:
+        QMessageBox.information(self, "Backup", text)
+
+    def show_hidden_files(self) -> None:
+        HiddenFilesDialog(self.library_service, self).exec()
+        self.library.refresh()
 
     def clear_history(self) -> None:
         answer = QMessageBox.question(

@@ -29,6 +29,7 @@ class HomeActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
         applySystemBarPadding(findViewById(R.id.homeRoot))
+        AppIntro.playOnce(this)
         history = HistoryStore(this)
         library = LibraryStore(this)
         recentList = findViewById(R.id.recentList)

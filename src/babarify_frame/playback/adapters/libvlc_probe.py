@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import ctypes
 import os
+import re
 import threading
 import time
 from typing import Any
@@ -59,6 +60,12 @@ def thumbnail_size(source_w: int, source_h: int, parsed_w: int, parsed_h: int) -
     return out_w, out_h
 
 
+def _year(date: str | None) -> int | None:
+    """The year in a date tag, which can be "1999" or "1999-05-01"."""
+    found = re.search(r"\b[12]\d{3}\b", date or "")
+    return int(found.group()) if found else None
+
+
 class LibVlcProbe(MediaProbe):
     name = "libvlc"
 
@@ -98,6 +105,7 @@ class LibVlcProbe(MediaProbe):
                 title=self._tag(media, vlc.Meta.Title, path),
                 artist=self._tag(media, vlc.Meta.Artist, path),
                 album=self._tag(media, vlc.Meta.Album, path),
+                year=_year(self._tag(media, vlc.Meta.Date, path)),
             )
             # A song's cover can look like a video track, so the file's name counts too.
             if named_audio or (video is None and tracks):
@@ -199,6 +207,7 @@ class LibVlcProbe(MediaProbe):
             title=result.title,
             artist=result.artist,
             album=result.album,
+            year=result.year,
             thumbnail=bytes(state["buf"]),
             thumbnail_width=state["w"],
             thumbnail_height=state["h"],

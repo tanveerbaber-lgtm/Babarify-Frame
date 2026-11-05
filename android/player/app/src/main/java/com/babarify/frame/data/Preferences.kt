@@ -19,6 +19,43 @@ import org.json.JSONObject
 class Preferences(context: Context) {
     private val store = context.applicationContext.getSharedPreferences("preferences", Context.MODE_PRIVATE)
 
+    /** Every setting, with its type, for a backup file. */
+    fun exported(): JSONObject {
+        val json = JSONObject()
+        store.all.forEach { (key, value) ->
+            val entry = when (value) {
+                is Boolean -> JSONObject().put("type", "boolean").put("value", value)
+                is Int -> JSONObject().put("type", "int").put("value", value)
+                is Long -> JSONObject().put("type", "long").put("value", value)
+                is Float -> JSONObject().put("type", "float").put("value", value.toDouble())
+                is String -> JSONObject().put("type", "string").put("value", value)
+                is Set<*> -> JSONObject().put("type", "set").put("value", JSONArray(value.toList()))
+                else -> null
+            }
+            if (entry != null) json.put(key, entry)
+        }
+        return json
+    }
+
+    /** Puts back what [exported] wrote. An entry that makes no sense is left out. */
+    fun restore(json: JSONObject) {
+        val edit = store.edit()
+        json.keys().forEach { key ->
+            val entry = json.optJSONObject(key) ?: return@forEach
+            when (entry.optString("type")) {
+                "boolean" -> edit.putBoolean(key, entry.optBoolean("value"))
+                "int" -> edit.putInt(key, entry.optInt("value"))
+                "long" -> edit.putLong(key, entry.optLong("value"))
+                "float" -> edit.putFloat(key, entry.optDouble("value").toFloat())
+                "string" -> edit.putString(key, entry.optString("value"))
+                "set" -> entry.optJSONArray("value")?.let { array ->
+                    edit.putStringSet(key, (0 until array.length()).map(array::optString).toSet())
+                }
+            }
+        }
+        edit.apply()
+    }
+
     var hardwareDecoding: Boolean
         get() = store.getBoolean("hardware_decoding", true)
         set(value) = store.edit().putBoolean("hardware_decoding", value).apply()
@@ -85,6 +122,11 @@ class Preferences(context: Context) {
     var visualStyle: VisualStyle
         get() = enumValue("visual_style", VisualStyle.AUTO)
         set(value) = store.edit().putString("visual_style", value.name).apply()
+
+    /** Songs kept out of the Music tab. The files aren't touched. */
+    var hiddenSongs: Set<String>
+        get() = store.getStringSet("hidden_songs", emptySet()).orEmpty().toSet()
+        set(value) = store.edit().putStringSet("hidden_songs", value).apply()
 
     var colourTheme: String
         get() = store.getString("colour_theme", null).orEmpty()

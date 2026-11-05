@@ -9,7 +9,9 @@ import android.view.View
 import android.widget.Button
 import android.widget.ListView
 import android.widget.TextView
+import android.widget.Toast
 import com.babarify.frame.R
+import com.babarify.frame.core.M3u
 import com.babarify.frame.core.MusicRules
 import com.babarify.frame.core.SongSort
 import com.babarify.frame.data.LibraryStore
@@ -28,7 +30,12 @@ enum class AutoList(val label: Int, val icon: Int, val colour: Int, val lightCol
     RECENTLY_ADDED(R.string.auto_new, R.drawable.ic_new, 0xFF34D399.toInt(), 0xFF15803D.toInt()),
 }
 
+private const val REQUEST_IMPORT = 5
+private const val REQUEST_EXPORT = 6
+
 class PlaylistsActivity : Activity() {
+    private var exporting: Playlist? = null
+
     private lateinit var store: LibraryStore
     private lateinit var adapter: MediaRowAdapter
     private lateinit var nowPlaying: NowPlayingBar
@@ -46,6 +53,10 @@ class PlaylistsActivity : Activity() {
         empty = findViewById(R.id.playlistsEmpty)
         empty.setText(R.string.no_playlists)
         BottomNav.attach(this, findViewById(R.id.bottomNav))
+        findViewById<View>(R.id.playlistsImport).apply {
+            visibility = View.VISIBLE
+            setOnClickListener { pickPlaylistToImport() }
+        }
         val list = findViewById<ListView>(R.id.playlistsList)
         list.adapter = adapter
         list.setOnItemClickListener { _, _, position, _ ->
@@ -126,8 +137,70 @@ class PlaylistsActivity : Activity() {
         )
     }
 
+    private fun pickPlaylistToImport() {
+        val pick = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+        }
+        @Suppress("DEPRECATION")
+        startActivityForResult(pick, REQUEST_IMPORT)
+    }
+
+    private fun pickExportFile(playlist: Playlist) {
+        exporting = playlist
+        val pick = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "audio/x-mpegurl"
+            putExtra(Intent.EXTRA_TITLE, "${playlist.name}.m3u")
+        }
+        @Suppress("DEPRECATION")
+        startActivityForResult(pick, REQUEST_EXPORT)
+    }
+
+    @Deprecated("The activity result API would add androidx.activity for one call.")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        @Suppress("DEPRECATION")
+        super.onActivityResult(requestCode, resultCode, data)
+        val uri = data?.data
+        if (resultCode != RESULT_OK || uri == null) return
+        when (requestCode) {
+            REQUEST_IMPORT -> importPlaylist(uri)
+            REQUEST_EXPORT -> exporting?.let { exportPlaylist(it, uri) }
+        }
+    }
+
+    private fun exportPlaylist(playlist: Playlist, uri: Uri) {
+        val names = store.playlistItems(playlist.id).map { it.title }
+        val message = try {
+            contentResolver.openOutputStream(uri)?.use { it.write(M3u.render(names).toByteArray()) }
+            R.string.playlist_exported
+        } catch (_: java.io.IOException) {
+            R.string.playlist_not_exported
+        }
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
+    /** Songs are matched by file name, since paths from elsewhere mean nothing on this phone. */
+    private fun importPlaylist(uri: Uri) {
+        val text = try {
+            contentResolver.openInputStream(uri)?.use { it.readBytes().toString(Charsets.UTF_8) }
+        } catch (_: java.io.IOException) {
+            null
+        }
+        val (found, missing) = M3u.match(M3u.fileNames(text.orEmpty()), MusicLibrary.everySong(this))
+        if (found.isEmpty()) {
+            Toast.makeText(this, R.string.playlist_nothing_found, Toast.LENGTH_LONG).show()
+            return
+        }
+        val name = MusicRules.withoutExtension(PlaybackSession.get(this).displayName(uri) ?: getString(R.string.import_playlist))
+        val id = store.createPlaylist(name)
+        found.forEach { store.addToPlaylist(id, it.uri, it.fileName) }
+        refresh()
+        Toast.makeText(this, getString(R.string.playlist_imported, found.size, missing), Toast.LENGTH_LONG).show()
+    }
+
     private fun manage(playlist: Playlist) {
-        val actions = listOf(getString(R.string.rename), getString(R.string.delete))
+        val actions = listOf(getString(R.string.rename), getString(R.string.export_playlist), getString(R.string.delete))
         AlertDialog.Builder(this)
             .setTitle(playlist.name)
             .setItems(actions.toTypedArray()) { _, which ->
@@ -136,6 +209,8 @@ class PlaylistsActivity : Activity() {
                         store.renamePlaylist(playlist.id, name)
                         refresh()
                     }
+                } else if (which == 1) {
+                    pickExportFile(playlist)
                 } else {
                     AlertDialog.Builder(this)
                         .setMessage(R.string.delete_playlist_question)

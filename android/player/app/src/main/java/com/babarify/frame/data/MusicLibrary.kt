@@ -22,7 +22,13 @@ object MusicLibrary {
         context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
 
     /** Slow on a big collection: call away from the main thread. Empty if the permission is missing. */
+    /** The songs to show: all of them but the hidden ones. */
     fun songs(context: Context): List<Song> {
+        val hidden = Preferences(context).hiddenSongs
+        return everySong(context).filterNot { it.uri in hidden }
+    }
+
+    fun everySong(context: Context): List<Song> {
         if (!allowed(context)) return emptyList()
         val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
         val columns = arrayOf(
@@ -35,6 +41,7 @@ object MusicLibrary {
             MediaStore.Audio.Media.DISPLAY_NAME,
             MediaStore.Audio.Media.DURATION,
             MediaStore.Audio.Media.DATE_ADDED,
+            MediaStore.Audio.Media.YEAR,
         )
         return try {
             context.contentResolver.query(collection, columns, "${MediaStore.Audio.Media.IS_MUSIC} != 0", null, null)
@@ -53,6 +60,7 @@ object MusicLibrary {
                                     fileName = fileName,
                                     durationMs = row.getLong(7),
                                     addedAt = row.getLong(8),
+                                    year = row.getInt(9).takeIf { it > 0 },
                                 ),
                             )
                         }

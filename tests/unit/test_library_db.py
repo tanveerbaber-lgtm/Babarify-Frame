@@ -38,7 +38,7 @@ def scan(db: LibraryDatabase, folder_path: Path, cancel: threading.Event | None 
 # ------------------------------------------------------------ migrations
 def test_fresh_database_has_current_schema(tmp_path: Path) -> None:
     db = LibraryDatabase(tmp_path / "library.db")
-    assert db.schema_version == SCHEMA_VERSION == 5
+    assert db.schema_version == SCHEMA_VERSION == 6
     assert db.recovered is None and db.read_only_reason is None
     db.close()
 
@@ -53,7 +53,7 @@ def test_version_1_database_migrates_and_keeps_data(tmp_path: Path) -> None:
     )
     conn.close()
     db = LibraryDatabase(path)
-    assert db.schema_version == 5
+    assert db.schema_version == 6
     row = db._query("SELECT position_ms, play_count FROM history WHERE path_key = 'k'")[0]
     assert (row[0], row[1]) == (42000, 3)
     assert db.playlists() == []  # the v2 tables exist

@@ -85,12 +85,17 @@ def run_worker(media: Path, out: Path, model: str = "tiny") -> tuple[list[dict[s
 
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
     priorities: list[int] = []
-    time.sleep(0.5)
-    with contextlib.suppress(psutil.Error):
-        # A venv's python.exe is a launcher that runs the real interpreter as its child.
-        launcher = psutil.Process(process.pid)
-        worker = (launcher.children(recursive=True) or [launcher])[-1]
-        priorities.append(worker.nice())
+    # The worker lowers its priority once Python has started, which takes longer on a busy machine.
+    deadline = time.perf_counter() + 30
+    while process.poll() is None and time.perf_counter() < deadline:
+        with contextlib.suppress(psutil.Error):
+            # A venv's python.exe is a launcher that runs the real interpreter as its child.
+            launcher = psutil.Process(process.pid)
+            worker = (launcher.children(recursive=True) or [launcher])[-1]
+            priorities = [worker.nice()]
+            if priorities == [psutil.BELOW_NORMAL_PRIORITY_CLASS]:
+                break
+        time.sleep(0.05)
     stdout, _ = process.communicate(timeout=300)
     messages = [json.loads(line) for line in stdout.splitlines() if line.startswith("{")]
     return messages, process.returncode, priorities

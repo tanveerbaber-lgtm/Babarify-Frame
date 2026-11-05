@@ -22,6 +22,13 @@
             android:text="@string/music" />
 
         <ImageButton
+            android:id="@+id/musicSelectButton"
+            style="@style/IconButton"
+            android:contentDescription="@string/select_songs"
+            android:src="@drawable/ic_select"
+            android:visibility="gone" />
+
+        <ImageButton
             android:id="@+id/musicSearchButton"
             style="@style/IconButton"
             android:contentDescription="@string/search"
@@ -168,6 +175,94 @@
     </FrameLayout>
 
     <include layout="@layout/now_playing" />
+
+    <LinearLayout
+        android:id="@+id/selectionBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/surfaceColor"
+        android:orientation="vertical"
+        android:paddingHorizontal="12dp"
+        android:paddingBottom="12dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/selectionClose"
+                style="@style/IconButton"
+                android:contentDescription="@string/stop_selecting"
+                android:src="@drawable/ic_close" />
+
+            <TextView
+                android:id="@+id/selectionCount"
+                style="@style/Text.Body"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/selectionAll"
+                style="@style/PillButton"
+                android:layout_width="wrap_content"
+                android:text="@string/select_all" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/selectionPlay"
+                style="@style/PillButton"
+                android:layout_width="0dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:paddingHorizontal="4dp"
+                android:text="@string/play" />
+
+            <Button
+                android:id="@+id/selectionQueue"
+                style="@style/PillButton"
+                android:layout_width="0dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:paddingHorizontal="4dp"
+                android:text="@string/queue" />
+
+            <Button
+                android:id="@+id/selectionPlaylist"
+                style="@style/PillButton"
+                android:layout_width="0dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:paddingHorizontal="4dp"
+                android:text="@string/playlist" />
+
+            <Button
+                android:id="@+id/selectionHide"
+                style="@style/PillButton"
+                android:layout_width="0dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:paddingHorizontal="4dp"
+                android:text="@string/hide" />
+
+            <Button
+                android:id="@+id/selectionDelete"
+                style="@style/PillButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:paddingHorizontal="4dp"
+                android:text="@string/delete" />
+        </LinearLayout>
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/bottomNav"

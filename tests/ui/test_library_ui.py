@@ -18,8 +18,11 @@ from babarify_frame.library.database import LibraryDatabase
 from babarify_frame.library.service import LibraryService
 from babarify_frame.playback.adapters.mock import MockEngine
 from babarify_frame.playback.factory import EngineDescriptor, EngineFactory, EngineProbe
+from babarify_frame.ui import main_window, music_panel
 from babarify_frame.ui.app import load_icon
 from babarify_frame.ui.main_window import MainWindow
+from babarify_frame.ui.pages import library as library_page
+from babarify_frame.ui.pages.library import HiddenFilesDialog
 from fakes import FakeProbe
 
 pytestmark = pytest.mark.ui
@@ -283,6 +286,119 @@ def test_context_menu_playlist_and_remove(qtbot: QtBot, window: MainWindow, tmp_
     page.remove_entries([entries[2]])
     assert [e.name for e in page.model.entries] == ["a.mp4", "b.mp4"]
     assert (root / "c.mp4").exists()  # files are never deleted
+
+
+def test_play_next_and_add_to_queue_line_files_up(qtbot: QtBot, window: MainWindow, tmp_path: Path) -> None:
+    root = media_tree(tmp_path / "videos", ["a.mp4", "b.mp4", "c.mp4", "d.mp4"])
+    window.library.add_folder(str(root))
+    wait_library_idle(qtbot, window)
+    page = window.library
+    a, b, c, d = page.model.entries
+    window.player.play_next([])  # nothing to do
+    assert window.player.queue == ([], -1)
+
+    def action(entries: list, text: str) -> None:
+        next(x for x in page.build_context_menu(entries).actions() if x.text() == text).trigger()
+
+    action([a], "Add to queue")  # nothing playing: it just plays
+    qtbot.waitUntil(lambda: window.player.queue == ([a.path], 0), timeout=5000)
+    action([b], "Add to queue")
+    assert window.player.queue == ([a.path, b.path], 0)
+    action([c], "Play next")
+    assert window.player.queue == ([a.path, c.path, b.path], 0)
+    window.player.toggle_shuffle()
+    action([d], "Play next")
+    assert window.player.queue[0][1] == d.path, "straight after what's playing"
+    window.player.toggle_shuffle()
+    assert window.player.queue == ([a.path, d.path, c.path, b.path], 0), "and in the original order too"
+
+
+def test_hidden_files_leave_the_library_until_shown_again(
+    qtbot: QtBot, window: MainWindow, tmp_path: Path
+) -> None:
+    root = media_tree(tmp_path / "videos", ["a.mp4", "b.mp4"])
+    window.library.add_folder(str(root))
+    wait_library_idle(qtbot, window)
+    page = window.library
+    a, _b = page.model.entries
+    next(x for x in page.build_context_menu([a]).actions() if x.text() == "Hide").trigger()
+    assert [e.name for e in page.model.entries] == ["b.mp4"]
+    db = window.library_service.db
+    assert db.hidden_media() == [a.path]
+    assert (root / "a.mp4").exists()
+    assert db.counts()[0] == 1
+    dialog = HiddenFilesDialog(window.library_service, window)
+    assert dialog.list.count() == 1
+    dialog.show_selected()  # nothing selected: nothing changes
+    assert db.hidden_media() == [a.path]
+    dialog.list.item(0).setSelected(True)
+    dialog.show_selected()
+    assert db.hidden_media() == []
+    assert not dialog.show_button.isEnabled()
+    page.refresh()
+    assert {e.name for e in page.model.entries} == {"a.mp4", "b.mp4"}
+
+
+def test_delete_from_disk_asks_first_and_reports_what_it_could_not_move(
+    qtbot: QtBot, window: MainWindow, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = media_tree(tmp_path / "videos", ["a.mp4", "b.mp4", "c.mp4"])
+    window.library.add_folder(str(root))
+    wait_library_idle(qtbot, window)
+    page = window.library
+    a, _b, c = page.model.entries
+    moved: list[str] = []
+    monkeypatch.setattr(music_panel, "move_to_recycle_bin", lambda path: moved.append(path) or path != c.path)
+    answer = [QMessageBox.StandardButton.No]
+    monkeypatch.setattr(music_panel.QMessageBox, "question", lambda *_: answer[0])
+    messages: list[str] = []
+    page.status_changed.connect(messages.append)
+
+    next(x for x in page.build_context_menu([a]).actions() if x.text() == "Delete from disk…").trigger()
+    assert moved == [] and len(page.model.entries) == 3, "said no: nothing happens"
+
+    answer[0] = QMessageBox.StandardButton.Yes
+    page.delete_entries([a, c])
+    assert moved == [a.path, c.path]
+    assert [e.name for e in page.model.entries] == ["b.mp4", "c.mp4"], "c couldn't move, so it stays listed"
+    assert "1 could not be moved" in messages[-1]
+    assert (root / "a.mp4").exists(), "the stand-in moved nothing"
+
+
+def test_settings_backs_up_and_restores(
+    qtbot: QtBot, window: MainWindow, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    db = window.library_service.db
+    db.create_playlist("Road trip")
+    file = tmp_path / "backup.json"
+    monkeypatch.setattr(main_window.QFileDialog, "getSaveFileName", lambda *_: (str(file), ""))
+    monkeypatch.setattr(main_window.QFileDialog, "getOpenFileName", lambda *_: (str(file), ""))
+    monkeypatch.setattr(main_window.QMessageBox, "information", lambda *_: None)
+    monkeypatch.setattr(main_window.QMessageBox, "question", lambda *_: QMessageBox.StandardButton.Yes)
+    window.settings.backup_button.click()
+    assert file.exists()
+    db.delete_playlist(db.playlists()[0].id)
+    window.settings.restore_button.click()
+    assert [p.name for p in db.playlists()] == ["Road trip"]
+
+
+def test_a_playlist_exports_and_imports_as_m3u(
+    qtbot: QtBot, window: MainWindow, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    panel = window.library.playlists
+    db = window.library_service.db
+    pid = panel.new_playlist("Road trip")
+    assert pid is not None
+    db.add_to_playlist(pid, ["C:/music/é one.mp3", "C:/music/two.mp3"])
+    panel.refresh(select=pid)
+    file = tmp_path / "exported.m3u8"
+    monkeypatch.setattr(library_page.QFileDialog, "getSaveFileName", lambda *_: (str(file), ""))
+    panel.export_button.click()
+    assert "#EXTM3U" in file.read_text(encoding="utf-8")
+    monkeypatch.setattr(library_page.QFileDialog, "getOpenFileName", lambda *_: (str(file), ""))
+    panel.import_button.click()
+    copy = next(p for p in db.playlists() if p.name == "exported")
+    assert [i.path for i in db.playlist_items(copy.id)] == ["C:/music/é one.mp3", "C:/music/two.mp3"]
 
 
 def test_sort_choice_is_remembered(qtbot: QtBot, tmp_path: Path) -> None:

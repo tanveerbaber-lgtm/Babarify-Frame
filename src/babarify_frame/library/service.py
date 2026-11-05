@@ -237,6 +237,7 @@ class LibraryService:
             result.title,
             result.artist,
             result.album,
+            result.year,
         )
 
     def _save_cover(self, path: str) -> str | None:

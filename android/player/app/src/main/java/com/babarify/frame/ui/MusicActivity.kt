@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.text.Editable
@@ -17,16 +18,20 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.GridView
 import android.widget.ImageView
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
+import android.window.OnBackInvokedCallback
+import android.window.OnBackInvokedDispatcher
 import com.babarify.frame.R
 import com.babarify.frame.core.GroupKind
 import com.babarify.frame.core.MusicRules
 import com.babarify.frame.core.PlaybackRules
+import com.babarify.frame.core.PlaybackState
 import com.babarify.frame.core.QueueItem
 import com.babarify.frame.core.Song
 import com.babarify.frame.core.SongGroup
@@ -59,9 +64,20 @@ class SquareImageView @JvmOverloads constructor(context: Context, attrs: Attribu
     }
 }
 
-class SongAdapter(private val activity: Activity, private val store: LibraryStore) : BaseAdapter() {
+class SongAdapter(
+    private val activity: Activity,
+    private val store: LibraryStore,
+    private val onHidden: (List<Song>) -> Unit = {},
+) : BaseAdapter() {
     private val inflater = LayoutInflater.from(activity)
     var songs: List<Song> = emptyList()
+        set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
+
+    /** The songs ticked while selecting; null when not selecting. */
+    var selected: Set<String>? = null
         set(value) {
             field = value
             notifyDataSetChanged()
@@ -85,35 +101,68 @@ class SongAdapter(private val activity: Activity, private val store: LibraryStor
             PlaybackRules.formatTime(song.durationMs),
         )
         Art.show(view.findViewById(R.id.songArt), song.uri)
-        view.findViewById<View>(R.id.songMore).setOnClickListener { showSongActions(activity, store, song) }
+        val ticked = selected
+        view.findViewById<View>(R.id.songMore).apply {
+            visibility = if (ticked == null) View.VISIBLE else View.GONE
+            setOnClickListener { showSongActions(activity, store, song, onHidden) }
+        }
+        view.findViewById<CheckBox>(R.id.songCheck).apply {
+            visibility = if (ticked == null) View.GONE else View.VISIBLE
+            isChecked = ticked?.contains(song.uri) == true
+        }
         return view
     }
 }
 
-fun showSongActions(activity: Activity, store: LibraryStore, song: Song) {
+fun showSongActions(activity: Activity, store: LibraryStore, song: Song, onHidden: (List<Song>) -> Unit = {}) {
     val favourite = store.isFavourite(song.uri)
-    val actions = listOf(
-        activity.getString(if (favourite) R.string.remove_favourite else R.string.add_favourite),
-        activity.getString(R.string.add_to_playlist),
+    val actions = listOf<Pair<Int, () -> Unit>>(
+        R.string.play_next to { lineUp(activity, listOf(song), next = true) },
+        R.string.add_to_queue to { lineUp(activity, listOf(song), next = false) },
+        (if (favourite) R.string.remove_favourite else R.string.add_favourite) to {
+            store.setFavourite(song.uri, song.fileName, !favourite)
+        },
+        R.string.add_to_playlist to { chooseSongPlaylist(activity, store, listOf(song)) },
+        R.string.hide_song to { hideSongs(activity, listOf(song), onHidden) },
+        R.string.delete_from_device to { SongDeletion.ask(activity, listOf(song), onHidden) },
     )
     AlertDialog.Builder(activity)
         .setTitle(song.title)
-        .setItems(actions.toTypedArray()) { _, which ->
-            if (which == 0) {
-                store.setFavourite(song.uri, song.fileName, !favourite)
-            } else {
-                chooseSongPlaylist(activity, store, song)
-            }
-        }
+        .setItems(actions.map { activity.getString(it.first) }.toTypedArray()) { _, which -> actions[which].second() }
         .show()
 }
 
-private fun chooseSongPlaylist(activity: Activity, store: LibraryStore, song: Song) {
+private fun hideSongs(activity: Activity, songs: List<Song>, onHidden: (List<Song>) -> Unit) {
+    val preferences = PlaybackSession.get(activity).preferences
+    preferences.hiddenSongs = preferences.hiddenSongs + songs.map { it.uri }
+    onHidden(songs)
+    Toast.makeText(activity, R.string.hidden_message, Toast.LENGTH_LONG).show()
+}
+
+/** With nothing playing, there's no queue to join: the songs just play. */
+private fun lineUp(activity: Activity, songs: List<Song>, next: Boolean) {
+    val session = PlaybackSession.get(activity)
+    if (session.state != PlaybackState.PLAYING && session.state != PlaybackState.PAUSED) {
+        activity.playSongs(songs, 0)
+        return
+    }
+    // Each one goes straight after the current song, so the last goes in first to keep their order.
+    (if (next) songs.asReversed() else songs).forEach { session.addToQueue(QueueItem(it.uri, it.fileName), next) }
+    val message = if (next) R.string.playing_next else R.string.added_to_queue
+    Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
+}
+
+private fun chooseSongPlaylist(activity: Activity, store: LibraryStore, songs: List<Song>) {
     val playlists = store.playlists()
     val labels = playlists.map { it.name } + activity.getString(R.string.new_playlist)
     fun add(id: Long, name: String) {
-        store.addToPlaylist(id, song.uri, song.fileName)
-        Toast.makeText(activity, activity.getString(R.string.added_to_playlist, name), Toast.LENGTH_SHORT).show()
+        songs.forEach { store.addToPlaylist(id, it.uri, it.fileName) }
+        val message = if (songs.size == 1) {
+            activity.getString(R.string.added_to_playlist, name)
+        } else {
+            activity.getString(R.string.added_many_to_playlist, songs.size, name)
+        }
+        Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
     }
     AlertDialog.Builder(activity)
         .setTitle(R.string.add_to_playlist)
@@ -198,8 +247,14 @@ class MusicActivity : Activity() {
     private var refused = false
     private val tabs by lazy { listOf(R.id.tabSongs, R.id.tabAlbums, R.id.tabArtists, R.id.tabFolders).map { findViewById<TextView>(it) } }
 
+    private var selection: Set<String>? = null
+    private val backWhileSelecting: Any? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) OnBackInvokedCallback { stopSelecting() } else null
+
     /** For tests. */
     val shownSongs: List<Song> get() = shown
+    val isSelecting: Boolean get() = selection != null
+    val selectedSongs: List<Song> get() = shown.filter { selection?.contains(it.uri) == true }
     val shownGroups: List<SongGroup> get() = currentGroups()
     val isLoaded: Boolean get() = loaded
     val currentTab: Int get() = tab
@@ -214,7 +269,7 @@ class MusicActivity : Activity() {
         session = PlaybackSession.get(this)
         nowPlaying = NowPlayingBar(this)
         BottomNav.attach(this, findViewById(R.id.bottomNav))
-        songAdapter = SongAdapter(this, store)
+        songAdapter = SongAdapter(this, store, ::forgetHidden)
         albumAdapter = GroupAdapter(this, grid = true)
         rowAdapter = GroupAdapter(this, grid = false)
         list = findViewById(R.id.musicList)
@@ -225,11 +280,37 @@ class MusicActivity : Activity() {
         grid.adapter = albumAdapter
         grid.setOnItemClickListener { _, _, position, _ -> openGroup(albumAdapter.groups[position]) }
         list.setOnItemClickListener { _, _, position, _ ->
-            if (tab == 0) playSongs(shown, position) else openGroup(rowAdapter.groups[position])
+            when {
+                isSelecting -> toggleSelected(shown[position])
+                tab == 0 -> playSongs(shown, position)
+                else -> openGroup(rowAdapter.groups[position])
+            }
         }
         list.setOnItemLongClickListener { _, _, position, _ ->
-            if (tab == 0) showSongActions(this, store, shown[position])
+            if (isSelecting) {
+                toggleSelected(shown[position])
+            } else if (tab == 0) {
+                showSongActions(this, store, shown[position], ::forgetHidden)
+            }
             tab == 0
+        }
+        findViewById<View>(R.id.musicSelectButton).setOnClickListener { startSelecting() }
+        findViewById<View>(R.id.selectionClose).setOnClickListener { stopSelecting() }
+        findViewById<View>(R.id.selectionAll).setOnClickListener {
+            setSelection(if (selectedSongs.size == shown.size) emptySet() else shown.map { it.uri }.toSet())
+        }
+        findViewById<View>(R.id.selectionPlay).setOnClickListener { actOnSelected { playSongs(it, 0) } }
+        findViewById<View>(R.id.selectionQueue).setOnClickListener {
+            actOnSelected { lineUp(this, it, next = false) }
+        }
+        findViewById<View>(R.id.selectionPlaylist).setOnClickListener {
+            actOnSelected { chooseSongPlaylist(this, store, it) }
+        }
+        findViewById<View>(R.id.selectionHide).setOnClickListener {
+            actOnSelected { hideSongs(this, it, ::forgetHidden) }
+        }
+        findViewById<View>(R.id.selectionDelete).setOnClickListener {
+            actOnSelected { SongDeletion.ask(this, it, ::forgetHidden) }
         }
         tabs.forEachIndexed { index, view -> view.setOnClickListener { selectTab(index) } }
         findViewById<View>(R.id.musicShuffle).setOnClickListener {
@@ -331,7 +412,86 @@ class MusicActivity : Activity() {
         reload()
     }
 
+    @Deprecated("Android's own confirmation for deleting files still answers here.")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        SongDeletion.onResult(this, requestCode, resultCode, data)
+    }
+
+    private fun forgetHidden(songs: List<Song>) {
+        val uris = songs.map { it.uri }.toSet()
+        allSongs = allSongs.filterNot { it.uri in uris }
+        show()
+    }
+
+    fun startSelecting() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            onBackInvokedDispatcher.registerOnBackInvokedCallback(
+                OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+                backWhileSelecting as OnBackInvokedCallback,
+            )
+        }
+        findViewById<View>(R.id.bottomNav).visibility = View.GONE
+        findViewById<View>(R.id.selectionBar).visibility = View.VISIBLE
+        actions.visibility = View.GONE
+        setSelection(emptySet())
+    }
+
+    fun stopSelecting() {
+        if (!isSelecting) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            onBackInvokedDispatcher.unregisterOnBackInvokedCallback(backWhileSelecting as OnBackInvokedCallback)
+        }
+        setSelection(null)
+        findViewById<View>(R.id.selectionBar).visibility = View.GONE
+        findViewById<View>(R.id.bottomNav).visibility = View.VISIBLE
+        show()
+    }
+
+    fun toggleSelected(song: Song) {
+        val now = selection ?: return
+        setSelection(if (song.uri in now) now - song.uri else now + song.uri)
+    }
+
+    private fun setSelection(value: Set<String>?) {
+        selection = value
+        songAdapter.selected = value
+        val count = value?.size ?: 0
+        findViewById<TextView>(R.id.selectionCount).text = getString(R.string.selected_count, count)
+        listOf(
+            R.id.selectionPlay,
+            R.id.selectionQueue,
+            R.id.selectionPlaylist,
+            R.id.selectionHide,
+            R.id.selectionDelete,
+        ).forEach {
+            findViewById<View>(it).apply {
+                isEnabled = count > 0
+                alpha = if (count > 0) 1f else 0.45f
+            }
+        }
+        val searching = if (value == null) View.VISIBLE else View.GONE
+        findViewById<View>(R.id.musicSearchButton).visibility = searching
+        findViewById<View>(R.id.musicSortButton).visibility = searching
+        findViewById<View>(R.id.musicSelectButton).visibility =
+            if (value == null && tab == 0 && allSongs.isNotEmpty()) View.VISIBLE else View.GONE
+    }
+
+    private fun actOnSelected(action: (List<Song>) -> Unit) {
+        val songs = selectedSongs
+        if (songs.isEmpty()) return
+        stopSelecting()
+        action(songs)
+    }
+
+    @android.annotation.SuppressLint("GestureBackNavigation") // Android 13 and later use the callback above.
+    @Deprecated("Android 13 and later use the callback above; earlier versions come here.")
+    override fun onBackPressed() {
+        if (isSelecting) stopSelecting() else super.onBackPressed()
+    }
+
     private fun selectTab(index: Int) {
+        stopSelecting()
         tab = index
         tabs.forEachIndexed { position, view ->
             view.isSelected = position == index
@@ -352,7 +512,9 @@ class MusicActivity : Activity() {
 
     private fun show() {
         if (prompt.visibility == View.VISIBLE && !MusicLibrary.allowed(this)) return
-        shown = MusicRules.sorted(MusicRules.search(allSongs, search.text.toString()), session.preferences.musicSort)
+        val sort = session.preferences.musicSort
+        val plays = if (sort == SongSort.MOST_PLAYED) store.playCounts() else emptyMap()
+        shown = MusicRules.sorted(MusicRules.search(allSongs, search.text.toString()), sort, plays)
         val empty = loaded && allSongs.isEmpty()
         prompt.visibility = if (empty) View.VISIBLE else View.GONE
         if (empty) {
@@ -362,7 +524,11 @@ class MusicActivity : Activity() {
         val albums = tab == 1
         grid.visibility = if (albums && !empty) View.VISIBLE else View.GONE
         list.visibility = if (!albums && !empty) View.VISIBLE else View.GONE
-        actions.visibility = if (tab == 0 && !empty && allSongs.isNotEmpty()) View.VISIBLE else View.GONE
+        actions.visibility = if (tab == 0 && !empty && allSongs.isNotEmpty() && !isSelecting) View.VISIBLE else View.GONE
+        if (!isSelecting) {
+            findViewById<View>(R.id.musicSelectButton).visibility =
+                if (tab == 0 && allSongs.isNotEmpty()) View.VISIBLE else View.GONE
+        }
         findViewById<TextView>(R.id.musicCount).text = songCount(this, shown.size)
         when (tab) {
             0 -> {
@@ -379,7 +545,18 @@ class MusicActivity : Activity() {
 
     private fun chooseSort() {
         val orders = SongSort.entries
-        val labels = listOf(R.string.sort_title, R.string.sort_artist, R.string.sort_date_added, R.string.sort_duration).map(::getString)
+        val labels = orders.map {
+            when (it) {
+                SongSort.TITLE -> R.string.sort_title
+                SongSort.ARTIST -> R.string.sort_artist
+                SongSort.FOLDER -> R.string.sort_folder
+                SongSort.RECENTLY_ADDED -> R.string.sort_newest
+                SongSort.OLDEST_ADDED -> R.string.sort_oldest
+                SongSort.MOST_PLAYED -> R.string.sort_most_played
+                SongSort.YEAR -> R.string.sort_year
+                SongSort.DURATION -> R.string.sort_duration
+            }
+        }.map(::getString)
         AlertDialog.Builder(this)
             .setTitle(R.string.sort)
             .setSingleChoiceItems(labels.toTypedArray(), orders.indexOf(session.preferences.musicSort)) { dialog, which ->
@@ -412,13 +589,22 @@ class MusicGroupActivity : Activity() {
     private val worker = Executors.newSingleThreadExecutor()
     private var songs: List<Song> = emptyList()
 
+    @Deprecated("Android's own confirmation for deleting files still answers here.")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        SongDeletion.onResult(this, requestCode, resultCode, data)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_music_group)
         applySystemBarPadding(findViewById(R.id.groupRoot))
         store = LibraryStore(this)
         nowPlaying = NowPlayingBar(this)
-        adapter = SongAdapter(this, store)
+        adapter = SongAdapter(this, store) { hidden ->
+            songs = songs - hidden.toSet()
+            adapter.songs = songs
+        }
         val list = findViewById<ListView>(R.id.groupList)
         val header = layoutInflater.inflate(R.layout.header_music_group, list, false)
         list.addHeaderView(header, null, false)

@@ -646,6 +646,33 @@ class PlayerPage(QWidget):
         if shuffle and len(self._queue) > 1:
             self.toggle_shuffle()
 
+    def play_next(self, paths: list[str]) -> None:
+        """Line files up straight after what's playing."""
+        self._line_up(paths, next_up=True)
+
+    def add_to_queue(self, paths: list[str]) -> None:
+        """Line files up at the end of the queue."""
+        self._line_up(paths, next_up=False)
+
+    def _line_up(self, paths: list[str], *, next_up: bool) -> None:
+        if not paths:
+            return
+        current = self._current_uri
+        if current is None or self._state in (S.ENDED, S.ERROR):
+            self.play_queue(paths)  # nothing to follow: they just play
+            return
+        if not self._queue:
+            self._queue, self._queue_index = [current], 0
+        at = self._queue_index + 1 if next_up else len(self._queue)
+        self._queue[at:at] = paths
+        if self._ordered_queue is not None:
+            ordered = self._ordered_queue
+            at = ordered.index(current) + 1 if next_up and current in ordered else len(ordered)
+            ordered[at:at] = paths
+        count = "1 file" if len(paths) == 1 else f"{len(paths)} files"
+        self.status_changed.emit(f"Next up: {count}" if next_up else f"Added to the queue: {count}")
+        self._show_queue_state()
+
     def next_in_queue(self) -> None:
         self._step_queue(1)
 

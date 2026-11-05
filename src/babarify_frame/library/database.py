@@ -138,8 +138,21 @@ MIGRATIONS: tuple[tuple[str, ...], ...] = (
             OR lower(name) LIKE '%.opus' OR lower(name) LIKE '%.wma' OR lower(name) LIKE '%.ac3'
             OR lower(name) LIKE '%.mka'""",
     ),
+    (
+        """CREATE TABLE hidden_media(
+            path_key TEXT PRIMARY KEY,
+            path TEXT NOT NULL)""",
+        "ALTER TABLE media ADD COLUMN year INTEGER",
+        # Read existing songs again, for their year.
+        """UPDATE media SET probed = 0 WHERE (video_codec IS NULL AND audio_codec IS NOT NULL)
+            OR lower(name) LIKE '%.mp3' OR lower(name) LIKE '%.m4a' OR lower(name) LIKE '%.aac'
+            OR lower(name) LIKE '%.flac' OR lower(name) LIKE '%.wav' OR lower(name) LIKE '%.ogg'
+            OR lower(name) LIKE '%.opus' OR lower(name) LIKE '%.wma' OR lower(name) LIKE '%.ac3'
+            OR lower(name) LIKE '%.mka'""",
+    ),
 )
 SCHEMA_VERSION = len(MIGRATIONS)
+_NOT_HIDDEN = "m.path_key NOT IN (SELECT path_key FROM hidden_media)"
 AUTOMATIC_LIST_SIZE = 50
 # What counts as a song, in SQL. The name counts too: a cover can look like a video track.
 _IS_SONG = (
@@ -153,6 +166,10 @@ _SONG_ORDERS = {
     SongSort.ARTIST: "m.artist IS NULL, m.artist COLLATE NOCASE, COALESCE(m.title, m.name) COLLATE NOCASE",
     SongSort.ALBUM: "m.album IS NULL, m.album COLLATE NOCASE, COALESCE(m.title, m.name) COLLATE NOCASE",
     SongSort.RECENTLY_ADDED: "m.added_at DESC, COALESCE(m.title, m.name) COLLATE NOCASE",
+    SongSort.OLDEST_ADDED: "m.added_at, COALESCE(m.title, m.name) COLLATE NOCASE",
+    SongSort.MOST_PLAYED: "COALESCE(h.play_count, 0) DESC, COALESCE(m.title, m.name) COLLATE NOCASE",
+    SongSort.YEAR: "m.year IS NULL, m.year DESC, COALESCE(m.title, m.name) COLLATE NOCASE",
+    SongSort.FOLDER: "m.path COLLATE NOCASE",
     SongSort.LONGEST: "m.duration_ms IS NULL, m.duration_ms DESC, COALESCE(m.title, m.name) COLLATE NOCASE",
 }
 MAX_PLAYLIST_NAME = 120
@@ -184,6 +201,7 @@ class ProbeRecord:
     title: str | None = None
     artist: str | None = None
     album: str | None = None
+    year: int | None = None
 
 
 def default_database_path() -> Path:
@@ -432,9 +450,9 @@ class LibraryDatabase:
                 return
             conn.execute(
                 """UPDATE media SET probed = 1, duration_ms = ?, width = ?, height = ?, video_codec = ?,
-                   audio_codec = ?, thumbnail = ?, title = ?, artist = ?, album = ? WHERE id = ?""",
+                   audio_codec = ?, thumbnail = ?, title = ?, artist = ?, album = ?, year = ? WHERE id = ?""",
                 (result.duration_ms, result.width, result.height, result.video_codec, result.audio_codec,
-                 result.thumbnail, result.title, result.artist, result.album, media_id),
+                 result.thumbnail, result.title, result.artist, result.album, result.year, media_id),
             )  # fmt: skip
 
     def media(
@@ -449,14 +467,11 @@ class LibraryDatabase:
             SortOrder.DURATION: "m.duration_ms IS NULL, m.duration_ms DESC, m.name COLLATE NOCASE",
             SortOrder.SIZE: "m.size DESC, m.name COLLATE NOCASE",
         }[sort]
-        where, params = "", []
-        terms = search.split()
-        if terms:
-            clauses = []
-            for term in terms:
-                clauses.append("m.path LIKE ? ESCAPE '\\'")
-                params.append(f"%{_escape_like(term)}%")
-            where = "WHERE " + " AND ".join(clauses)
+        clauses, params = [_NOT_HIDDEN], []
+        for term in search.split():
+            clauses.append("m.path LIKE ? ESCAPE '\\'")
+            params.append(f"%{_escape_like(term)}%")
+        where = "WHERE " + " AND ".join(clauses)
         rows = self._query(
             f"""SELECT m.*, h.position_ms AS h_position, h.last_played_at AS h_played,
                 (SELECT COUNT(*) FROM media d WHERE d.content_key = m.content_key AND d.id != m.id) AS dups
@@ -466,11 +481,28 @@ class LibraryDatabase:
         )
         return [self._media_entry(r) for r in rows]
 
+    def hide_media(self, paths: list[str]) -> None:
+        """Keep files out of the library's lists. The files aren't touched, and a rescan keeps them hidden."""
+        with self._transaction() as conn:
+            conn.executemany(
+                "INSERT OR IGNORE INTO hidden_media(path_key, path) VALUES (?, ?)",
+                [(path_key(path), path) for path in paths],
+            )
+
+    def show_media(self, paths: list[str]) -> None:
+        with self._transaction() as conn:
+            conn.executemany(
+                "DELETE FROM hidden_media WHERE path_key = ?", [(path_key(path),) for path in paths]
+            )
+
+    def hidden_media(self) -> list[str]:
+        return [r["path"] for r in self._query("SELECT path FROM hidden_media ORDER BY path COLLATE NOCASE")]
+
     def songs(
         self, search: str = "", sort: SongSort = SongSort.TITLE, limit: int = 100_000
     ) -> list[MediaEntry]:
         """Music in the library. Every word searched for must be in the title, artist, album or name."""
-        clauses, params = [_IS_SONG], []
+        clauses, params = [_IS_SONG, _NOT_HIDDEN], []
         for term in search.split():
             clauses.append(
                 "(m.title LIKE ? ESCAPE '\\' OR m.artist LIKE ? ESCAPE '\\' "
@@ -580,7 +612,9 @@ class LibraryDatabase:
         """(all media, unavailable media, media waiting for metadata)."""
         row = self._query(
             """SELECT COUNT(*) AS total, COALESCE(SUM(available = 0), 0) AS missing,
-               COALESCE(SUM(probed = 0 AND available = 1), 0) AS pending FROM media"""
+               COALESCE(SUM(probed = 0 AND available = 1), 0) AS pending FROM media m
+               WHERE """
+            + _NOT_HIDDEN
         )[0]
         return int(row["total"]), int(row["missing"]), int(row["pending"])
 

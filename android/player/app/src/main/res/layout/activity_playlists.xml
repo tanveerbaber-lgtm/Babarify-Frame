@@ -25,6 +25,15 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="8dp" />
 
+    <Button
+        android:id="@+id/playlistsImport"
+        style="@style/PillButton"
+        android:layout_width="match_parent"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="8dp"
+        android:text="@string/import_playlist"
+        android:visibility="gone" />
+
     <LinearLayout
         android:id="@+id/playlistTools"
         android:layout_width="match_parent"

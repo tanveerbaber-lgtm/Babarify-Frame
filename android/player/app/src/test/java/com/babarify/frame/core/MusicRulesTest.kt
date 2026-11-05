@@ -18,6 +18,19 @@ class MusicRulesTest {
     ) = Song("content://media/$title", title, artist, album, albumId, folder, "$title.mp3", durationMs, addedAt)
 
     @Test
+    fun anM3uFileIsReadAndMatchedByFileName() {
+        val text = "\uFEFF#EXTM3U\r\n#EXTINF:12,One\r\nC:\\Music\\one.mp3\r\n\r\n../two.MP3\nhttp://x/three.mp3\n"
+        val names = M3u.fileNames(text)
+        assertEquals(listOf("one.mp3", "two.MP3", "three.mp3"), names)
+        val one = song("one").copy(fileName = "one.mp3", uri = "u1")
+        val two = song("two").copy(fileName = "two.mp3", uri = "u2")
+        val (found, missing) = M3u.match(names, listOf(two, one))
+        assertEquals(listOf(one, two), found)
+        assertEquals(1, missing)
+        assertEquals(names, M3u.fileNames(M3u.render(names)))
+    }
+
+    @Test
     fun missingTagsAreToldApart() {
         assertNull(MusicRules.tagOrNull("<unknown>"))
         assertNull(MusicRules.tagOrNull("  "))
@@ -60,6 +73,18 @@ class MusicRulesTest {
         assertEquals(listOf("alpha", "Gamma", "Beta"), MusicRules.sorted(songs, SongSort.RECENTLY_ADDED).map { it.title })
         assertEquals(listOf("alpha", "Beta", "Gamma"), MusicRules.sorted(songs, SongSort.DURATION).map { it.title })
         assertEquals(listOf("Beta"), MusicRules.search(songs, " abba ").map { it.title })
+        assertEquals(listOf("Beta", "Gamma", "alpha"), MusicRules.sorted(songs, SongSort.OLDEST_ADDED).map { it.title })
+        val more = listOf(
+            song("a").copy(year = 1999, folder = "Zed", uri = "u1"),
+            song("b").copy(year = 2024, folder = "Abc", uri = "u2"),
+            song("c").copy(year = null, folder = "Mid", uri = "u3"),
+        )
+        assertEquals(listOf("b", "a", "c"), MusicRules.sorted(more, SongSort.YEAR).map { it.title })
+        assertEquals(listOf("b", "c", "a"), MusicRules.sorted(more, SongSort.FOLDER).map { it.title })
+        assertEquals(
+            listOf("c", "a", "b"),
+            MusicRules.sorted(more, SongSort.MOST_PLAYED, mapOf("u3" to 5, "u1" to 2)).map { it.title },
+        )
         assertEquals(3, MusicRules.search(songs, "").size)
     }
 

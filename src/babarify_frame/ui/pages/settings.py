@@ -88,6 +88,9 @@ def _label(text: str, name: str) -> QLabel:
 class SettingsPage(QWidget):
     preferences_changed = Signal(object)  # Preferences
     clear_history_requested = Signal()
+    hidden_files_requested = Signal()
+    backup_requested = Signal()
+    restore_requested = Signal()
     # Local AI (M9): the window does the work and reports back with set_ai_status()
     download_model_requested = Signal(str)
     delete_model_requested = Signal(str)
@@ -241,9 +244,26 @@ class SettingsPage(QWidget):
         self.clear_history_button.setAccessibleName("Clear playback history")
         self.clear_history_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.clear_history_button.clicked.connect(self.clear_history_requested)
+        self.hidden_files_button = QPushButton("Hidden files…")
+        self.hidden_files_button.setAccessibleName("Hidden files in the library")
+        self.hidden_files_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.hidden_files_button.clicked.connect(self.hidden_files_requested)
+        self.backup_button = QPushButton("Back up settings and playlists…")
+        self.backup_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.backup_button.clicked.connect(self.backup_requested)
+        self.restore_button = QPushButton("Restore from a backup…")
+        self.restore_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.restore_button.clicked.connect(self.restore_requested)
         privacy = self._card(
             "Privacy",
-            [("", self.remember_history), ("", self.resume_playback), ("", self.clear_history_button)],
+            [
+                ("", self.remember_history),
+                ("", self.resume_playback),
+                ("", self.hidden_files_button),
+                ("", self.clear_history_button),
+                ("", self.backup_button),
+                ("", self.restore_button),
+            ],
         )
         privacy_box = privacy.layout()
         assert isinstance(privacy_box, QVBoxLayout)

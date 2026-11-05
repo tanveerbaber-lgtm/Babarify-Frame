@@ -6,6 +6,7 @@ from collections.abc import Callable
 
 from PySide6.QtCore import (
     QAbstractListModel,
+    QFile,
     QModelIndex,
     QPersistentModelIndex,
     QPoint,
@@ -24,6 +25,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QListView,
     QMenu,
+    QMessageBox,
     QPushButton,
     QStackedWidget,
     QStyle,
@@ -218,11 +220,38 @@ class GroupDelegate(QStyledItemDelegate):
         painter.restore()
 
 
+def move_to_recycle_bin(path: str) -> bool:
+    # Some versions of PySide6 return (moved, new path), and a tuple always counts as true.
+    result = QFile.moveToTrash(path)
+    return bool(result[0] if isinstance(result, tuple) else result)
+
+
+def delete_from_disk(parent: QWidget, service: LibraryService, entries: list[MediaEntry]) -> str | None:
+    """After asking, move files to the Recycle Bin and take them out of the library. Says what happened."""
+    count = len(entries)
+    question = (
+        f"Move {entries[0].name} to the Recycle Bin?"
+        if count == 1
+        else f"Move {count} files to the Recycle Bin?"
+    )
+    if QMessageBox.question(parent, "Delete from disk", question) != QMessageBox.StandardButton.Yes:
+        return None
+    deleted = [entry for entry in entries if move_to_recycle_bin(entry.path)]
+    service.db.remove_media([entry.id for entry in deleted])
+    if len(deleted) == count:
+        return f"Moved {count} to the Recycle Bin"
+    left = count - len(deleted)
+    moved = f"Moved {len(deleted)} to the Recycle Bin."
+    return f"{moved} {left} could not be moved; a file can't move while it plays."
+
+
 class MusicPanel(QWidget):
     """Songs, or albums or artists that open to show their songs."""
 
     play_requested = Signal(list, int)  # paths, start
     shuffle_requested = Signal(list)  # paths
+    play_next_requested = Signal(list)  # paths
+    add_to_queue_requested = Signal(list)  # paths
     status_changed = Signal(str)
 
     def __init__(
@@ -415,6 +444,13 @@ class MusicPanel(QWidget):
 
     def build_context_menu(self, entries: list[MediaEntry]) -> QMenu:
         menu = QMenu(self)
+        paths = [entry.path for entry in entries if entry.available]
+        play_next = menu.addAction("Play next")
+        play_next.triggered.connect(lambda: self.play_next_requested.emit(paths))
+        add_to_queue = menu.addAction("Add to queue")
+        add_to_queue.triggered.connect(lambda: self.add_to_queue_requested.emit(paths))
+        play_next.setEnabled(bool(paths))
+        add_to_queue.setEnabled(bool(paths))
         db = self._service.db
         adding = not all(db.is_favourite(entry.path) for entry in entries)
         favourite = menu.addAction("Add to favourites" if adding else "Remove from favourites")
@@ -423,7 +459,24 @@ class MusicPanel(QWidget):
         if len(entries) == 1 and entries[0].available:
             reveal = menu.addAction("Show in folder")
             reveal.triggered.connect(lambda: self._reveal(entries[0].path))
+        hide = menu.addAction("Hide")
+        hide.setToolTip("The file stays on disk. Settings can bring it back.")
+        hide.triggered.connect(lambda: self.hide_entries(entries))
+        delete = menu.addAction("Delete from disk…")
+        delete.setToolTip("Moves the file to the Recycle Bin")
+        delete.triggered.connect(lambda: self.delete_entries(entries))
         return menu
+
+    def delete_entries(self, entries: list[MediaEntry]) -> None:
+        message = delete_from_disk(self, self._service, entries)
+        if message is not None:
+            self.status_changed.emit(message)
+            self.refresh()
+
+    def hide_entries(self, entries: list[MediaEntry]) -> None:
+        self._service.db.hide_media([entry.path for entry in entries])
+        self.status_changed.emit(f"Hid {len(entries)} from the library. Settings can bring them back.")
+        self.refresh()
 
     def set_favourites(self, entries: list[MediaEntry], favourite: bool) -> None:
         for entry in entries:

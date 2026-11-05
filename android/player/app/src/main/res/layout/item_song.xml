@@ -43,6 +43,14 @@
             android:singleLine="true" />
     </LinearLayout>
 
+    <CheckBox
+        android:id="@+id/songCheck"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone" />
+
     <ImageButton
         android:id="@+id/songMore"
         style="@style/IconButton"
