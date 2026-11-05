@@ -470,6 +470,20 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
         queue.previous()?.let(::playItem)
     }
 
+    /** Lines up a file after what's playing, or at the end, in the shuffled and the original order. */
+    fun addToQueue(item: QueueItem, next: Boolean) {
+        val current = queue.items.getOrNull(queue.index)
+        queue = if (next) queue.withNext(item) else queue.withLast(item)
+        orderedQueue = orderedQueue?.let { if (next) it.at(current).withNext(item) else it.withLast(item) }
+        listeners.toList().forEach { it.onMediaChanged() }
+    }
+
+    fun removeFromQueue(uris: Set<String>) {
+        queue = queue.without(uris)
+        orderedQueue = orderedQueue?.without(uris)
+        listeners.toList().forEach { it.onMediaChanged() }
+    }
+
     /** Plays one of the queue's items, as when it's chosen from the list. */
     fun playAt(position: Int) {
         queue.jumpTo(position)?.let(::playItem)

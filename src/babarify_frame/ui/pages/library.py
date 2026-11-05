@@ -35,6 +35,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from babarify_frame.library import m3u
 from babarify_frame.library.database import LibraryError
 from babarify_frame.library.models import MediaEntry, PlaylistItem, SortOrder
 from babarify_frame.library.music import GroupKind
@@ -49,7 +50,7 @@ from babarify_frame.library.service import (
 from babarify_frame.ui import theme
 from babarify_frame.ui.bridge import UiBridge
 from babarify_frame.ui.library_view import CARD, LibraryDelegate, LibraryModel
-from babarify_frame.ui.music_panel import MusicPanel
+from babarify_frame.ui.music_panel import MusicPanel, delete_from_disk
 
 SORT_LABELS = {
     SortOrder.NAME: "Name",
@@ -147,6 +148,43 @@ class FoldersDialog(QDialog):
 AUTOMATIC_LISTS = ("Favourites", "Recently played", "Most played", "Recently added")
 
 
+class HiddenFilesDialog(QDialog):
+    """Files hidden from the library, to bring back. Hiding never touches the files."""
+
+    def __init__(self, service: LibraryService, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setWindowTitle("Hidden files")
+        self.setMinimumWidth(560)
+        self._service = service
+        box = QVBoxLayout(self)
+        box.setContentsMargins(theme.L, theme.L, theme.L, theme.L)
+        box.setSpacing(theme.M)
+        self.list = QListWidget()
+        self.list.setAccessibleName("Hidden files")
+        self.list.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        box.addWidget(self.list)
+        row = QHBoxLayout()
+        self.show_button = QPushButton("Show again")
+        self.show_button.setAccessibleName("Show the selected files again")
+        close = QPushButton("Close")
+        self.show_button.clicked.connect(self.show_selected)
+        close.clicked.connect(self.accept)
+        row.addWidget(self.show_button)
+        row.addStretch(1)
+        row.addWidget(close)
+        box.addLayout(row)
+        self.refresh()
+
+    def refresh(self) -> None:
+        self.list.clear()
+        self.list.addItems(self._service.db.hidden_media())
+        self.show_button.setEnabled(self.list.count() > 0)
+
+    def show_selected(self) -> None:
+        self._service.db.show_media([item.text() for item in self.list.selectedItems()])
+        self.refresh()
+
+
 class PlaylistsPanel(QWidget):
     play_requested = Signal(list, int)  # paths, start index
 
@@ -178,6 +216,16 @@ class PlaylistsPanel(QWidget):
         for button in (self.new_button, self.rename_button, self.delete_button):
             buttons.addWidget(button)
         left.addLayout(buttons)
+        files = QHBoxLayout()
+        self.import_button = QPushButton("Import…")
+        self.import_button.setAccessibleName("Import a playlist from an M3U file")
+        self.export_button = QPushButton("Export…")
+        self.export_button.setAccessibleName("Export the selected playlist as an M3U file")
+        self.import_button.clicked.connect(self.import_playlist)
+        self.export_button.clicked.connect(self.export_playlist)
+        files.addWidget(self.import_button)
+        files.addWidget(self.export_button)
+        left.addLayout(files)
         row.addLayout(left)
 
         right = QVBoxLayout()
@@ -312,6 +360,37 @@ class PlaylistsPanel(QWidget):
         else:
             self.hint.setText("Add files from the Media tab: right-click a file → Add to playlist.")
 
+    def import_playlist(self) -> None:
+        path, _ = QFileDialog.getOpenFileName(self, "Import a playlist", "", "Playlists (*.m3u *.m3u8)")
+        if not path:
+            return
+        try:
+            paths = m3u.read(Path(path))
+        except OSError as exc:
+            QMessageBox.warning(self, "Import", f"That file couldn't be read.\n{exc}")
+            return
+        playlist = self.new_playlist(Path(path).stem)
+        if playlist is not None:
+            self._service.db.add_to_playlist(playlist, paths)
+            self.refresh(select=playlist)
+
+    def export_playlist(self) -> None:
+        playlist = self.current_playlist
+        if playlist is None:
+            QMessageBox.information(self, "Export", "Choose a playlist first.")
+            return
+        items = self._service.db.playlist_items(playlist)
+        name = self.playlists.currentItem().text().split("  ")[0]
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export the playlist", f"{name}.m3u8", "Playlists (*.m3u8 *.m3u)"
+        )
+        if not path:
+            return
+        try:
+            Path(path).write_text(m3u.render([(i.path, i.title) for i in items]), encoding="utf-8")
+        except OSError as exc:
+            QMessageBox.warning(self, "Export", f"The playlist couldn't be saved.\n{exc}")
+
     def new_playlist(self, name: str | None = None) -> int | None:
         if name is None:
             name, ok = QInputDialog.getText(self, "New playlist", "Name:")
@@ -380,6 +459,8 @@ class LibraryPage(QWidget):
     play_requested = Signal(str)
     play_list_requested = Signal(list, int)
     shuffle_requested = Signal(list)
+    play_next_requested = Signal(list)
+    add_to_queue_requested = Signal(list)
     status_changed = Signal(str)
     sort_changed = Signal(str)
 
@@ -515,6 +596,8 @@ class LibraryPage(QWidget):
         panel.play_requested.connect(self.play_list_requested)
         panel.shuffle_requested.connect(self.shuffle_requested)
         panel.status_changed.connect(self.status_changed)
+        panel.play_next_requested.connect(self.play_next_requested)
+        panel.add_to_queue_requested.connect(self.add_to_queue_requested)
         self.stack.addWidget(panel)
         return panel
 
@@ -668,11 +751,24 @@ class LibraryPage(QWidget):
         rows = [self.model.entries.index(e) for e in entries]
         play = menu.addAction("Play" if len(entries) == 1 else f"Play {len(entries)} files")
         play.triggered.connect(lambda: self._play_rows(rows))
+        paths = [e.path for e in entries if e.available]
+        play_next = menu.addAction("Play next")
+        play_next.triggered.connect(lambda: self.play_next_requested.emit(paths))
+        add_to_queue = menu.addAction("Add to queue")
+        add_to_queue.triggered.connect(lambda: self.add_to_queue_requested.emit(paths))
+        play_next.setEnabled(bool(paths))
+        add_to_queue.setEnabled(bool(paths))
         self._fill_playlist_menu(menu.addMenu("Add to playlist"), entries)
         if len(entries) == 1 and entries[0].available:
             reveal = menu.addAction("Show in folder")
             reveal.triggered.connect(lambda: reveal_in_explorer(entries[0].path))
         menu.addSeparator()
+        hide = menu.addAction("Hide")
+        hide.setToolTip("The file stays on disk. Settings can bring it back.")
+        hide.triggered.connect(lambda: self.hide_entries(entries))
+        delete = menu.addAction("Delete from disk…")
+        delete.setToolTip("Moves the file to the Recycle Bin")
+        delete.triggered.connect(lambda: self.delete_entries(entries))
         remove = menu.addAction("Remove from library")
         remove.setToolTip("The file stays on disk")
         remove.triggered.connect(lambda: self.remove_entries(entries))
@@ -687,6 +783,17 @@ class LibraryPage(QWidget):
         pid = self.playlists.new_playlist()
         if pid is not None:
             self.add_to_playlist(pid, entries)
+
+    def hide_entries(self, entries: list[MediaEntry]) -> None:
+        self._service.db.hide_media([e.path for e in entries])
+        self.status_changed.emit(f"Hid {len(entries)} from the library. Settings can bring them back.")
+        self.refresh()
+
+    def delete_entries(self, entries: list[MediaEntry]) -> None:
+        message = delete_from_disk(self, self._service, entries)
+        if message is not None:
+            self.status_changed.emit(message)
+            self.refresh()
 
     def remove_entries(self, entries: list[MediaEntry]) -> None:
         self._service.db.remove_media([e.id for e in entries])

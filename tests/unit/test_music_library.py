@@ -23,6 +23,7 @@ from babarify_frame.library.music import (
     SongSort,
     group_songs,
 )
+from babarify_frame.playback.adapters.libvlc_probe import _year
 
 
 def add(db: LibraryDatabase, folder_id: int, name: str, **tags: object) -> str:
@@ -100,6 +101,31 @@ def test_songs_search_every_word_across_tags(tmp_path: Path) -> None:
     assert db.songs("100%") == []  # A search can't be read as a pattern.
 
 
+def test_songs_sort_by_plays_and_year(tmp_path: Path) -> None:
+    db, folder = library(tmp_path)
+    first = add(db, folder, "a.mp3", title="Aa")
+    second = add(db, folder, "b.mp3", title="Bb")
+    third = add(db, folder, "c.mp3", title="Cc")
+    db.record_play(third, "Cc", 1000)
+    db.record_play(third, "Cc", 1000)
+    db.record_play(second, "Bb", 1000)
+    titles = lambda order: [e.title for e in db.songs(sort=order)]  # noqa: E731
+    assert titles(SongSort.MOST_PLAYED) == ["Cc", "Bb", "Aa"]
+    for path, year in ((first, 2024), (second, 1999)):
+        entry = db.media_by_path(path)
+        assert entry is not None
+        record = ProbeRecord(1000, None, None, None, "mp3", None, entry.title, None, None, year)
+        db.set_probe_result(entry.id, record)
+    assert titles(SongSort.YEAR) == ["Aa", "Bb", "Cc"]
+
+
+def test_a_date_tag_gives_its_year() -> None:
+    assert _year("1999") == 1999
+    assert _year("2024-05-01") == 2024
+    assert _year("unknown") is None
+    assert _year(None) is None
+
+
 def test_songs_sort(tmp_path: Path) -> None:
     db, folder = library(tmp_path)
     add(db, folder, "a.mp3", title="Beta", artist="Zed", album="One", duration_ms=5)
@@ -112,6 +138,8 @@ def test_songs_sort(tmp_path: Path) -> None:
     assert titles(SongSort.ARTIST) == ["alpha", "Beta", "Gamma"]
     assert titles(SongSort.ALBUM) == ["Beta", "alpha", "Gamma"]
     assert titles(SongSort.RECENTLY_ADDED) == ["Gamma", "alpha", "Beta"]
+    assert titles(SongSort.OLDEST_ADDED) == ["Beta", "alpha", "Gamma"]
+    assert titles(SongSort.FOLDER) == ["Beta", "alpha", "Gamma"]
     assert titles(SongSort.LONGEST) == ["alpha", "Beta", "Gamma"]
 
 

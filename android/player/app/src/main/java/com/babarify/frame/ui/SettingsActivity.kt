@@ -20,8 +20,10 @@ import android.widget.Toast
 import com.babarify.frame.R
 import com.babarify.frame.core.LeaveAction
 import com.babarify.frame.core.PlaybackRules
+import com.babarify.frame.data.Backup
 import com.babarify.frame.data.HistoryStore
 import com.babarify.frame.data.LibraryStore
+import com.babarify.frame.data.MusicLibrary
 import com.babarify.frame.data.Preferences
 import com.babarify.frame.engine.PlaybackSession
 
@@ -109,7 +111,12 @@ class SettingsActivity : Activity() {
 
         section(R.string.section_privacy)
         check(R.string.remember_history, preferences.rememberHistory) { preferences.rememberHistory = it }
+        choice(getString(R.string.hidden_songs)) { chooseHiddenSongs() }
         choice(getString(R.string.clear_recent)) { clearRecent() }
+
+        section(R.string.section_backup)
+        choice(getString(R.string.backup_create)) { pickBackupFile() }
+        choice(getString(R.string.backup_restore)) { pickRestoreFile() }
 
         section(R.string.about)
         choice(getString(R.string.about)) { startActivity(Intent(this, AboutActivity::class.java)) }
@@ -158,6 +165,91 @@ class SettingsActivity : Activity() {
                 build()
             }
         }
+    }
+
+    private fun pickBackupFile() {
+        val pick = android.content.Intent(android.content.Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(android.content.Intent.CATEGORY_OPENABLE)
+            type = "application/json"
+            putExtra(android.content.Intent.EXTRA_TITLE, "babarify-backup.json")
+        }
+        @Suppress("DEPRECATION")
+        startActivityForResult(pick, REQUEST_BACKUP)
+    }
+
+    private fun pickRestoreFile() {
+        val pick = android.content.Intent(android.content.Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(android.content.Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+        }
+        @Suppress("DEPRECATION")
+        startActivityForResult(pick, REQUEST_RESTORE)
+    }
+
+    @Deprecated("The activity result API would add androidx.activity for one call.")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+        @Suppress("DEPRECATION")
+        super.onActivityResult(requestCode, resultCode, data)
+        val uri = data?.data
+        if (resultCode != RESULT_OK || uri == null) return
+        when (requestCode) {
+            REQUEST_BACKUP -> writeBackup(uri)
+            REQUEST_RESTORE -> AlertDialog.Builder(this)
+                .setTitle(R.string.backup_restore)
+                .setMessage(R.string.backup_restore_question)
+                .setPositiveButton(R.string.backup_restore) { _, _ -> restoreBackup(uri) }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+    }
+
+    private fun writeBackup(uri: android.net.Uri) {
+        val message = try {
+            contentResolver.openOutputStream(uri)?.use { Backup.write(this, it) }
+            R.string.backup_saved
+        } catch (_: java.io.IOException) {
+            R.string.backup_not_saved
+        }
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
+    private fun restoreBackup(uri: android.net.Uri) {
+        try {
+            val restored = contentResolver.openInputStream(uri)?.use { Backup.restore(this, it) } ?: return
+            val text = getString(R.string.backup_restored, restored.playlists, restored.favourites)
+            Toast.makeText(this, text, Toast.LENGTH_LONG).show()
+            recreate()
+        } catch (unusable: Backup.Unusable) {
+            val reason = when (unusable.reason) {
+                Backup.Reason.NOT_A_BACKUP -> R.string.backup_not_a_backup
+                Backup.Reason.TOO_NEW -> R.string.backup_too_new
+            }
+            Toast.makeText(this, reason, Toast.LENGTH_LONG).show()
+        } catch (_: java.io.IOException) {
+            Toast.makeText(this, R.string.backup_not_a_backup, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun chooseHiddenSongs() {
+        val hidden = preferences.hiddenSongs
+        val songs = MusicLibrary.everySong(this).filter { it.uri in hidden }
+        if (songs.isEmpty()) {
+            preferences.hiddenSongs = emptySet() // Any left are files that have since gone.
+            Toast.makeText(this, R.string.no_hidden_songs, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val chosen = BooleanArray(songs.size)
+        AlertDialog.Builder(this)
+            .setTitle(R.string.hidden_songs)
+            .setMultiChoiceItems(songs.map { it.title }.toTypedArray(), chosen) { _, which, ticked ->
+                chosen[which] = ticked
+            }
+            .setPositiveButton(R.string.show_again) { _, _ ->
+                val back = songs.filterIndexed { index, _ -> chosen[index] }.map { it.uri }
+                preferences.hiddenSongs = preferences.hiddenSongs - back.toSet()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun clearRecent() {
@@ -276,4 +368,9 @@ class SettingsActivity : Activity() {
     }
 
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
+
+    private companion object {
+        const val REQUEST_BACKUP = 21
+        const val REQUEST_RESTORE = 22
+    }
 }

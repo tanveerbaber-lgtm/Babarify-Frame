@@ -341,6 +341,12 @@ class LibraryStore(context: Context) :
 
     fun mostPlayed(limit: Int = AUTOMATIC_LIST_SIZE): List<SavedTrack> = tracks("plays", "times DESC, last_played DESC", limit)
 
+    /** How many times each file has been played, by its uri. */
+    fun playCounts(): Map<String, Int> =
+        readableDatabase.query("plays", arrayOf("uri", "times"), null, null, null, null, null).use { c ->
+            buildMap { while (c.moveToNext()) put(c.getString(0), c.getInt(1)) }
+        }
+
     fun clearPlays() {
         writableDatabase.delete("plays", null, null)
     }

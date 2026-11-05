@@ -192,10 +192,29 @@ def test_a_songs_menu_adds_favourites(qtbot: QtBot, window: MainWindow, songs: l
     entry = panel.songs.entries[0]
     menu = panel.build_context_menu([entry])
     labels = [action.text() for action in menu.actions()]
-    assert labels[0] == "Add to favourites" and "Add to playlist" in labels
-    menu.actions()[0].trigger()
+    assert "Add to favourites" in labels and "Add to playlist" in labels
+    next(action for action in menu.actions() if action.text() == "Add to favourites").trigger()
     assert window.library_service.db.is_favourite(entry.path)
-    assert panel.build_context_menu([entry]).actions()[0].text() == "Remove from favourites"
+    labels = [action.text() for action in panel.build_context_menu([entry]).actions()]
+    assert "Remove from favourites" in labels
+
+
+def test_a_songs_menu_lines_it_up_and_hides_it(qtbot: QtBot, window: MainWindow, songs: list[str]) -> None:
+    open_tab(window, "Songs")
+    panel = window.library.songs_panel
+    first, second, third = panel.songs.entries[:3]
+
+    def choose(entry: object, text: str) -> None:
+        next(a for a in panel.build_context_menu([entry]).actions() if a.text() == text).trigger()
+
+    choose(first, "Add to queue")  # nothing playing: it just plays
+    qtbot.waitUntil(lambda: window.player.queue == ([first.path], 0), timeout=5000)
+    choose(second, "Add to queue")
+    choose(third, "Play next")
+    assert window.player.queue == ([first.path, third.path, second.path], 0)
+    choose(first, "Hide")
+    assert first.path not in [entry.path for entry in panel.songs.entries]
+    assert window.library_service.db.hidden_media() == [first.path]
 
 
 def test_automatic_lists_show_and_play(qtbot: QtBot, window: MainWindow, songs: list[str]) -> None:

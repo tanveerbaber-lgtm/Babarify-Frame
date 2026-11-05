@@ -42,6 +42,22 @@ class PlayQueue(val items: List<QueueItem>, startIndex: Int = 0) {
     /** The same items, moved to [current] in this order, for turning shuffle off. */
     fun at(current: QueueItem?): PlayQueue = PlayQueue(items, items.indexOf(current).coerceAtLeast(0))
 
+    /** The same queue with [item] straight after the current one. */
+    fun withNext(item: QueueItem): PlayQueue {
+        val position = if (items.isEmpty()) 0 else index + 1
+        return PlayQueue(items.take(position) + item + items.drop(position), index)
+    }
+
+    /** The same queue with [item] at the end. */
+    fun withLast(item: QueueItem): PlayQueue = PlayQueue(items + item, index)
+
+    /** The same queue without these files, still on the current one if it stays. */
+    fun without(uris: Set<String>): PlayQueue {
+        val current = items.getOrNull(index)
+        val kept = items.filterNot { it.uri in uris }
+        return PlayQueue(kept, kept.indexOf(current).coerceAtLeast(0))
+    }
+
     private fun first(): QueueItem? {
         index = 0
         return items.firstOrNull()

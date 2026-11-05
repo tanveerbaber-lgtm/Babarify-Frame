@@ -1009,6 +1009,24 @@ class FeatureFlowsTest {
     }
 
     @Test
+    fun theIntroPlaysOnceAndThenLeavesTheHomeScreenFree() {
+        fun overlay(activity: android.app.Activity): android.view.View? =
+            activity.window.decorView.findViewWithTag(com.babarify.frame.ui.AppIntro.TAG)
+        com.babarify.frame.ui.AppIntro.forget()
+        ActivityScenario.launch(HomeActivity::class.java).use { home ->
+            if (android.animation.ValueAnimator.areAnimatorsEnabled()) {
+                assertTrue("playing", home.read { overlay(it) != null })
+            }
+            val deadline = SystemClock.uptimeMillis() + 10_000
+            while (home.read { overlay(it) != null } && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(100)
+            assertTrue("gone", home.read { overlay(it) == null })
+        }
+        ActivityScenario.launch(HomeActivity::class.java).use { home ->
+            assertTrue("not played twice", home.read { overlay(it) == null })
+        }
+    }
+
+    @Test
     fun theBottomTabsOpenTheirScreens() {
         val tabs = listOf(
             R.id.navMusic to com.babarify.frame.ui.MusicActivity::class.java,

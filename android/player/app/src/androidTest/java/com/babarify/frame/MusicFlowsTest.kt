@@ -206,6 +206,100 @@ class MusicFlowsTest {
         }
     }
 
+    @Test
+    fun aBackupBringsBackSettingsAndLists() {
+        val preferences = session().preferences
+        val before = preferences.hiddenSongs
+        val name = "$prefix backup"
+        val song = testSongs().first()
+        LibraryStore(context).use { store ->
+            val id = store.createPlaylist(name)
+            store.addToPlaylist(id, song.uri, "Song")
+            store.setFavourite(song.uri, "Song", true)
+        }
+        preferences.hiddenSongs = before + "content://hidden"
+        val file = java.io.ByteArrayOutputStream()
+        try {
+            com.babarify.frame.data.Backup.write(context, file)
+            LibraryStore(context).use { store ->
+                store.deletePlaylist(store.playlists().first { it.name == name }.id)
+                store.setFavourite(song.uri, "Song", false)
+            }
+            preferences.hiddenSongs = before
+            val restored = com.babarify.frame.data.Backup.restore(context, file.toByteArray().inputStream())
+            assertEquals(1, restored.playlists)
+            assertEquals(1, restored.favourites)
+            assertTrue("content://hidden" in preferences.hiddenSongs)
+            LibraryStore(context).use { store ->
+                val back = store.playlists().first { it.name == name }
+                assertEquals(listOf(song.uri), store.playlistItems(back.id).map { it.uri })
+                assertTrue(store.isFavourite(song.uri))
+            }
+            val again = com.babarify.frame.data.Backup.restore(context, file.toByteArray().inputStream())
+            assertEquals("restoring twice adds nothing", 0, again.playlists + again.favourites)
+            var refused = false
+            try {
+                com.babarify.frame.data.Backup.restore(context, "{}".byteInputStream())
+            } catch (_: com.babarify.frame.data.Backup.Unusable) {
+                refused = true
+            }
+            assertTrue(refused)
+        } finally {
+            preferences.hiddenSongs = before
+            LibraryStore(context).use { store ->
+                store.playlists().filter { it.name == name }.forEach { store.deletePlaylist(it.id) }
+                store.setFavourite(song.uri, "Song", false)
+            }
+        }
+    }
+
+    @Test
+    fun hiddenSongsLeaveTheListUntilShownAgain() {
+        val preferences = session().preferences
+        val before = preferences.hiddenSongs
+        val song = testSongs().first()
+        try {
+            preferences.hiddenSongs = before + song.uri
+            assertEquals(1, testSongs().size)
+            assertTrue(MusicLibrary.everySong(context).any { it.uri == song.uri })
+            ActivityScenario.launch(MusicActivity::class.java).use { scenario ->
+                waitUntil("songs listed") { scenario.read { it.isLoaded } }
+                assertFalse(scenario.read { activity -> activity.shownSongs.any { it.uri == song.uri } })
+            }
+            preferences.hiddenSongs = before
+            assertEquals(2, testSongs().size)
+        } finally {
+            preferences.hiddenSongs = before
+        }
+    }
+
+    @Test
+    fun severalSongsCanBeSelected() {
+        ActivityScenario.launch(MusicActivity::class.java).use { scenario ->
+            waitUntil("songs listed") { scenario.read { it.isLoaded && it.shownSongs.isNotEmpty() } }
+            val songs = testSongs()
+            scenario.onActivity { activity ->
+                activity.findViewById<android.view.View>(R.id.musicSelectButton).performClick()
+                assertTrue(activity.isSelecting)
+                songs.forEach(activity::toggleSelected)
+                assertEquals(songs.map { it.uri }.toSet(), activity.selectedSongs.map { it.uri }.toSet())
+                activity.toggleSelected(songs[0])
+                assertEquals(1, activity.selectedSongs.size)
+                activity.toggleSelected(songs[0])
+                assertEquals(
+                    android.view.View.GONE,
+                    activity.findViewById<android.view.View>(R.id.bottomNav).visibility,
+                )
+                activity.findViewById<android.view.View>(R.id.selectionClose).performClick()
+                assertFalse(activity.isSelecting)
+                assertEquals(
+                    android.view.View.VISIBLE,
+                    activity.findViewById<android.view.View>(R.id.bottomNav).visibility,
+                )
+            }
+        }
+    }
+
     private fun playBoth(shuffle: Boolean, check: (PlayerActivity) -> Unit) {
         val monitor = instrumentation.addMonitor(PlayerActivity::class.java.name, null, false)
         ActivityScenario.launch(MusicActivity::class.java).use { scenario ->

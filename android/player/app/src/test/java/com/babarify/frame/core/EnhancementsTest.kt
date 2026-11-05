@@ -123,6 +123,32 @@ class EnhancementsTest {
     }
 
     @Test
+    fun playNextGoesAfterTheCurrentItemAndAddToQueueAtTheEnd() {
+        val a = QueueItem("a", "A")
+        val b = QueueItem("b", "B")
+        val c = QueueItem("c", "C")
+        val d = QueueItem("d", "D")
+        val queue = PlayQueue(listOf(a, b, c), 1)
+        val next = queue.withNext(d)
+        assertEquals(listOf(a, b, d, c), next.items)
+        assertEquals("still on the same song", 1, next.index)
+        val last = queue.withLast(d)
+        assertEquals(listOf(a, b, c, d), last.items)
+        assertEquals(1, last.index)
+        assertEquals(listOf(d), PlayQueue(emptyList()).withNext(d).items)
+    }
+
+    @Test
+    fun removingFilesKeepsTheCurrentOne() {
+        val a = QueueItem("a", "A")
+        val b = QueueItem("b", "B")
+        val c = QueueItem("c", "C")
+        val queue = PlayQueue(listOf(a, b, c), 2).without(setOf("a"))
+        assertEquals(listOf(b, c), queue.items)
+        assertEquals(c, queue.items[queue.index])
+    }
+
+    @Test
     fun repeatDecidesWhatPlaysAtTheEnd() {
         val items = listOf(QueueItem("a", "A"), QueueItem("b", "B"))
         val off = PlayQueue(items, 1)

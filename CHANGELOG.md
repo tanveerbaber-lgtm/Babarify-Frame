@@ -25,6 +25,12 @@ releases are in [`docs/release-notes/`](docs/release-notes/).
   Recently added lists.
 - Changed: in full screen, audio keeps its controls until you hide them.
 - Changed: the status bar along the bottom is hidden unless you switch it on in Settings or the View menu.
+- New: Play next and Add to queue from a song's menu.
+- New: hide files from the library, and bring them back in Settings. The files aren't touched.
+- New: delete from disk, which asks first and moves the file to the Recycle Bin.
+- New: back up settings, playlists, favourites and hidden files to a file, and restore them.
+- New: import and export playlists as M3U.
+- New: sort songs by folder, oldest first, most played or year. Songs are read once more for their year.
 - New: volume from 1 to 100, with optional boost to 200 (already on main, listed here until released).
 
 ## Android 0.2.0-beta (not released)
@@ -47,6 +53,12 @@ Brings the Android app close to the Windows app. Not yet published.
 - New: favourites, and automatic Recently played, Most played and Recently added lists.
 - New: a queue you can jump around in, and shuffle that can be switched off again.
 - New: an equalizer screen with preset chips, upright sliders, and bass boost and preamp dials.
+- New: an opening animation with the icon and name when the app starts. Tap to skip it.
+- New: Play next and Add to queue, selecting several songs, and hiding songs (Settings brings them back).
+- New: delete songs from the phone, always after a confirmation.
+- New: back up settings, playlists and favourites to a file, and restore them.
+- New: import and export playlists as M3U. Songs are matched by file name.
+- New: sort songs by folder, oldest first, most played or year.
 - New: seven colour themes, a sleep timer and touch lock. In Light, the player stays dark so its controls can be
   read over video.
 - New: a mini player on the main screens: a card coloured from the song's picture, with its progress, title and

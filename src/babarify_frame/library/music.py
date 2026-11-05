@@ -20,13 +20,21 @@ class SongSort(StrEnum):
     ALBUM = "album"
     RECENTLY_ADDED = "recently_added"
     LONGEST = "longest"
+    OLDEST_ADDED = "oldest_added"
+    MOST_PLAYED = "most_played"
+    YEAR = "year"
+    FOLDER = "folder"
 
 
 SONG_SORT_LABELS = {
     SongSort.TITLE: "Title",
     SongSort.ARTIST: "Artist",
     SongSort.ALBUM: "Album",
-    SongSort.RECENTLY_ADDED: "Recently added",
+    SongSort.FOLDER: "Folder",
+    SongSort.RECENTLY_ADDED: "Newest first",
+    SongSort.OLDEST_ADDED: "Oldest first",
+    SongSort.MOST_PLAYED: "Most played",
+    SongSort.YEAR: "Year",
     SongSort.LONGEST: "Longest first",
 }
 UNKNOWN_ALBUM = "Unknown album"
