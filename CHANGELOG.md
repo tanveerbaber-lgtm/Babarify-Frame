@@ -12,6 +12,10 @@ releases are in [`docs/release-notes/`](docs/release-notes/).
 - New: repeat off, this file or all, remembered between sessions.
 - New: shuffle, and a queue you can jump around in, for playlists.
 - New: a sleep timer that pauses playback.
+- New: the Library has Songs, Albums and Artists tabs, from your folders' tags and pictures, with search, sorting,
+  Play and Shuffle. Existing songs are read once more, in the background, the first time this version runs.
+- New: favourites, with a heart on the player, and automatic Favourites, Recently played, Most played and
+  Recently added lists.
 - Changed: in full screen, audio keeps its controls until you hide them.
 - New: volume from 1 to 100, with optional boost to 200 (already on main, listed here until released).
 

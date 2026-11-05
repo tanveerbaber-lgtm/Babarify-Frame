@@ -9,7 +9,7 @@ the developer or anyone else.
 | What | Where | Why | How to remove |
 |---|---|---|---|
 | Settings | `%APPDATA%\Babarify\Frame\settings.json` | Your choices (volume, subtitles, picture…) | *Settings → Reset to defaults*, or delete the file |
-| Library, history, bookmarks, playlists | `%APPDATA%\Babarify\Frame\library.db` and `thumbnails\` | Library page, *Continue watching*, resume, bookmarks | *Settings → Privacy → Clear history*; remove folders and entries in the Library; history can be switched off |
+| Library, songs' tags and pictures, history and play counts, bookmarks, playlists, favourites | `%APPDATA%\Babarify\Frame\library.db` and `thumbnails\` | Library page, *Continue watching*, resume, bookmarks, automatic playlists | *Settings → Privacy → Clear history*; remove folders and entries in the Library; history can be switched off |
 | Generated subtitles and their search index | `%APPDATA%\Babarify\Frame\subtitles\` and the library database | Only if you use the optional AI features | *Settings → AI features → Delete all generated subtitles* |
 | Speech models | `%LOCALAPPDATA%\Babarify\Frame\models\` | Only if you download one | *Settings → AI features → Delete model* |
 | Logs and crash records | `%LOCALAPPDATA%\Babarify\Frame\logs\` | To help you (or someone you choose to share them with) understand a problem | Delete the folder at any time; old entries are trimmed automatically |

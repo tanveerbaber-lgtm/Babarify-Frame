@@ -19,11 +19,14 @@ import threading
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
+from babarify_frame.core.cover_art import read_embedded_picture
+from babarify_frame.core.models import AUDIO_EXTENSIONS
 from babarify_frame.library.database import LibraryDatabase, ProbeRecord
 from babarify_frame.library.models import path_key
 from babarify_frame.library.scanner import ScanSummary, scan_folder
-from babarify_frame.playback.media_probe import MediaProbe, ProbeResult
+from babarify_frame.playback.media_probe import THUMBNAIL_WIDTH, MediaProbe, ProbeResult
 
 log = logging.getLogger(__name__)
 
@@ -223,10 +226,39 @@ class LibraryService:
     def _record(self, path: str, result: ProbeResult | None) -> ProbeRecord | None:
         if result is None:
             return None
-        thumb = self._save_thumbnail(path, result)
+        thumb = self._save_thumbnail(path, result) or self._save_cover(path)
         return ProbeRecord(
-            result.duration_ms, result.width, result.height, result.video_codec, result.audio_codec, thumb
+            result.duration_ms,
+            result.width,
+            result.height,
+            result.video_codec,
+            result.audio_codec,
+            thumb,
+            result.title,
+            result.artist,
+            result.album,
         )
+
+    def _save_cover(self, path: str) -> str | None:
+        """A song's own picture, as its thumbnail."""
+        if self.thumbnail_dir is None or os.path.splitext(path)[1].lower() not in AUDIO_EXTENSIONS:
+            return None
+        data = read_embedded_picture(path)
+        if not data:
+            return None
+        from PySide6.QtCore import Qt
+        from PySide6.QtGui import QImage  # QImage is safe to use off the GUI thread
+
+        image = QImage.fromData(data)
+        if image.isNull():
+            return None
+        small = image.scaled(
+            THUMBNAIL_WIDTH,
+            THUMBNAIL_WIDTH,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        return self._write_thumbnail(path, small)
 
     def _save_thumbnail(self, path: str, result: ProbeResult) -> str | None:
         if self.thumbnail_dir is None or not result.thumbnail:
@@ -234,7 +266,10 @@ class LibraryService:
         from PySide6.QtGui import QImage  # QImage is safe to use off the GUI thread
 
         w, h = result.thumbnail_width, result.thumbnail_height
-        image = QImage(result.thumbnail, w, h, w * 4, QImage.Format.Format_RGB32)
+        return self._write_thumbnail(path, QImage(result.thumbnail, w, h, w * 4, QImage.Format.Format_RGB32))
+
+    def _write_thumbnail(self, path: str, image: Any) -> str | None:
+        assert self.thumbnail_dir is not None
         try:
             stamp = os.stat(path).st_mtime_ns
         except OSError:

@@ -85,7 +85,7 @@ def main() -> int:
         pid, [str(MEDIA / n) for n in ("c_vp8_vorbis_720p.webm", "gone.mp4", "c_audio_flac.flac")]
     )
     window.show_page(window.library)
-    window.library.tabs.setCurrentIndex(1)
+    window.library.tabs.setCurrentIndex(4)
     window.library.playlists.refresh(select=pid)
     pump(app, 0.4)
     grab(app, window, out / "library_playlists.png")

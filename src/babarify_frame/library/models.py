@@ -57,6 +57,13 @@ class MediaEntry:
     duplicates: int = 0  # other library entries with the same content
     position_ms: int = 0  # from history, when known
     last_played_at: float | None = None
+    title: str | None = None  # from the file's tags
+    artist: str | None = None
+    album: str | None = None
+
+    @property
+    def display_title(self) -> str:
+        return self.title or os.path.splitext(self.name)[0] or self.name
 
     @property
     def is_video(self) -> bool:
