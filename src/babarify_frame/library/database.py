@@ -227,7 +227,7 @@ class LibraryDatabase:
             if version > SCHEMA_VERSION:
                 conn.close()
                 self.read_only_reason = (
-                    f"The library was created by a newer version of Babarify Frame (schema {version}). "
+                    f"The library was created by a newer version of Babarify Media Player (schema {version}). "  # noqa: E501
                     "It was left untouched; this session uses an empty library."
                 )
                 log.warning("library schema %s is newer than %s; not opened", version, SCHEMA_VERSION)

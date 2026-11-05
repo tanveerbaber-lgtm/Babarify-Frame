@@ -1,4 +1,4 @@
-# Releasing Babarify Frame (M10)
+# Releasing Babarify Media Player (M10)
 
 ## Versioning
 
@@ -23,9 +23,9 @@ engine in `.engines/vlc` (README), git.
 1. Update `__version__`, `pyproject.toml` and add `docs/release-notes/<version>.md`.
 2. Commit. The build refuses a dirty tree (except `--allow-dirty` for test builds).
 3. `python tools/build_release.py` writes `release/<version>/`:
-   - `BabarifyFrame-<version>-setup.exe`: the installer
-   - `BabarifyFrame-<version>-source.zip`: `git archive` of the built commit (GPL source)
-   - `BabarifyFrame-<version>-manifest.json`: every shipped file with size and SHA-256, and
+   - `BabarifyMediaPlayer-<version>-setup.exe`: the installer
+   - `BabarifyMediaPlayer-<version>-source.zip`: `git archive` of the built commit (GPL source)
+   - `BabarifyMediaPlayer-<version>-manifest.json`: every shipped file with size and SHA-256, and
      the commit
    - `SHA256SUMS.txt`
 4. `python tools/release_check.py <previous-setup.exe> <new-setup.exe>`: install, run in a
@@ -64,7 +64,7 @@ Windows SDK's `signtool.exe` is available on the development PC.
 ## Licence obligations (GPL-3.0-or-later)
 
 - `LICENSE.txt` and `THIRD_PARTY_NOTICES.txt` (with `licenses\`) are in the program folder.
-- The corresponding source of Babarify Frame for each release is the published
+- The corresponding source of Babarify Media Player for each release is the published
   `-source.zip`. Sources of bundled components are listed in the notices (VLC 3.0.24 source
   tarball, PyPI source distributions, Qt/PySide6 sources); on request the maintainer provides
   them for at least three years.

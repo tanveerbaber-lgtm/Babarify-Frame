@@ -60,6 +60,38 @@ def main() -> None:
         combo.setCurrentIndex(combo.findData(key))
         pump(app, 0.5)
         window.grab().save(str(out / f"theme_{key}.png"))
+    combo.setCurrentIndex(combo.findData("light"))
+    pump(app, 0.5)
+    tabs = window.library.tabs
+    for index in range(tabs.count()):
+        tabs.setCurrentIndex(index)
+        pump(app, 0.4)
+        window.grab().save(str(out / f"light_library_{tabs.tabText(index).lower()}.png"))
+    window.show_page(window.home)
+    pump(app, 0.5)
+    window.grab().save(str(out / "light_home.png"))
+    window.show_page(window.settings)
+    pump(app, 0.5)
+    window.grab().save(str(out / "light_settings.png"))
+    window.player.play_queue([song.path for song in service.db.songs()])
+    window.show_page(window.player)
+    pump(app, 3)
+    window.grab().save(str(out / "light_playing_picture.png"))
+    plain = [song.path for song in service.db.songs() if not song.thumbnail]
+    if plain:
+        window.player.play_queue(plain)
+        pump(app, 3)
+        window.grab().save(str(out / "light_playing_animation.png"))
+    window.show_enhancements()
+    light_dialog = window._enhancements
+    assert light_dialog is not None
+    light_dialog.tabs.setCurrentIndex(2)
+    pump(app, 0.4)
+    light_dialog.grab().save(str(out / "light_equalizer.png"))
+    light_dialog.close()
+    window.player.stop()
+    pump(app, 0.5)
+    window.grab().save(str(out / "light_stopped.png"))
     combo.setCurrentIndex(combo.findData("ocean"))
     window.show_page(window.settings)
     pump(app, 0.5)

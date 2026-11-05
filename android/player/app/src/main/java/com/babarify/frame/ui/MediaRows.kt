@@ -78,7 +78,7 @@ class MediaRowAdapter(private val context: Context) : BaseAdapter() {
             image.scaleType = ImageView.ScaleType.CENTER_CROP
             image.setImageBitmap(bitmap)
         } else {
-            image.imageTintList = row.iconColour?.let(ColorStateList::valueOf) ?: context.getColorStateList(R.color.text_muted)
+            image.imageTintList = row.iconColour?.let(ColorStateList::valueOf) ?: android.content.res.ColorStateList.valueOf(context.themeColor(R.attr.inkMutedColor))
             image.scaleType = ImageView.ScaleType.CENTER
             image.setImageResource(row.placeholder)
         }

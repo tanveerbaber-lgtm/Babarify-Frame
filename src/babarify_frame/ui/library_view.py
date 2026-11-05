@@ -176,7 +176,7 @@ class LibraryDelegate(QStyledItemDelegate):
             badge_rect = QRect(thumb_rect.right() - width - 6, thumb_rect.y() + 6, width, 18)
             painter.setBrush(QColor(theme.AMBER if entry.available else theme.RED))
             painter.drawRoundedRect(badge_rect, 9, 9)
-            painter.setPen(QColor("#04101F"))
+            painter.setPen(QColor(theme.ON_ACCENT))
             painter.drawText(badge_rect, Qt.AlignmentFlag.AlignCenter, badge)
             painter.setFont(option.font)
 

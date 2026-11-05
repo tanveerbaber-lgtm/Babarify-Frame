@@ -112,10 +112,10 @@ def write(release: Path, vlc_dir: Path, version: str) -> list[dict[str, str]]:
     rows.insert(1, vlc_row)
 
     lines = [
-        f"Babarify Frame {version} — third-party notices",
+        f"Babarify Media Player {version} — third-party notices",
         "=" * 60,
         "",
-        "Babarify Frame is free software: you can redistribute it and/or modify it under the terms",
+        "Babarify Media Player is free software: you can redistribute it and/or modify it under the terms",
         "of the GNU General Public License as published by the Free Software Foundation, either",
         "version 3 of the License, or (at your option) any later version (see LICENSE.txt). It is",
         "distributed WITHOUT ANY WARRANTY.",
@@ -123,8 +123,8 @@ def write(release: Path, vlc_dir: Path, version: str) -> list[dict[str, str]]:
         "It bundles the components below, each under its own licence (texts in licenses\\). Qt and",
         "PySide6 are used under the LGPL v3 as separate, replaceable libraries (_internal\\PySide6).",
         "",
-        "Source code: the corresponding source for this release of Babarify Frame is published with",
-        f"the release (BabarifyFrame-{version}-source.zip). Sources of the bundled components are",
+        "Source code: the corresponding source for this release of Babarify Media Player is published with",
+        f"the release (BabarifyMediaPlayer-{version}-source.zip). Sources of the bundled components are",
         "listed below; on request the maintainer provides the exact sources used for this build, for",
         "at least three years after the last distribution of this version (GPL v3 section 6).",
         "",

@@ -1,4 +1,4 @@
-"""Babarify Frame.exe (PyInstaller entry point)."""
+"""Babarify Media Player.exe (PyInstaller entry point)."""
 
 import sys
 

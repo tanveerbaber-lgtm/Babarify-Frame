@@ -75,11 +75,11 @@ log = logging.getLogger(__name__)
 
 
 def snapshot_folder() -> Path:
-    """Pictures\\Babarify Frame (BABARIFY_SNAPSHOT_DIR overrides it, e.g. for tests)."""
+    """Pictures\\Babarify Media Player (BABARIFY_SNAPSHOT_DIR overrides it, e.g. for tests)."""
     override = os.environ.get("BABARIFY_SNAPSHOT_DIR")
     if override:
         return Path(override)
-    return Path.home() / "Pictures" / "Babarify Frame"
+    return Path.home() / "Pictures" / "Babarify Media Player"
 
 
 S = PlaybackState
@@ -222,6 +222,7 @@ class PlayerPage(QWidget):
         box.setAlignment(Qt.AlignmentFlag.AlignCenter)
         box.setSpacing(theme.M)
         self._message_icon = QLabel()
+        self._message_glyph = "info"
         self._message_title = QLabel()
         self._message_title.setObjectName("title")
         self._message_body = QLabel()
@@ -1005,7 +1006,7 @@ class PlayerPage(QWidget):
         self.status_changed.emit("Previous frame" if backward else "Next frame")
 
     def take_snapshot(self, folder: Path | None = None) -> Path | None:
-        """Save the current frame as PNG in Pictures\\Babarify Frame (local, user-initiated)."""
+        """Save the current frame as PNG in Pictures\\Babarify Media Player (local, user-initiated)."""
         if self._state not in (S.PLAYING, S.PAUSED, S.BUFFERING):
             return None
         target_dir = folder or snapshot_folder()
@@ -1392,12 +1393,23 @@ class PlayerPage(QWidget):
         self.status_changed.emit(error.user_message)
         self.title_changed.emit("")
 
-    def _show_message(self, glyph: str, title: str, body: str) -> None:
+    def refresh_theme(self) -> None:
+        """What holds its colour in a picture is drawn again."""
+        self.controls.refresh_theme()
+        self.audio_view.refresh_theme()
+        self._draw_message_icon()
+
+    def _draw_message_icon(self) -> None:
+        glyph = self._message_glyph
         color = {"error": theme.RED, "music": theme.CYAN}.get(glyph, theme.TEXT_MUTED)
         icon = glyph_icon(glyph, color, theme.TEXT_DISABLED, size=64)
         self._message_icon.setVisible(icon is not None)
         if icon is not None:
             self._message_icon.setPixmap(icon.pixmap(QSize(48, 48)))
+
+    def _show_message(self, glyph: str, title: str, body: str) -> None:
+        self._message_glyph = glyph
+        self._draw_message_icon()
         self._message_title.setText(title)
         self._message_body.setText(body)
         self._message_body.setVisible(bool(body))

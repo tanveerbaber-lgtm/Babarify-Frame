@@ -75,7 +75,7 @@ class BackgroundPlaybackService : Service(), SessionListener {
         wakeLock = getSystemService(PowerManager::class.java)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "babarify:background-audio")
             .apply { setReferenceCounted(false) }
-        mediaSession = MediaSession(this, "BabarifyFrame").apply {
+        mediaSession = MediaSession(this, "BabarifyMediaPlayer").apply {
             setCallback(object : MediaSession.Callback() {
                 override fun onPlay() = session.resume()
                 override fun onPause() = session.pause()

@@ -44,7 +44,7 @@ READ_TIMEOUT_S = 20.0
 MAX_REDIRECTS = 5
 MAX_PLAYLIST_BYTES = 4 * 1024 * 1024
 CHUNK = 64 * 1024
-USER_AGENT = f"BabarifyFrame/{__version__} (libVLC)"
+USER_AGENT = f"BabarifyMediaPlayer/{__version__} (libVLC)"
 # Request headers passed on to the server, and response headers passed back to libVLC.
 _REQUEST_HEADERS = ("Range", "Icy-MetaData", "Accept")
 _RESPONSE_HEADERS = (

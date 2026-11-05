@@ -38,7 +38,10 @@ object ColourThemes {
         Choice("violet", R.string.theme_violet, R.style.Colours_Violet),
         Choice("amber", R.string.theme_amber, R.style.Colours_Amber),
         Choice("rose", R.string.theme_rose, R.style.Colours_Rose),
+        Choice("light", R.string.theme_light, R.style.Colours_Light),
     )
+
+    fun isLight(choice: Choice): Boolean = choice.key == "light"
 
     fun current(preferences: Preferences): Choice = ALL.firstOrNull { it.key == preferences.colourTheme } ?: ALL.first()
 }
@@ -55,7 +58,9 @@ class BabarifyApp : Application(), Application.ActivityLifecycleCallbacks {
 
     override fun onActivityPreCreated(activity: Activity, savedInstanceState: Bundle?) {
         val choice = ColourThemes.current(preferences)
-        choice.style?.let { activity.theme.applyStyle(it, true) }
+        // The player stays dark in a light theme: its controls sit on video.
+        val style = choice.style.takeUnless { activity is PlayerActivity && ColourThemes.isLight(choice) }
+        style?.let { activity.theme.applyStyle(it, true) }
         applied[activity] = choice.key
     }
 

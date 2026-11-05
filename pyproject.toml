@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "babarify-frame"
 version = "0.9.1"
-description = "Babarify Frame: a free, privacy-focused media player. Every Frame, Better."
+description = "Babarify Media Player: a free, privacy-focused media player. Every Frame, Better."
 readme = "README.md"
 requires-python = ">=3.13"
 authors = [{ name = "Tanveer Baber" }]

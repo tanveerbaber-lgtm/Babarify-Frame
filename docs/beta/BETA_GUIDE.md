@@ -1,9 +1,9 @@
-# Babarify Frame beta — guide for testers
+# Babarify Media Player beta — guide for testers
 
 Thank you for helping. The beta is a free, privacy-focused media player for Windows 10 (1809 or
 later) and Windows 11, 64-bit.
 
-1. **Install:** download `BabarifyFrame-<version>-setup.exe` and `SHA256SUMS.txt` from the
+1. **Install:** download `BabarifyMediaPlayer-<version>-setup.exe` and `SHA256SUMS.txt` from the
    release page, check the hash (`Get-FileHash … -Algorithm SHA256`), then run the installer.
    It is not code-signed yet; see Known issues.
 2. **Test:** use it with your own files, and if you have time, work through

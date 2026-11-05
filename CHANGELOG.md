@@ -6,6 +6,8 @@ releases are in [`docs/release-notes/`](docs/release-notes/).
 
 ## Windows, next version (not released)
 
+- Changed: the app is now called Babarify Media Player. Upgrading keeps your settings, library and install
+  folder. New snapshots go to `Pictures\Babarify Media Player`; existing ones stay where they are.
 - New: audio has its own screen, with the song's picture, title and artist, and colours taken from the picture.
   Songs with no picture get an animation: mirrored bars with a reflection, capsules, waves, a circle or lights.
   They change by themselves while a song plays, or you can choose one. They don't follow the sound.
@@ -14,17 +16,22 @@ releases are in [`docs/release-notes/`](docs/release-notes/).
 - New: a sleep timer that pauses playback.
 - New: the Library has Songs, Albums and Artists tabs, from your folders' tags and pictures, with search, sorting,
   Play and Shuffle. Existing songs are read once more, in the background, the first time this version runs.
-- New: six colour themes in Settings, and Bass boost and Preamp dials on the equalizer. The bass dial turns up the
-  four lowest equalizer bands.
+- New: seven colour themes in Settings, including Light, and Bass boost and Preamp dials on the equalizer. The
+  bass dial turns up the four lowest equalizer bands.
+- Changed: Settings, Theme and Animation now sit together at the bottom of the left bar, in place of About, which
+  stays in the Help menu. Theme and Animation switch quickly from there.
+- Changed: all text is Arial, bold for titles and headings. The home page shows the name once, in brand colours.
 - New: favourites, with a heart on the player, and automatic Favourites, Recently played, Most played and
   Recently added lists.
 - Changed: in full screen, audio keeps its controls until you hide them.
+- Changed: the status bar along the bottom is hidden unless you switch it on in Settings or the View menu.
 - New: volume from 1 to 100, with optional boost to 200 (already on main, listed here until released).
 
 ## Android 0.2.0-beta (not released)
 
 Brings the Android app close to the Windows app. Not yet published.
 
+- Changed: the app is now called Babarify Media Player.
 - New: library of folders you choose, with search, sorting and pictures; playlists; bookmarks.
 - New: speed, volume number from 1 to 100 and optional boost to 200, chapters, A-B repeat, sync and delay.
 - New: picture controls, equalizer with presets, profiles, aspect, zoom, rotate, flip, snapshots.
@@ -40,7 +47,8 @@ Brings the Android app close to the Windows app. Not yet published.
 - New: favourites, and automatic Recently played, Most played and Recently added lists.
 - New: a queue you can jump around in, and shuffle that can be switched off again.
 - New: an equalizer screen with preset chips, upright sliders, and bass boost and preamp dials.
-- New: six colour themes, a sleep timer and touch lock.
+- New: seven colour themes, a sleep timer and touch lock. In Light, the player stays dark so its controls can be
+  read over video.
 - New: a mini player on the main screens: a card coloured from the song's picture, with its progress, title and
   artist. Swipe it sideways to change song.
 - New: the notification shows the song's title, artist and picture, with a favourite button.

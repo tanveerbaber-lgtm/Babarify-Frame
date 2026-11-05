@@ -77,7 +77,7 @@ class SongAdapter(private val activity: Activity, private val store: LibraryStor
         val playing = PlaybackSession.get(activity).mediaUri?.toString() == song.uri
         view.findViewById<TextView>(R.id.songTitle).apply {
             text = song.title
-            setTextColor(if (playing) context.themeColor(R.attr.accent2Color) else context.getColor(R.color.text))
+            setTextColor(if (playing) context.themeColor(R.attr.accent2Color) else context.themeColor(R.attr.inkColor))
         }
         view.findViewById<TextView>(R.id.songDetail).text = activity.getString(
             R.string.song_detail,
@@ -335,7 +335,7 @@ class MusicActivity : Activity() {
         tab = index
         tabs.forEachIndexed { position, view ->
             view.isSelected = position == index
-            view.setTextColor(getColor(if (position == index) R.color.text else R.color.text_muted))
+            view.setTextColor(themeColor(if (position == index) R.attr.inkColor else R.attr.inkMutedColor))
         }
         show()
     }

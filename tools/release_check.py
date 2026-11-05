@@ -111,7 +111,7 @@ def main() -> int:
     old_setup, new_setup = Path(sys.argv[1]), Path(sys.argv[2])
     out = Path(sys.argv[3]) if len(sys.argv) > 3 else ROOT / "release" / "release_check.json"
     work = Path(tempfile.mkdtemp(prefix="babarify-release-check-"))
-    target = work / "Babarify Frame"
+    target = work / "Babarify Media Player"
     profile = work / "profile"
     env = clean_env(profile)
     results: dict[str, object] = {}
@@ -119,7 +119,7 @@ def main() -> int:
 
     # 1. Fresh install of the older version, with "Open with".
     results["install_old"] = install(old_setup, target, work / "install-old.log", "openwith")
-    app = target / "Babarify Frame.exe"
+    app = target / "Babarify Media Player.exe"
     results["installed_version_old"] = file_version(app)
     results["openwith_registered"] = (
         reg_value(r"Software\Classes\.mp4\OpenWithProgids", "BabarifyFrame.Media") is not None

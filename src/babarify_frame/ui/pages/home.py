@@ -11,7 +11,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from PySide6.QtCore import QPoint, QRect, QSize, Qt, Signal
-from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
+from PySide6.QtGui import QColor, QIcon, QLinearGradient, QPainter, QPaintEvent, QPen, QPixmap
 from PySide6.QtWidgets import (
     QFrame,
     QGridLayout,
@@ -28,7 +28,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from babarify_frame import BRAND, PRODUCT_NAME, TAGLINE
+from babarify_frame import PRODUCT_NAME, TAGLINE
 from babarify_frame.library.models import HistoryEntry
 from babarify_frame.ui import theme
 from babarify_frame.ui.widgets import format_time, glyph_icon
@@ -51,6 +51,24 @@ def _label(text: str, name: str) -> QLabel:
     label = QLabel(text)
     label.setObjectName(name)
     return label
+
+
+class BrandTitle(QLabel):
+    """The product name in the colours of the logo and the main button, in every colour theme."""
+
+    def __init__(self, text: str) -> None:
+        super().__init__(text)
+        self.setObjectName("display")
+
+    def paintEvent(self, event: QPaintEvent) -> None:
+        gradient = QLinearGradient(0, 0, self.width(), 0)
+        gradient.setColorAt(0, QColor(theme.BLUE))
+        gradient.setColorAt(1, QColor(theme.CYAN))
+        painter = QPainter(self)
+        painter.setFont(self.font())
+        painter.setPen(QPen(gradient, 1))
+        painter.drawText(self.rect(), int(self.alignment()), self.text())
+        painter.end()
 
 
 def ago(timestamp: float, now: float | None = None) -> str:
@@ -124,8 +142,7 @@ class HomePage(QWidget):
         logo_label.setAccessibleName(f"{PRODUCT_NAME} logo")
         self._hero = [
             logo_label,
-            _label(BRAND.upper(), "brand"),
-            _label(PRODUCT_NAME, "display"),
+            BrandTitle(PRODUCT_NAME),
             _label(TAGLINE, "tagline"),
         ]
         for widget in self._hero:

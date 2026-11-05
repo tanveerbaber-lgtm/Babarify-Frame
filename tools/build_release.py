@@ -1,4 +1,4 @@
-"""Build a Babarify Frame release (M10): program folder, installer, source archive, checksums.
+"""Build a Babarify Media Player release (M10): program folder, installer, source archive, checksums.
 
 Steps: curate libVLC (tools/vlc_plugins.py) → PyInstaller (packaging/babarify.spec) → add the
 engine, LICENSE, notices, privacy notice and release notes → source archive (git archive of
@@ -53,10 +53,10 @@ def version_info(version: str) -> str:
   kids=[
     StringFileInfo([StringTable('040904B0', [
       StringStruct('CompanyName', 'Tanveer Baber'),
-      StringStruct('FileDescription', 'Babarify Frame media player'),
+      StringStruct('FileDescription', 'Babarify Media Player media player'),
       StringStruct('FileVersion', '{version}'),
       StringStruct('LegalCopyright', 'Copyright (C) 2026 Tanveer Baber. GNU GPL v3 or later.'),
-      StringStruct('ProductName', 'Babarify Frame'),
+      StringStruct('ProductName', 'Babarify Media Player'),
       StringStruct('ProductVersion', '{version}')])]),
     VarFileInfo([VarStruct('Translation', [1033, 1200])])
   ]
@@ -104,7 +104,7 @@ def main() -> int:
     run(PY, "-m", "PyInstaller", "--noconfirm", "--clean", "--log-level", "WARN",
         "--distpath", str(BUILD / "dist"), "--workpath", str(BUILD / "pyinstaller"),
         str(ROOT / "packaging" / "babarify.spec"))  # fmt: skip
-    dist = BUILD / "dist" / "Babarify Frame"
+    dist = BUILD / "dist" / "Babarify Media Player"
     shutil.copytree(BUILD / "dist" / "ai", dist / "ai")  # the optional local AI component
     shutil.copytree(engine, dist / "engines" / "vlc", ignore=shutil.ignore_patterns("plugins.json"))
     shutil.copy2(ROOT / "LICENSE", dist / "LICENSE.txt")
@@ -113,13 +113,15 @@ def main() -> int:
     if notes.is_file():
         shutil.copy2(notes, dist / "RELEASE-NOTES.txt")
     elif dirty:  # a test build (e.g. the upgrade check): no published notes
-        (dist / "RELEASE-NOTES.txt").write_text(f"Babarify Frame {version} (test build)\n", encoding="utf-8")
+        (dist / "RELEASE-NOTES.txt").write_text(
+            f"Babarify Media Player {version} (test build)\n", encoding="utf-8"
+        )
     else:
         print(f"missing {notes}", file=sys.stderr)
         return 1
     notices.write(dist, engine, version)
 
-    source = out / f"BabarifyFrame-{version}-source.zip"
+    source = out / f"BabarifyMediaPlayer-{version}-source.zip"
     run("git", "archive", "--format=zip", f"--prefix=babarify-frame-{version}/", "-o", str(source), commit)
     run(str(ISCC), "/Q", f"/DAppVersion={version}", f"/DDistDir={dist}", f"/DOutputDir={out}",
         str(ROOT / "packaging" / "installer.iss"))  # fmt: skip
@@ -129,7 +131,7 @@ def main() -> int:
         {"path": str(p.relative_to(dist)), "size": p.stat().st_size, "sha256": sha256(p)} for p in files
     ]
     manifest = {"version": version, "commit": commit, "dirty": bool(dirty), "files": entries}
-    manifest_path = out / f"BabarifyFrame-{version}-manifest.json"
+    manifest_path = out / f"BabarifyMediaPlayer-{version}-manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=1), encoding="utf-8")
     artifacts = sorted(p for p in out.iterdir() if p.is_file() and p.name != "SHA256SUMS.txt")
     sums = "".join(f"{sha256(p)}  {p.name}\n" for p in artifacts)

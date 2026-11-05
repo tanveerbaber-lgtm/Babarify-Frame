@@ -53,8 +53,10 @@ REPEAT_NAMES = {
 }
 
 
-def icon(widget: QWidget, name: str, color: str = theme.TEXT) -> QIcon:
-    return glyph_icon(name, color, theme.TEXT_DISABLED) or widget.style().standardIcon(_FALLBACK[name])
+def icon(widget: QWidget, name: str, color: str | None = None) -> QIcon:
+    return glyph_icon(name, color or theme.TEXT, theme.TEXT_DISABLED) or widget.style().standardIcon(
+        _FALLBACK[name]
+    )
 
 
 def rate_label(rate: float) -> str:
@@ -82,6 +84,8 @@ class ControlBar(QFrame):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setObjectName("controlBar")
+        self._plain_icons: list[tuple[QToolButton, str]] = []  # drawn again when the theme changes
+        self._playing = self._muted = self._fullscreen = self._favourite = False
         outer = QVBoxLayout(self)
         outer.setContentsMargins(theme.L, theme.S, theme.L, theme.S)
         outer.setSpacing(theme.XS)
@@ -104,7 +108,7 @@ class ControlBar(QFrame):
         row.setSpacing(theme.S)
         self.play_button = self._button("play", "Play", "Play/Pause (Space)", self.play_clicked, size=40)
         self.play_button.setObjectName("playButton")
-        self.play_button.setIcon(icon(self, "play", "#04101F"))
+        self.play_button.setIcon(icon(self, "play", theme.ON_ACCENT))
         self.stop_button = self._button("stop", "Stop", "Stop (S)", self.stop_clicked)
         self.back_button = self._button("back", "Back", "Back (←)", self.back_clicked)
         self.forward_button = self._button("forward", "Forward", "Forward (→)", self.forward_clicked)
@@ -208,6 +212,7 @@ class ControlBar(QFrame):
     def _button(self, glyph: str, name: str, tip: str, signal: SignalInstance, size: int = 32) -> QToolButton:
         button = QToolButton()
         button.setIcon(icon(self, glyph))
+        self._plain_icons.append((button, glyph))
         button.setIconSize(QSize(size // 2, size // 2))
         button.setFixedSize(size, size)
         button.setAccessibleName(name)
@@ -219,7 +224,8 @@ class ControlBar(QFrame):
 
     # ------------------------------------------------------------ state
     def set_playing(self, playing: bool) -> None:
-        self.play_button.setIcon(icon(self, "pause" if playing else "play", "#04101F"))
+        self._playing = playing
+        self.play_button.setIcon(icon(self, "pause" if playing else "play", theme.ON_ACCENT))
         self.play_button.setAccessibleName("Pause" if playing else "Play")
 
     def set_enabled_controls(self, *, play: bool, stop: bool, seek: bool) -> None:
@@ -241,11 +247,19 @@ class ControlBar(QFrame):
 
     def refresh_theme(self) -> None:
         """Lit buttons hold their colour in an icon, so they're drawn again."""
+        for button, glyph in self._plain_icons:
+            button.setIcon(icon(self, glyph))
+        self.tracks_button.setIcon(icon(self, "subtitles"))
+        self.set_playing(self._playing)
+        self.set_muted(self._muted)
+        self.set_fullscreen(self._fullscreen)
+        self.set_favourite(self._can_favourite, self._favourite)
         self.set_repeat(self._repeat)
         self.set_shuffle(self._shuffle_on)
 
     def set_favourite(self, available: bool, favourite: bool) -> None:
         self._can_favourite = available
+        self._favourite = favourite
         self.favourite_button.setIcon(
             icon(self, "heart_filled" if favourite else "heart", theme.RED if favourite else theme.TEXT)
         )
@@ -284,6 +298,7 @@ class ControlBar(QFrame):
         self._elide_title()
 
     def set_muted(self, muted: bool) -> None:
+        self._muted = muted
         self.mute_button.setIcon(icon(self, "mute" if muted else "volume"))
         self.mute_button.setAccessibleName("Unmute" if muted else "Mute")
 
@@ -314,6 +329,7 @@ class ControlBar(QFrame):
             self._speed_actions[rate].setChecked(True)
 
     def set_fullscreen(self, fullscreen: bool) -> None:
+        self._fullscreen = fullscreen
         self.fullscreen_button.setIcon(icon(self, "exit_fullscreen" if fullscreen else "fullscreen"))
         self.fullscreen_button.setToolTip("Exit fullscreen (Esc)" if fullscreen else "Fullscreen (F)")
         self.fullscreen_button.setAccessibleName("Exit fullscreen" if fullscreen else "Fullscreen")

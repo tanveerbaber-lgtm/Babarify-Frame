@@ -1,4 +1,4 @@
-"""Generate the Babarify Frame app icon set from the source artwork.
+"""Generate the Babarify Media Player app icon set from the source artwork.
 
 Source: branding/source/babarify-frame-source.webp (1254 x 1254, full-bleed
 dark background around a rounded, glowing tile). The script crops to the

@@ -16,6 +16,7 @@ from PySide6.QtWidgets import QDialog, QDialogButtonBox, QPushButton, QTextBrows
 
 from babarify_frame.core.models import MediaInfo, TrackInfo, TrackKind
 from babarify_frame.core.network import is_network_uri, stream_display_name
+from babarify_frame.ui import theme
 from babarify_frame.ui.widgets import format_time
 
 MAX_VALUE = 300
@@ -108,7 +109,7 @@ def sections_html(sections: list[Section]) -> str:
     parts = []
     for section in sections:
         rows = "".join(
-            f"<tr><td style='padding-right:16px;color:#8A9AB5'>{html.escape(k)}</td>"
+            f"<tr><td style='padding-right:16px;color:{theme.TEXT_MUTED}'>{html.escape(k)}</td>"
             f"<td>{html.escape(_clip(v))}</td></tr>"
             for k, v in section.rows
         )

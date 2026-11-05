@@ -67,7 +67,7 @@ def setup(version: str) -> Path | None:
     _crash_file.flush()
     faulthandler.enable(_crash_file)
     sys.excepthook = _excepthook
-    logging.getLogger(__name__).info("Babarify Frame %s started", version)
+    logging.getLogger(__name__).info("Babarify Media Player %s started", version)
     return folder
 
 

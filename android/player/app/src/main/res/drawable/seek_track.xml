@@ -6,7 +6,7 @@
         <shape>
             <size android:height="4dp" />
             <corners android:radius="2dp" />
-            <solid android:color="#66FFFFFF" />
+            <solid android:color="?attr/trackColor" />
         </shape>
     </item>
     <item

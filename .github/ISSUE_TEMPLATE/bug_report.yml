@@ -1,18 +1,18 @@
 name: Problem report
-description: Something does not work as it should in Babarify Frame.
+description: Something does not work as it should in Babarify Media Player.
 title: "[Problem] "
 labels: ["beta", "needs-triage", "bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thank you for testing Babarify Frame. Please **do not include anything private**
+        Thank you for testing Babarify Media Player. Please **do not include anything private**
         (names of personal files, addresses of private streams, screenshots of private media).
         In the app, *Help → Report a problem* prepares the technical details for you to paste below.
   - type: input
     id: version
     attributes:
-      label: Babarify Frame version
+      label: Babarify Media Player version
       description: Help → About, or the first line of the report text.
       placeholder: "0.9.1"
     validations:

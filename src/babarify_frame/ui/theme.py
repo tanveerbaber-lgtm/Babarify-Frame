@@ -28,6 +28,7 @@ CYAN = "#22D3EE"
 GREEN = "#22C55E"
 AMBER = "#F59E0B"
 RED = "#F87171"
+ON_ACCENT = "#04101F"  # icons and text on accent-coloured buttons
 
 # Spacing scale (px)
 XS, S, M, L, XL, XXL = 4, 8, 12, 16, 24, 32
@@ -38,8 +39,10 @@ RADIUS_S, RADIUS_M, RADIUS_L = 6, 10, 16
 # Type scale (pt)
 FONT_CAPTION, FONT_BODY, FONT_SUBTITLE, FONT_TITLE, FONT_DISPLAY = 9, 10, 12, 15, 24
 
-FONT_STACK = '"Segoe UI Variable Text", "Segoe UI", sans-serif'
-MONO_STACK = '"Cascadia Mono", "Consolas", monospace'
+# Arial for body text and Arial Bold for titles and headings. Its digits are all one width, so times
+# don't jump about as they count.
+FONT_FAMILY = "Arial"
+FONT_STACK = f'"{FONT_FAMILY}", sans-serif'
 
 
 def _accent_gradient() -> str:
@@ -79,20 +82,19 @@ QToolButton#navButton:checked {{ background: {SURFACE_PRESSED}; color: {TEXT}; b
 QToolButton#navButton:disabled {{ color: {TEXT_DISABLED}; }}
 
 /* Typography roles */
-QLabel#brand {{ color: {CYAN}; font-size: {FONT_CAPTION}pt; font-weight: 600; letter-spacing: 3px; }}
-QLabel#display {{ font-size: {FONT_DISPLAY}pt; font-weight: 600; }}
-QLabel#title {{ font-size: {FONT_TITLE}pt; font-weight: 600; }}
-QLabel#subtitle {{ font-size: {FONT_SUBTITLE}pt; font-weight: 600; }}
+QLabel#display {{ font-size: {FONT_DISPLAY}pt; font-weight: 700; }}
+QLabel#title {{ font-size: {FONT_TITLE}pt; font-weight: 700; }}
+QLabel#subtitle {{ font-size: {FONT_SUBTITLE}pt; font-weight: 700; }}
 QLabel#muted {{ color: {TEXT_MUTED}; }}
 QLabel#caption {{ color: {TEXT_MUTED}; font-size: {FONT_CAPTION}pt; }}
 QLabel#warning {{ color: {AMBER}; }}
 QLabel#tagline {{ color: {TEXT_MUTED}; font-size: {FONT_SUBTITLE}pt; }}
 QLabel#errorIcon {{ color: {RED}; }}
-QLabel#time {{ color: {TEXT_MUTED}; font-family: {MONO_STACK}; font-size: {FONT_CAPTION}pt; }}
-QLabel#mediaTitle {{ font-weight: 600; }}
+QLabel#time {{ color: {TEXT_MUTED}; font-size: {FONT_CAPTION}pt; }}
+QLabel#mediaTitle {{ font-weight: 700; }}
 QLabel#kbd {{
     background: {SURFACE_RAISED}; border: 1px solid {BORDER}; border-radius: 4px;
-    padding: 1px {S - 2}px; font-family: {MONO_STACK}; font-size: {FONT_CAPTION}pt;
+    padding: 1px {S - 2}px; font-size: {FONT_CAPTION}pt;
 }}
 
 /* Pages */
@@ -114,7 +116,7 @@ QPushButton {{
 QPushButton:hover {{ background: {SURFACE_PRESSED}; }}
 QPushButton:disabled {{ color: {TEXT_DISABLED}; }}
 QPushButton#primary {{
-    background: {accent_gradient}; border: none; color: #04101F; font-weight: 600;
+    background: {accent_gradient}; border: none; color: {ON_ACCENT}; font-weight: 700;
     padding: {M}px {XL}px; font-size: {FONT_SUBTITLE}pt;
 }}
 QPushButton#primary:hover {{ background: {CYAN}; }}
@@ -125,7 +127,7 @@ QToolButton:disabled {{ background: transparent; }}
 QToolButton#playButton {{ background: {accent_gradient}; border-radius: 20px; }}
 QToolButton#playButton:hover {{ background: {CYAN}; }}
 QToolButton#playButton:disabled {{ background: {SURFACE_RAISED}; }}
-QToolButton#speedButton {{ font-family: {MONO_STACK}; font-size: {FONT_CAPTION}pt; padding: {XS}px {S}px; }}
+QToolButton#speedButton {{ font-size: {FONT_CAPTION}pt; padding: {XS}px {S}px; }}
 QToolButton::menu-indicator {{ image: none; width: 0; }}
 
 /* Keyboard focus is always visible */
@@ -205,15 +207,21 @@ ACCENT_GRADIENT = _accent_gradient()
 STYLESHEET = build_stylesheet()
 
 
+def is_light() -> bool:
+    return THEMES[current_theme].light
+
+
 def apply_theme(key: str) -> None:
     """Switch every colour. The caller gives the application the new ``STYLESHEET``."""
-    global ACCENT_GRADIENT, BG, BLUE, BORDER, CONTROL_BORDER, CYAN, STYLESHEET
-    global SURFACE, SURFACE_PRESSED, SURFACE_RAISED, TEXT_MUTED, current_theme
+    global ACCENT_GRADIENT, AMBER, BG, BLUE, BORDER, CONTROL_BORDER, CYAN, GREEN, ON_ACCENT, RED, STYLESHEET
+    global SURFACE, SURFACE_PRESSED, SURFACE_RAISED, TEXT, TEXT_DISABLED, TEXT_MUTED, current_theme
     current_theme = key if key in THEMES else DEFAULT_THEME
     palette = THEMES[current_theme]
     BG, SURFACE, SURFACE_RAISED = palette.bg, palette.surface, palette.raised
     SURFACE_PRESSED, BORDER = palette.pressed, palette.border
     CONTROL_BORDER, TEXT_MUTED = palette.control_border, palette.muted
     BLUE, CYAN = palette.accent, palette.accent2
+    TEXT, TEXT_DISABLED, ON_ACCENT = palette.text, palette.text_disabled, palette.on_accent
+    RED, AMBER, GREEN = palette.red, palette.amber, palette.green
     ACCENT_GRADIENT = _accent_gradient()
     STYLESHEET = build_stylesheet()

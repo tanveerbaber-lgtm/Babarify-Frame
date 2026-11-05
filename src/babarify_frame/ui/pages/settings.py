@@ -62,7 +62,7 @@ def _select(combo: QComboBox, value: object, custom_label: str) -> None:
     combo.setCurrentIndex(index)
 
 
-def _swatch(start: str, end: str) -> QIcon:
+def theme_swatch(start: str, end: str) -> QIcon:
     """A theme's colours, beside its name in the list."""
     pixmap = QPixmap(16, 16)
     pixmap.fill(Qt.GlobalColor.transparent)
@@ -147,12 +147,17 @@ class SettingsPage(QWidget):
         self.colour_theme = QComboBox()
         self.colour_theme.setAccessibleName("Colour theme")
         for key, palette in THEMES.items():
-            self.colour_theme.addItem(_swatch(palette.accent, palette.accent2), palette.label, key)
+            self.colour_theme.addItem(theme_swatch(palette.accent, palette.accent2), palette.label, key)
+        self.show_status_bar = QCheckBox("Show the status bar at the bottom of the window")
+        self.show_status_bar.setToolTip(
+            "Technical details and short messages. Playback info (Ctrl+I) has the same details."
+        )
         appearance = self._card(
             "Appearance",
             [
                 ("Colour theme", self.colour_theme),
                 ("Animation for audio with no picture", self.visual_style),
+                ("", self.show_status_bar),
             ],
         )
         playback = self._card(
@@ -244,7 +249,7 @@ class SettingsPage(QWidget):
         assert isinstance(privacy_box, QVBoxLayout)
         privacy_box.addWidget(
             _label(
-                "Babarify Frame plays files locally. It has no account, no ads and no telemetry. "
+                "Babarify Media Player plays files locally. It has no account, no ads and no telemetry. "
                 "Settings, history, the library and its thumbnails are stored only on this PC:",
                 "muted",
             )
@@ -277,6 +282,7 @@ class SettingsPage(QWidget):
         self.hardware_decoding.currentIndexChanged.connect(self._changed)
         self.visual_style.currentIndexChanged.connect(self._changed)
         self.colour_theme.currentIndexChanged.connect(self._changed)
+        self.show_status_bar.toggled.connect(self._changed)
         self.hide_delay.valueChanged.connect(self._changed)
         self.start_fullscreen.toggled.connect(self._changed)
         self.subtitles_auto.toggled.connect(self._changed)
@@ -298,7 +304,7 @@ class SettingsPage(QWidget):
     def _build_ai_card(self) -> QFrame:
         self.ai_enabled = QCheckBox("Turn on AI features (they run on this PC)")
         self.ai_missing = _label(
-            "The local AI component is not installed. To add it, run the Babarify Frame installer "
+            "The local AI component is not installed. To add it, run the Babarify Media Player installer "
             "again and choose the full installation.",
             "warning",
         )
@@ -421,6 +427,7 @@ class SettingsPage(QWidget):
         self.hardware_decoding.setCurrentIndex(0 if prefs.hardware_decoding else 1)
         self.visual_style.setCurrentIndex(max(0, self.visual_style.findData(prefs.visual_style)))
         self.colour_theme.setCurrentIndex(max(0, self.colour_theme.findData(prefs.colour_theme)))
+        self.show_status_bar.setChecked(prefs.show_status_bar)
         self.hide_delay.setValue(round(prefs.controls_hide_delay_ms / 1000))
         self.start_fullscreen.setChecked(prefs.start_fullscreen)
         self.subtitles_auto.setChecked(prefs.subtitles_auto)
@@ -456,6 +463,7 @@ class SettingsPage(QWidget):
             hardware_decoding=bool(self.hardware_decoding.currentData()),
             visual_style=str(self.visual_style.currentData()),
             colour_theme=str(self.colour_theme.currentData()),
+            show_status_bar=self.show_status_bar.isChecked(),
             controls_hide_delay_ms=self.hide_delay.value() * 1000,
             start_fullscreen=self.start_fullscreen.isChecked(),
             subtitles_auto=self.subtitles_auto.isChecked(),

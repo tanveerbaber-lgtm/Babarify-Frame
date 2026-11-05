@@ -125,6 +125,7 @@ class Preferences:
     repeat_mode: str = "off"  # a RepeatMode value
     visual_style: str = "auto"  # a VisualStyle value
     colour_theme: str = DEFAULT_THEME  # a THEMES key
+    show_status_bar: bool = False  # the line of technical details along the bottom of the window
     # Local AI (M9): off until the user switches it on; nothing is uploaded
     ai_enabled: bool = False
     ai_model: str = "base"  # an ai.models.MODELS key

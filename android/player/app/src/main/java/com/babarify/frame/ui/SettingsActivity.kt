@@ -268,7 +268,7 @@ class SettingsActivity : Activity() {
         row.addView(
             ImageView(this).apply {
                 setImageResource(R.drawable.ic_chevron)
-                imageTintList = getColorStateList(R.color.text_muted)
+                imageTintList = android.content.res.ColorStateList.valueOf(themeColor(R.attr.inkMutedColor))
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             },
         )

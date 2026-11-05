@@ -1,4 +1,4 @@
-"""The colour themes. All are dark, so the light text colours stay readable on every one of them."""
+"""The colour themes. Each sets its own text colours, so tests can hold every theme to the same rules."""
 
 from __future__ import annotations
 
@@ -19,6 +19,13 @@ class Palette:
     muted: str
     accent: str  # BLUE in the default theme: buttons and gradients
     accent2: str  # CYAN in the default theme: focus, selection and highlights
+    text: str = "#E6EDF7"
+    text_disabled: str = "#4A5875"
+    on_accent: str = "#04101F"  # icons and text on accent-coloured buttons
+    red: str = "#F87171"
+    amber: str = "#F59E0B"
+    green: str = "#22C55E"
+    light: bool = False
 
 
 THEMES = {
@@ -93,5 +100,24 @@ THEMES = {
         "#BE95A9",
         "#FB7185",
         "#F9A8D4",
+    ),
+    "light": Palette(
+        "Light",
+        "#F5F7FB",
+        "#FFFFFF",
+        "#EAEEF5",
+        "#DCE3EE",
+        "#D5DCE8",
+        "#7A8699",
+        "#55627A",
+        "#1D4ED8",
+        "#0E7490",
+        text="#111827",
+        text_disabled="#94A0B3",
+        on_accent="#FFFFFF",
+        red="#C81E1E",
+        amber="#B45309",
+        green="#15803D",
+        light=True,
     ),
 }

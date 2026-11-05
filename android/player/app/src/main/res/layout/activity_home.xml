@@ -78,7 +78,7 @@
             android:layout_gravity="center"
             android:drawableTop="@drawable/ic_movie"
             android:drawablePadding="12dp"
-            android:drawableTint="@color/text_muted"
+            android:drawableTint="?attr/inkMutedColor"
             android:gravity="center"
             android:padding="32dp"
             android:text="@string/no_recent" />

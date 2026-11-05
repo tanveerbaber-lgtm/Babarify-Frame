@@ -41,7 +41,7 @@
             android:layout_marginEnd="4dp"
             android:layout_weight="1"
             android:drawableStart="@drawable/ic_add"
-            android:drawableTint="@color/text"
+            android:drawableTint="?attr/inkColor"
             android:paddingHorizontal="16dp"
             android:text="@string/add_media" />
 
@@ -52,7 +52,7 @@
             android:layout_marginStart="4dp"
             android:layout_weight="1"
             android:drawableStart="@drawable/ic_shuffle"
-            android:drawableTint="@color/text"
+            android:drawableTint="?attr/inkColor"
             android:paddingHorizontal="16dp"
             android:text="@string/shuffle" />
     </LinearLayout>
@@ -76,7 +76,7 @@
             android:layout_gravity="center"
             android:drawableTop="@drawable/ic_playlist"
             android:drawablePadding="12dp"
-            android:drawableTint="@color/text_muted"
+            android:drawableTint="?attr/inkMutedColor"
             android:gravity="center"
             android:padding="32dp"
             android:visibility="gone" />
