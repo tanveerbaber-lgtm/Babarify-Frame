@@ -1,7 +1,7 @@
 # Security
 
 Please report security or privacy problems privately, not in a public issue:
-[open a private report](https://github.com/tanveerbaber-lgtm/Babarify-Frame/security/advisories/new).
+[open a private report](https://github.com/tanveerbaber-lgtm/Babarify-Media-Player/security/advisories/new).
 A problem file or stream address helps, but leave out anything personal you don't need to share.
 
 This is a free project with one maintainer, so no response time is promised.

@@ -9,7 +9,7 @@ results that a new account shares the PC's installed software, so it's weaker ev
 
 **Time:** about 20 minutes. **Bring:** one or two video files you're happy to describe in public.
 
-Download from the [0.9.1 release](https://github.com/tanveerbaber-lgtm/Babarify-Frame/releases/tag/v0.9.1):
+Download from the [0.9.1 release](https://github.com/tanveerbaber-lgtm/Babarify-Media-Player/releases/tag/v0.9.1):
 `BabarifyMediaPlayer-0.9.1-setup.exe` and `SHA256SUMS.txt`.
 
 ## Record first
@@ -21,7 +21,7 @@ Download from the [0.9.1 release](https://github.com/tanveerbaber-lgtm/Babarify-
 ## Steps
 
 Scenario IDs match [TEST_SCENARIOS.md](TEST_SCENARIOS.md). Tick pass or fail, and open a
-[problem report](https://github.com/tanveerbaber-lgtm/Babarify-Frame/issues/new/choose) with the ID for any failure.
+[problem report](https://github.com/tanveerbaber-lgtm/Babarify-Media-Player/issues/new/choose) with the ID for any failure.
 
 | Done | ID | Do this | Pass when |
 |---|---|---|---|
@@ -53,9 +53,9 @@ Paste and adjust:
 > Windows may warn that it doesn't recognise the app, because the installer isn't code-signed yet. The steps
 > explain how to check the download first.
 >
-> Download: https://github.com/tanveerbaber-lgtm/Babarify-Frame/releases/tag/v0.9.1
-> What to try: https://github.com/tanveerbaber-lgtm/Babarify-Frame/blob/main/docs/beta/FRESH_PC_CHECKLIST.md
-> Tell me what you find: https://github.com/tanveerbaber-lgtm/Babarify-Frame/issues/new/choose
+> Download: https://github.com/tanveerbaber-lgtm/Babarify-Media-Player/releases/tag/v0.9.1
+> What to try: https://github.com/tanveerbaber-lgtm/Babarify-Media-Player/blob/main/docs/beta/FRESH_PC_CHECKLIST.md
+> Tell me what you find: https://github.com/tanveerbaber-lgtm/Babarify-Media-Player/issues/new/choose
 >
 > Reports are public, so please leave out private file names. It needs a free GitHub account; if you'd rather
 > not make one, just tell me directly.

@@ -7,7 +7,7 @@
     <string name="settings">Settings</string>
     <string name="about">About and licences</string>
     <string name="about_title">Babarify Media Player %1$s</string>
-    <string name="about_body">Free software under the GNU General Public License, version 3 or later. No account, no ads, no telemetry: nothing about what you play leaves this phone.\n\nSource code: https://github.com/tanveerbaber-lgtm/Babarify-Frame\n\nLicences of this app and its components follow.</string>
+    <string name="about_body">Free software under the GNU General Public License, version 3 or later. No account, no ads, no telemetry: nothing about what you play leaves this phone.\n\nSource code: https://github.com/tanveerbaber-lgtm/Babarify-Media-Player\n\nLicences of this app and its components follow.</string>
     <string name="forget_question">Remove this file from Recent? The file itself is not deleted.</string>
     <string name="remove">Remove</string>
     <string name="hardware_decoding">Use hardware decoding</string>

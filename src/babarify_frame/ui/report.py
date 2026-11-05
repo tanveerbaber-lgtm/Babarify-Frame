@@ -29,7 +29,7 @@ from PySide6.QtWidgets import (
 from babarify_frame import __version__, app_log
 from babarify_frame.core.models import MediaInfo
 
-ISSUES_URL = "https://github.com/tanveerbaber-lgtm/Babarify-Frame/issues/new/choose"
+ISSUES_URL = "https://github.com/tanveerbaber-lgtm/Babarify-Media-Player/issues/new/choose"
 LOG_LINES = 40
 
 
