@@ -6,8 +6,8 @@ releases are in [`docs/release-notes/`](docs/release-notes/).
 
 ## Windows, next version (not released)
 
-- Changed: the app is now called Babarify Media Player. Upgrading keeps your settings, library and install
-  folder. New snapshots go to `Pictures\Babarify Media Player`; existing ones stay where they are.
+- Changed: the app is now called Babarify Media Player, and installs in a folder of that name. Upgrading moves it
+  there and keeps your settings and library. A taskbar pin to the old copy has to be pinned again. New snapshots go to `Pictures\Babarify Media Player`; existing ones stay where they are.
 - New: audio has its own screen, with the song's picture, title and artist, and colours taken from the picture.
   Songs with no picture get an animation: mirrored bars with a reflection, capsules, waves, a circle or lights.
   They change by themselves while a song plays, or you can choose one. They don't follow the sound.
