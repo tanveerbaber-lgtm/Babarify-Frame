@@ -1,4 +1,4 @@
-# Babarify Media Player 0.9.1 for Windows
+# Babarify Media Player 0.10.0 for Windows
 PySide6_Essentials==6.12.0
 PyYAML==6.0.3
 anyio==4.15.1
