@@ -44,7 +44,8 @@ A 32-bit VLC installation cannot be used from 64-bit Python.
 
 Open files with **Ctrl+O**, by dragging them onto the window, or as a command-line argument.
 Drop a folder (or use *File → Add folder to library…*) to add it to the **Library**: only the
-folders you choose are scanned, in the background, and files are never modified or deleted.
+folders you choose are scanned, in the background, and files are never modified. A file is deleted only
+when you choose to and confirm.
 Files continue where you stopped; *Home* lists *Continue watching* and *Recently played*.
 History stays on this PC and can be turned off or cleared in *Settings → Privacy*.
 Network streams (http, https, HLS, internet radio, rtsp) open with **Ctrl+N** or by dropping a

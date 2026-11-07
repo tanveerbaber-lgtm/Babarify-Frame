@@ -29,6 +29,7 @@ class HomeActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
         applySystemBarPadding(findViewById(R.id.homeRoot))
+        findViewById<TextView>(R.id.homeTitle).brandColours()
         AppIntro.playOnce(this)
         history = HistoryStore(this)
         library = LibraryStore(this)
@@ -38,6 +39,9 @@ class HomeActivity : Activity() {
         recentList.adapter = adapter
 
         findViewById<Button>(R.id.openButton).setOnClickListener { openPicker() }
+        findViewById<Button>(R.id.forYouButton).setOnClickListener {
+            startActivity(Intent(this, ForYouActivity::class.java))
+        }
         BottomNav.attach(this, findViewById(R.id.bottomNav))
         nowPlaying = NowPlayingBar(this)
         recentList.setOnItemClickListener { _, _, position, _ -> play(Uri.parse(entries[position].uri)) }

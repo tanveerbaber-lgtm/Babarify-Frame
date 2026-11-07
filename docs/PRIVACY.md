@@ -19,7 +19,9 @@ Logs can contain the names and folders of files you played and the addresses of 
 opened. They are never uploaded; you decide whether to share them.
 
 When you uninstall, you can choose to delete all of the above (except snapshots, which are your
-pictures). Your media files are never changed or deleted by Babarify Media Player.
+pictures). Your media files are never changed by Babarify Media Player. One is deleted only when you choose
+*Delete from disk* for it and confirm, and then it goes to the Recycle Bin. Edited song details, covers,
+lyrics and a background picture are kept by the app, not written into your files.
 
 ## When Babarify Media Player uses the network
 
@@ -47,7 +49,8 @@ Questions about privacy: open an issue in the project's repository.
 ## Android
 
 The Android app has no internet permission, so it cannot send anything anywhere. It reads the files you
-open and the folders you add to the library, and it never changes them. If you tap *Find my music* and allow
+open and the folders you add to the library, and it never changes them. A song is deleted only when you
+choose *Delete from device* and confirm in Android's own prompt. If you tap *Find my music* and allow
 it, the app also reads the list of songs on the phone, with their names, artists, albums and pictures, and
 plays them. Android's permission for this is `READ_MEDIA_AUDIO` (`READ_EXTERNAL_STORAGE` on Android 12 and
 earlier, where it can also see other files). The app works without it, and you can take it back in Android's
@@ -63,3 +66,6 @@ Its other permissions are for sound that keeps playing after you leave: `FOREGRO
 the app, until you close them from the notification. Video does so only if you choose that in *Settings →
 When you leave a video*; otherwise leaving stops it. While sound plays on, the notification shows the file's
 name, and the name also shows on the lock screen.
+
+`WRITE_SETTINGS` is only for *Set as ringtone*. Android doesn't grant it until you turn on "Allow modifying
+system settings" for the app in its settings, and the app uses it for nothing else.

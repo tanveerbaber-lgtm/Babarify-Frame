@@ -24,12 +24,15 @@ from PySide6.QtCore import QRect, QSize, Qt
 from PySide6.QtGui import (
     QAction,
     QCloseEvent,
+    QColor,
     QDragEnterEvent,
     QDragLeaveEvent,
     QDropEvent,
     QGuiApplication,
     QIcon,
+    QImage,
     QKeySequence,
+    QPainter,
 )
 from PySide6.QtWidgets import (
     QApplication,
@@ -77,6 +80,7 @@ from babarify_frame.ui.audio_view import QueueDialog
 from babarify_frame.ui.bookmarks import BookmarksDialog
 from babarify_frame.ui.diagnostics import PlaybackInfoDialog
 from babarify_frame.ui.enhancements import EnhancementsDialog
+from babarify_frame.ui.lyrics_dialog import LyricsDialog
 from babarify_frame.ui.media_info import MediaInfoDialog
 from babarify_frame.ui.network import NetworkStreamDialog
 from babarify_frame.ui.pages.home import SHORTCUTS, HomePage
@@ -149,6 +153,8 @@ class MainWindow(QMainWindow):
         row.addWidget(self._rail)
         row.addWidget(self._pages, stretch=1)
         self.setCentralWidget(root)
+        if self._prefs.background_picture:
+            self._apply_background()
 
         self._build_actions()
         self._connect_pages()
@@ -199,13 +205,13 @@ class MainWindow(QMainWindow):
         button.setToolTip(tip)
         button.setAccessibleName(text if text != "Playing" else "Now Playing")
         self._nav_icons.append((button, glyph))
-        nav_icon = glyph_icon(glyph, theme.TEXT, theme.TEXT_DISABLED, size=48)
+        nav_icon = glyph_icon(glyph, theme.TEXT, theme.TEXT_DISABLED, size=64, weight=0.03)
         if nav_icon is not None:
             button.setIcon(nav_icon)
-            button.setIconSize(QSize(22, 22))
+            button.setIconSize(QSize(26, 26))
         button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
         button.setCheckable(True)
-        button.setFixedHeight(60)
+        button.setFixedHeight(68)
         button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         if page is not None:
             self._nav.addButton(button)
@@ -236,6 +242,7 @@ class MainWindow(QMainWindow):
         self.shuffle_action = self._action("S&huffle", [K(Qt.Key.Key_Z)], p.toggle_shuffle)
         self.repeat_action = self._action("&Repeat: off, this file, all", [K(Qt.Key.Key_R)], p.cycle_repeat)
         self.queue_action = self._action("&Queue…", [K(Qt.Key.Key_Q)], self.show_queue)
+        self.lyrics_action = self._action("L&yrics…", [K(Qt.Key.Key_Y)], self.show_lyrics)
         self.favourite_action = self._action(
             "Add to or remove from fa&vourites", [K(Qt.Key.Key_U)], p.toggle_favourite
         )
@@ -347,6 +354,7 @@ class MainWindow(QMainWindow):
         play_menu.addAction(self.shuffle_action)
         play_menu.addAction(self.repeat_action)
         play_menu.addAction(self.queue_action)
+        play_menu.addAction(self.lyrics_action)
         play_menu.addAction(self.favourite_action)
         self.sleep_menu = play_menu.addMenu("S&leep timer")
         self.sleep_menu.aboutToShow.connect(self._fill_sleep_menu)
@@ -500,6 +508,7 @@ class MainWindow(QMainWindow):
         self.shuffle_action.setEnabled(on_player and len(queue) > 1)
         self.repeat_action.setEnabled(on_player)
         self.queue_action.setEnabled(on_player and len(queue) > 1)
+        self.lyrics_action.setEnabled(self.player.current_uri is not None)
         self.favourite_action.setEnabled(on_player and p.has_media)
         self.start_over_action.setEnabled(on_player and p.is_seekable)
         caps = p.capabilities_or_none()
@@ -876,6 +885,14 @@ class MainWindow(QMainWindow):
     def _notify_status(self, text: str) -> None:
         QMessageBox.information(self, "Backup", text)
 
+    def show_lyrics(self) -> None:
+        uri = self.player.current_uri
+        if uri is None:
+            return
+        dialog = LyricsDialog(uri, lambda: self.player.position_ms, self)
+        dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        dialog.show()
+
     def show_hidden_files(self) -> None:
         HiddenFilesDialog(self.library_service, self).exec()
         self.library.refresh()
@@ -1007,6 +1024,7 @@ class MainWindow(QMainWindow):
             return
         history_toggled = prefs.remember_history != self._prefs.remember_history
         theme_changed = prefs.colour_theme != self._prefs.colour_theme
+        background_changed = prefs.background_picture != self._prefs.background_picture
         if not prefs.ai_enabled and self.subtitle_job.running:
             self.subtitle_job.cancel()  # switching AI off stops work in progress
         self._prefs = replace(
@@ -1025,12 +1043,15 @@ class MainWindow(QMainWindow):
         self.status_bar_action.setChecked(self._prefs.show_status_bar)
         if not self.isFullScreen():
             self.statusBar().setVisible(self._prefs.show_status_bar)
+        if background_changed and not theme_changed:
+            self._apply_background()
         if theme_changed:
             self._apply_colour_theme(self._prefs.colour_theme)
+            self._apply_background()
             self.player.refresh_theme()
             self.home.refresh_theme()
             for button, glyph in self._nav_icons:
-                nav_icon = glyph_icon(glyph, theme.TEXT, theme.TEXT_DISABLED, size=48)
+                nav_icon = glyph_icon(glyph, theme.TEXT, theme.TEXT_DISABLED, size=64, weight=0.03)
                 if nav_icon is not None:
                     button.setIcon(nav_icon)
             self._home_dirty = True  # Its cards hold pictures drawn in the old colours.
@@ -1133,6 +1154,32 @@ class MainWindow(QMainWindow):
             # Windows draws the title bar and some small parts of controls, and follows this for them.
             scheme = Qt.ColorScheme.Light if theme.is_light() else Qt.ColorScheme.Unknown
             app.styleHints().setColorScheme(scheme)
+            app.setStyleSheet(theme.STYLESHEET)
+
+    def _apply_background(self) -> None:
+        """The person's picture behind the pages, dimmed with the theme's colour so text stays readable."""
+        app = QGuiApplication.instance()
+        prepared = ""
+        source = self._prefs.background_picture
+        image = QImage(source) if source else QImage()
+        if not image.isNull():
+            image = image.scaled(
+                QSize(1920, 1920),
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            ).convertToFormat(QImage.Format.Format_RGB32)
+            painter = QPainter(image)
+            dim = QColor(theme.BG)
+            dim.setAlpha(205)
+            painter.fillRect(image.rect(), dim)
+            painter.end()
+            target = self._store.path.parent / "background.png"
+            with contextlib.suppress(OSError):
+                target.parent.mkdir(parents=True, exist_ok=True)
+            if image.save(str(target)):
+                prepared = str(target)
+        theme.set_background(prepared)
+        if isinstance(app, QApplication):
             app.setStyleSheet(theme.STYLESHEET)
 
     def _final_preferences(self) -> Preferences:

@@ -14,6 +14,7 @@ import android.os.Looper
 import android.os.SystemClock
 import android.provider.OpenableColumns
 import android.view.TextureView
+import com.babarify.frame.core.MusicRules
 import com.babarify.frame.core.AbLoop
 import com.babarify.frame.core.ChapterInfo
 import com.babarify.frame.core.ErrorCode
@@ -224,7 +225,7 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
         val media = mediaUri ?: return
         val created = LibVlcEngine(
             app,
-            EngineOptions(preferences.hardwareDecoding, preferences.subtitleStyle),
+            EngineOptions(preferences.hardwareDecoding, preferences.audioEffect, preferences.subtitleStyle),
             this,
         )
         engine = created
@@ -308,6 +309,7 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
                 saveProgress()
                 val next = queue.afterEnd(repeatMode)
                 if (next != null) {
+                    fadingIn = preferences.fadeSeconds > 0 && repeatMode != RepeatMode.ONE
                     playItem(next)
                     return
                 }
@@ -339,6 +341,33 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
         listeners.toList().forEach { it.onPlaybackStateChanged(state, error) }
     }
 
+    private var fadingIn = false
+    private var fadedTo = -1
+
+    /** Between songs in a list: quieter towards the end of one, louder at the start of the next. */
+    private fun fade(current: PlayerEngine) {
+        val fadeMs = preferences.fadeSeconds * 1000L
+        if (fadeMs == 0L || muted || PlaybackRules.isVideoName(title)) {
+            fadingIn = false
+            return
+        }
+        val duration = current.durationMs ?: 0L
+        val position = current.positionMs
+        val following = queue.isPlaylist && repeatMode != RepeatMode.ONE && (queue.hasNext || repeatMode == RepeatMode.ALL)
+        val level = when {
+            fadingIn && position < fadeMs -> MusicRules.fadeLevel(volume, position, fadeMs)
+            following && duration > 0 -> MusicRules.fadeLevel(volume, duration - position, fadeMs)
+            else -> {
+                fadingIn = false
+                volume
+            }
+        }
+        if (level != fadedTo) {
+            fadedTo = level
+            current.setVolume(level)
+        }
+    }
+
     private fun onTick() {
         val current = engine ?: return
         val state = current.state
@@ -353,6 +382,7 @@ class PlaybackSession private constructor(private val app: Context) : EngineList
         }
         if (current.progressed) applyTrackChoices(current)
         countPlay(current)
+        if (state == PlaybackState.PLAYING) fade(current)
         abLoop.jumpTarget(current.positionMs)?.let(current::seekTo)
         if (state == PlaybackState.PLAYING && SystemClock.elapsedRealtime() - lastSavedAt > SAVE_INTERVAL_MS) {
             storedPositionMs = current.positionMs

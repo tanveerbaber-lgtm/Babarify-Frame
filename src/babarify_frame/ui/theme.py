@@ -49,8 +49,33 @@ def _accent_gradient() -> str:
     return f"qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {BLUE}, stop:1 {CYAN})"
 
 
+def _mix(colour: str, other: str, part: float) -> str:
+    """``colour`` moved ``part`` of the way to ``other``, as #RRGGBB."""
+    a = [int(colour[i : i + 2], 16) for i in (1, 3, 5)]
+    b = [int(other[i : i + 2], 16) for i in (1, 3, 5)]
+    return "#" + "".join(f"{round(x + (y - x) * part):02X}" for x, y in zip(a, b, strict=True))
+
+
 def build_stylesheet() -> str:
     accent_gradient = _accent_gradient()
+    return _sheet(accent_gradient) + _background_rule()
+
+
+def _background_rule() -> str:
+    if not BACKGROUND_FILE:
+        return ""
+    url = BACKGROUND_FILE.replace("\\", "/")
+    return f'\nQWidget#page {{ border-image: url("{url}") 0 0 0 0 stretch stretch; }}\n'
+
+
+def set_background(path: str) -> None:
+    """Show a prepared picture behind the pages. The caller gives the application the new ``STYLESHEET``."""
+    global BACKGROUND_FILE, STYLESHEET
+    BACKGROUND_FILE = path
+    STYLESHEET = build_stylesheet()
+
+
+def _sheet(accent_gradient: str) -> str:
     return f"""
 * {{ font-family: {FONT_STACK}; font-size: {FONT_BODY}pt; color: {TEXT}; }}
 QMainWindow, QWidget#root, QDialog {{ background: {BG}; }}
@@ -99,6 +124,7 @@ QLabel#kbd {{
 
 /* Pages */
 QWidget#page {{ background: {BG}; }}
+QWidget#playerPage {{ background: {BG}; }}
 QFrame#dropZone {{
     background: {SURFACE}; border: 1px dashed {BORDER}; border-radius: {RADIUS_L}px;
 }}
@@ -110,10 +136,17 @@ QFrame#messagePage {{
 
 /* Buttons */
 QPushButton {{
-    background: {SURFACE_RAISED}; border: 1px solid {CONTROL_BORDER}; border-radius: {RADIUS_M}px;
-    padding: {S}px {L}px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 {_mix(SURFACE_RAISED, "#FFFFFF", 0.06)}, stop:1 {SURFACE_RAISED});
+    border: 1px solid {CONTROL_BORDER}; border-bottom: 2px solid {_mix(CONTROL_BORDER, "#000000", 0.3)};
+    border-radius: {RADIUS_M}px; padding: {S}px {L}px; font-weight: 700;
 }}
-QPushButton:hover {{ background: {SURFACE_PRESSED}; }}
+QPushButton:hover {{
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+        stop:0 {_mix(SURFACE_PRESSED, "#FFFFFF", 0.1)}, stop:1 {SURFACE_PRESSED});
+    border-color: {CYAN};
+}}
+QPushButton:pressed {{ background: {SURFACE_PRESSED}; border-bottom-width: 1px; padding-top: {S + 1}px; }}
 QPushButton:disabled {{ color: {TEXT_DISABLED}; }}
 QPushButton#primary {{
     background: {accent_gradient}; border: none; color: {ON_ACCENT}; font-weight: 700;
@@ -121,13 +154,14 @@ QPushButton#primary {{
 }}
 QPushButton#primary:hover {{ background: {CYAN}; }}
 QToolButton {{ border: none; border-radius: {RADIUS_S}px; padding: {XS}px; }}
-QToolButton:hover {{ background: {SURFACE_RAISED}; }}
+QToolButton:hover {{ background: {SURFACE_RAISED}; border: 1px solid {_mix(CYAN, BG, 0.5)}; }}
 QToolButton:pressed {{ background: {SURFACE_PRESSED}; }}
 QToolButton:disabled {{ background: transparent; }}
-QToolButton#playButton {{ background: {accent_gradient}; border-radius: 20px; }}
+QToolButton#playButton {{ background: {accent_gradient}; border-radius: 24px; }}
 QToolButton#playButton:hover {{ background: {CYAN}; }}
 QToolButton#playButton:disabled {{ background: {SURFACE_RAISED}; }}
-QToolButton#speedButton {{ font-size: {FONT_CAPTION}pt; padding: {XS}px {S}px; }}
+QToolButton#speedButton {{ font-size: {FONT_CAPTION}pt; font-weight: 700; padding: 0px; }}
+QToolButton#speedButton::menu-indicator {{ image: none; width: 0px; }}
 QToolButton::menu-indicator {{ image: none; width: 0; }}
 
 /* Keyboard focus is always visible */
@@ -187,11 +221,15 @@ QListWidget::item:selected {{ background: {SURFACE_PRESSED}; color: {TEXT}; }}
 QListWidget:focus, QListView:focus {{ border: 1px solid {CYAN}; }}
 QTextBrowser, QTextEdit, QPlainTextEdit {{ background: {SURFACE}; color: {TEXT}; border: 1px solid {BORDER}; border-radius: {RADIUS_S}px; padding: {S}px; selection-background-color: {SURFACE_PRESSED}; }}
 QTabBar::tab {{
-    background: transparent; color: {TEXT_MUTED}; padding: {S}px {L}px; margin-right: {XS}px;
-    border: none; border-bottom: 2px solid transparent;
+    background: {SURFACE}; color: {TEXT_MUTED}; padding: {S}px {L}px; margin-right: {S}px;
+    border: 1px solid {BORDER}; border-bottom: 3px solid {BORDER}; border-radius: {RADIUS_M}px;
+    font-size: {FONT_BODY + 1}pt; font-weight: 700;
 }}
-QTabBar::tab:hover {{ color: {TEXT}; }}
-QTabBar::tab:selected {{ color: {TEXT}; border-bottom: 2px solid {CYAN}; }}
+QTabBar::tab:hover {{ color: {TEXT}; background: {SURFACE_RAISED}; border-bottom-color: {_mix(CYAN, BG, 0.4)}; }}
+QTabBar::tab:selected {{
+    color: {TEXT}; background: {SURFACE_PRESSED}; border-color: {CYAN}; border-bottom: 3px solid {CYAN};
+    font-weight: 700;
+}}
 QToolButton#continueCard {{
     background: {SURFACE}; color: {TEXT}; border-radius: {RADIUS_S}px; padding: {S}px;
 }}
@@ -204,6 +242,7 @@ QStatusBar::item {{ border: none; }}
 
 current_theme = DEFAULT_THEME
 ACCENT_GRADIENT = _accent_gradient()
+BACKGROUND_FILE = ""
 STYLESHEET = build_stylesheet()
 
 

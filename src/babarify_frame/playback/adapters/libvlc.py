@@ -56,6 +56,7 @@ from babarify_frame.core.models import (
     TrackInfo,
     TrackKind,
 )
+from babarify_frame.core.music import AUDIO_EFFECTS
 from babarify_frame.core.network import STREAM_SCHEMES, is_network_uri, uri_scheme, validate_stream_url
 from babarify_frame.playback.adapters._engine_paths import add_dll_dir, find_vlc_dir
 from babarify_frame.playback.contracts import EngineBase
@@ -548,6 +549,9 @@ class LibVlcEngine(EngineBase):
         # Must be a per-media option: libVLC 3.0.24 silently ignores --avcodec-hw at instance level
         # (M4 finding: "Off" kept using D3D11VA until this was moved here).
         self._media.add_option(f":avcodec-hw={'any' if self._options.hardware_decoding else 'none'}")
+        effect = AUDIO_EFFECTS.get(self._options.audio_effect, "")
+        if effect:
+            self._media.add_option(f":audio-filter={effect}")
         self._player.set_media(self._media)
         self._apply_picture()
         self._apply_equalizer()

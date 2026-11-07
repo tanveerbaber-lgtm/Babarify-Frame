@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Iterator
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -13,12 +14,13 @@ from PySide6.QtWidgets import QApplication, QMessageBox
 from pytestqt.qtbot import QtBot
 
 from babarify_frame.configuration.preferences import Preferences, PreferencesStore
+from babarify_frame.core.models import PlaybackState
 from babarify_frame.core.models import PlaybackState as S
 from babarify_frame.library.database import LibraryDatabase
 from babarify_frame.library.service import LibraryService
 from babarify_frame.playback.adapters.mock import MockEngine
 from babarify_frame.playback.factory import EngineDescriptor, EngineFactory, EngineProbe
-from babarify_frame.ui import main_window, music_panel
+from babarify_frame.ui import lyrics_dialog, main_window, music_panel
 from babarify_frame.ui.app import load_icon
 from babarify_frame.ui.main_window import MainWindow
 from babarify_frame.ui.pages import library as library_page
@@ -399,6 +401,55 @@ def test_a_playlist_exports_and_imports_as_m3u(
     panel.import_button.click()
     copy = next(p for p in db.playlists() if p.name == "exported")
     assert [i.path for i in db.playlist_items(copy.id)] == ["C:/music/é one.mp3", "C:/music/two.mp3"]
+
+
+def test_lyrics_show_and_follow_the_position(
+    qtbot: QtBot, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(lyrics_dialog.lyrics, "save", lambda _path, _text: None)
+    song = tmp_path / "song.mp3"
+    (tmp_path / "song.lrc").write_text("[00:01.00]One\n[00:05.00]Two\n", encoding="utf-8")
+    position = [0]
+    dialog = lyrics_dialog.LyricsDialog(str(song), lambda: position[0])
+    qtbot.addWidget(dialog)
+    assert [dialog.list.item(row).text() for row in range(dialog.list.count())] == ["One", "Two"]
+    assert not dialog.list.currentItem()
+    position[0] = 6000
+    dialog.follow()
+    assert dialog.list.currentRow() == 1
+    assert dialog.list.item(1).font().bold()
+    position[0] = 1000
+    dialog.follow()
+    assert dialog.list.currentRow() == 0
+    assert not dialog.list.item(1).font().bold()
+    dialog._keep("Plain words")
+    assert [dialog.list.item(row).text() for row in range(dialog.list.count())] == ["Plain words"]
+    dialog.close()
+
+
+def test_songs_fade_out_and_in_between_each_other(qtbot: QtBot, window: MainWindow, tmp_path: Path) -> None:
+    root = media_tree(tmp_path / "music", ["a.mp3", "b.mp3"])
+    player = window.player
+    player.set_preferences(replace(player._prefs, fade_seconds=4))
+    player.play_queue([str(root / "a.mp3"), str(root / "b.mp3")])
+    qtbot.waitUntil(lambda: player.state is PlaybackState.PLAYING, timeout=5000)
+    player.set_volume(80)
+
+    def volume() -> int:
+        return player._controller.status().volume
+
+    player._duration_ms = 60_000
+    player._fade(40_000)
+    qtbot.waitUntil(lambda: volume() == 80, timeout=2000)
+    player._fade(58_000)
+    qtbot.waitUntil(lambda: volume() == 40, timeout=2000)
+    player._fading_in = True
+    player._queue_index = 1  # as if the next song had started
+    player._fade(1_000)
+    qtbot.waitUntil(lambda: volume() == 20, timeout=2000)
+    player._fade(5_000)
+    qtbot.waitUntil(lambda: volume() == 80, timeout=2000)
+    assert player.controls.volume.value() == 80, "the slider stays where it was"
 
 
 def test_sort_choice_is_remembered(qtbot: QtBot, tmp_path: Path) -> None:

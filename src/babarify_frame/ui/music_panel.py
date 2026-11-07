@@ -20,6 +20,10 @@ from PySide6.QtGui import QColor, QPainter, QPixmap
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QFileDialog,
+    QFormLayout,
     QHBoxLayout,
     QLabel,
     QLineEdit,
@@ -245,6 +249,49 @@ def delete_from_disk(parent: QWidget, service: LibraryService, entries: list[Med
     return f"{moved} {left} could not be moved; a file can't move while it plays."
 
 
+class EditDetailsDialog(QDialog):
+    """Correct a song in the library. The file itself isn't changed."""
+
+    def __init__(self, service: LibraryService, entry: MediaEntry, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setWindowTitle("Edit details")
+        self.setMinimumWidth(420)
+        self._service = service
+        self._entry = entry
+        form = QFormLayout(self)
+        note = QLabel("Saved in this app. The file itself isn't changed, so other apps still see its tags.")
+        note.setWordWrap(True)
+        form.addRow(note)
+        self.title_box = QLineEdit(entry.title or "")
+        self.artist_box = QLineEdit(entry.artist or "")
+        self.album_box = QLineEdit(entry.album or "")
+        form.addRow("Title", self.title_box)
+        form.addRow("Artist", self.artist_box)
+        form.addRow("Album", self.album_box)
+        self.cover_button = QPushButton("Change cover…")
+        self.cover_button.clicked.connect(self.choose_cover)
+        form.addRow("", self.cover_button)
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(self.save)
+        buttons.rejected.connect(self.reject)
+        form.addRow(buttons)
+
+    def choose_cover(self) -> None:
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Choose a cover", "", "Pictures (*.png *.jpg *.jpeg *.webp *.bmp)"
+        )
+        if path and not self._service.set_cover_from_file(self._entry.path, path):
+            QMessageBox.warning(self, "Cover", "That picture couldn't be used.")
+
+    def save(self) -> None:
+        self._service.db.edit_tags(
+            self._entry.path, self.title_box.text(), self.artist_box.text(), self.album_box.text()
+        )
+        self.accept()
+
+
 class MusicPanel(QWidget):
     """Songs, or albums or artists that open to show their songs."""
 
@@ -459,6 +506,9 @@ class MusicPanel(QWidget):
         if len(entries) == 1 and entries[0].available:
             reveal = menu.addAction("Show in folder")
             reveal.triggered.connect(lambda: self._reveal(entries[0].path))
+        if len(entries) == 1:
+            edit = menu.addAction("Edit details…")
+            edit.triggered.connect(lambda: self.edit_details(entries[0]))
         hide = menu.addAction("Hide")
         hide.setToolTip("The file stays on disk. Settings can bring it back.")
         hide.triggered.connect(lambda: self.hide_entries(entries))
@@ -466,6 +516,11 @@ class MusicPanel(QWidget):
         delete.setToolTip("Moves the file to the Recycle Bin")
         delete.triggered.connect(lambda: self.delete_entries(entries))
         return menu
+
+    def edit_details(self, entry: MediaEntry) -> None:
+        dialog = EditDetailsDialog(self._service, entry, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self.refresh()
 
     def delete_entries(self, entries: list[MediaEntry]) -> None:
         message = delete_from_disk(self, self._service, entries)

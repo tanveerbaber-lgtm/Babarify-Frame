@@ -24,18 +24,25 @@ feature is built and its tests pass. It still needs the owner's check before it 
 
 ## Batch 3: Extras
 
-- [ ] 8. Your own lyrics: a local `.lrc` file or typed in, with auto-scroll (Android, Windows)
-- [ ] 9. Listening recap, worked out on the device (Android, Windows)
-- [ ] 10. "For you" page: most played, never played, favourite albums and artists (Android, Windows)
-- [ ] 11. Home screen widget (Android)
-- [ ] 12. Edit tags and change cover (Android, Windows)
-- [ ] 13. Set as ringtone, with one new permission (Android)
-- [ ] 14. Your own picture as the background (Android, Windows)
+- [x] 8. Your own lyrics: a local `.lrc` file or typed in, with auto-scroll (Android, Windows)
+- [x] 9. Listening recap, worked out on the device (Android, Windows)
+- [x] 10. "For you" page: most played, never played, favourite albums and artists (Android, Windows)
+- [x] 11. Home screen widget (Android)
+- [x] 12. Edit tags and change cover (Android, Windows)
+- [x] 13. Set as ringtone, with one new permission (Android)
+- [x] 14. Your own picture as the background (Android, Windows)
 
 ## Batch 4: Test first, then decide
 
-- [ ] 15. Try crossfade and gapless playback with libVLC, and report whether they work well
-- [ ] 16. Try reverb and virtualizer with libVLC, and report whether they work well
+- [x] 15. Try crossfade and gapless playback with libVLC, and report whether they work well
+  - Gapless: not possible as things stand. Windows measured about 0.4 s between songs, whether the app loads the next
+    file or uses libVLC's own list player.
+  - Crossfade: looks possible. Two players ran at once on Windows, and starting the second early would also hide that
+    gap. Changing their volumes wasn't confirmed, because the test ran with no sound output.
+- [x] 16. Try reverb and virtualizer with libVLC, and report whether they work well
+  - The Windows engine has the spatializer (VLC's room effect) and stereo widener, and Android's library mentions both.
+  - Whether they sound good is unknown: they need listening to. The test couldn't tell either, since libVLC also kept
+    playing when asked for a filter that doesn't exist.
 
 ## Left out on purpose
 

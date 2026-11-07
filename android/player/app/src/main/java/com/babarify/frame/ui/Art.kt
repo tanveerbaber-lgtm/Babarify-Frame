@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewOutlineProvider
 import android.widget.ImageView
 import com.babarify.frame.R
+import com.babarify.frame.data.SongEdits
 import java.io.IOException
 import java.util.concurrent.Executors
 
@@ -86,8 +87,19 @@ object Art {
         image.setImageBitmap(picture)
     }
 
+    /** After a song's cover changes. */
+    fun forgetPictures() {
+        pictures.evictAll()
+        noPicture.clear()
+    }
+
     private fun load(context: Context, uri: Uri): Bitmap? = try {
-        context.contentResolver.loadThumbnail(uri, Size(SIZE_PX, SIZE_PX), null)
+        val chosen = SongEdits(context).coverFile(uri.toString())
+        if (chosen.isFile) {
+            BitmapFactory.decodeFile(chosen.path)
+        } else {
+            context.contentResolver.loadThumbnail(uri, Size(SIZE_PX, SIZE_PX), null)
+        }
     } catch (_: IOException) {
         embedded(context, uri)
     } catch (_: RuntimeException) {
@@ -130,7 +142,8 @@ object Art {
                     // Nothing more to do with it.
                 }
             }
-            view.post { onTags(title, artist) }
+            val edit = SongEdits(context).get(uri.toString())
+            view.post { onTags(edit?.title ?: title, edit?.artist ?: artist) }
         }
     }
 

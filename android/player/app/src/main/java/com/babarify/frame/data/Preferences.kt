@@ -1,6 +1,7 @@
 package com.babarify.frame.data
 
 import android.content.Context
+import com.babarify.frame.core.MusicRules
 import com.babarify.frame.core.EnhancementProfile
 import com.babarify.frame.core.EqualizerSettings
 import com.babarify.frame.core.LeaveAction
@@ -91,6 +92,14 @@ class Preferences(context: Context) {
     var volume: Int
         get() = PlaybackRules.rememberedVolume(store.getInt("volume", PlaybackRules.VOLUME_NORMAL_MAX))
         set(value) = store.edit().putInt("volume", PlaybackRules.rememberedVolume(value)).apply()
+
+    var fadeSeconds: Int
+        get() = store.getInt("fade_seconds", 0).takeIf { it in MusicRules.FADE_CHOICES_S } ?: 0
+        set(value) = store.edit().putInt("fade_seconds", value).apply()
+
+    var audioEffect: String
+        get() = store.getString("audio_effect", null)?.takeIf { it in MusicRules.AUDIO_EFFECTS } ?: "none"
+        set(value) = store.edit().putString("audio_effect", value).apply()
 
     var seekStepSeconds: Int
         get() = store.getInt("seek_step_s", 10).takeIf { it in PlaybackRules.SEEK_STEPS_S } ?: 10

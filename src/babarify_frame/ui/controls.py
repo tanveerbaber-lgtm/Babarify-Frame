@@ -53,10 +53,16 @@ REPEAT_NAMES = {
 }
 
 
+BUTTON = 40
+PLAY_BUTTON = 48
+ICON_SHARE = 0.55  # of a button's width
+
+
 def icon(widget: QWidget, name: str, color: str | None = None) -> QIcon:
-    return glyph_icon(name, color or theme.TEXT, theme.TEXT_DISABLED) or widget.style().standardIcon(
-        _FALLBACK[name]
-    )
+    # Drawn large and a little heavier: the font's thin lines are hard to see at button size.
+    return glyph_icon(
+        name, color or theme.TEXT, theme.TEXT_DISABLED, size=64, weight=0.035
+    ) or widget.style().standardIcon(_FALLBACK[name])
 
 
 def rate_label(rate: float) -> str:
@@ -106,7 +112,9 @@ class ControlBar(QFrame):
         # Button row
         row = QHBoxLayout()
         row.setSpacing(theme.S)
-        self.play_button = self._button("play", "Play", "Play/Pause (Space)", self.play_clicked, size=40)
+        self.play_button = self._button(
+            "play", "Play", "Play/Pause (Space)", self.play_clicked, size=PLAY_BUTTON
+        )
         self.play_button.setObjectName("playButton")
         self.play_button.setIcon(icon(self, "play", theme.ON_ACCENT))
         self.stop_button = self._button("stop", "Stop", "Stop (S)", self.stop_clicked)
@@ -136,6 +144,7 @@ class ControlBar(QFrame):
         self.speed_button.setAccessibleName("Playback speed")
         self.speed_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         self.speed_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.speed_button.setFixedSize(BUTTON, BUTTON)  # the same square as the other controls
         self._speed_menu = QMenu(self.speed_button)
         self._speed_group = QActionGroup(self)
         self._speed_actions: dict[float, QAction] = {}
@@ -150,8 +159,8 @@ class ControlBar(QFrame):
         self.tracks_button = QToolButton()
         self.tracks_button.setObjectName("tracksButton")
         self.tracks_button.setIcon(icon(self, "subtitles"))
-        self.tracks_button.setIconSize(QSize(16, 16))
-        self.tracks_button.setFixedSize(32, 32)
+        self.tracks_button.setIconSize(QSize(round(BUTTON * ICON_SHARE), round(BUTTON * ICON_SHARE)))
+        self.tracks_button.setFixedSize(BUTTON, BUTTON)
         self.tracks_button.setAccessibleName("Audio and subtitles")
         self.tracks_button.setToolTip("Audio and subtitles (V cycles subtitles, B cycles audio)")
         self.tracks_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
@@ -209,11 +218,13 @@ class ControlBar(QFrame):
         label.setAccessibleName(accessible)
         return label
 
-    def _button(self, glyph: str, name: str, tip: str, signal: SignalInstance, size: int = 32) -> QToolButton:
+    def _button(
+        self, glyph: str, name: str, tip: str, signal: SignalInstance, size: int = BUTTON
+    ) -> QToolButton:
         button = QToolButton()
         button.setIcon(icon(self, glyph))
         self._plain_icons.append((button, glyph))
-        button.setIconSize(QSize(size // 2, size // 2))
+        button.setIconSize(QSize(round(size * ICON_SHARE), round(size * ICON_SHARE)))
         button.setFixedSize(size, size)
         button.setAccessibleName(name)
         button.setToolTip(tip)

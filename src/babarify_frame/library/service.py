@@ -240,6 +240,28 @@ class LibraryService:
             result.year,
         )
 
+    def set_cover_from_file(self, path: str, picture: str) -> bool:
+        """Use a picture as a song's cover. Its file isn't changed."""
+        if self.thumbnail_dir is None:
+            return False
+        from PySide6.QtCore import Qt
+        from PySide6.QtGui import QImage
+
+        image = QImage(picture)
+        if image.isNull():
+            return False
+        small = image.scaled(
+            THUMBNAIL_WIDTH,
+            THUMBNAIL_WIDTH,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        name = self._write_thumbnail(path, small)
+        if name is None:
+            return False
+        self.db.set_cover(path, name)
+        return True
+
     def _save_cover(self, path: str) -> str | None:
         """A song's own picture, as its thumbnail."""
         if self.thumbnail_dir is None or os.path.splitext(path)[1].lower() not in AUDIO_EXTENSIONS:

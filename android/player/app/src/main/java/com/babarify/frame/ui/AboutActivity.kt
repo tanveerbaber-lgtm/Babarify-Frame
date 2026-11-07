@@ -18,6 +18,6 @@ class AboutActivity : Activity() {
     }
 
     private companion object {
-        val LICENCE_FILES = listOf("THIRD_PARTY_NOTICES.txt", "GPL-3.0.txt", "LGPL-2.1.txt", "Apache-2.0.txt")
+        val LICENCE_FILES = listOf("THIRD_PARTY_NOTICES.txt", "GPL-3.0.txt", "LGPL-2.1.txt", "Apache-2.0.txt", "OFL-1.1.txt")
     }
 }

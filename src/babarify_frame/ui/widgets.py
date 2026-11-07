@@ -9,10 +9,13 @@ from PySide6.QtGui import (
     QColor,
     QFont,
     QFontDatabase,
+    QFontMetricsF,
     QIcon,
     QMouseEvent,
     QPainter,
+    QPainterPath,
     QPaintEvent,
+    QPen,
     QPixmap,
 )
 from PySide6.QtWidgets import QLabel, QSlider, QStyle, QStyleOptionSlider, QWidget
@@ -57,8 +60,12 @@ def _icon_font_family() -> str | None:
     return next((f for f in ("Segoe Fluent Icons", "Segoe MDL2 Assets") if f in families), None)
 
 
-def glyph_icon(name: str, color: str, disabled_color: str, size: int = 32) -> QIcon | None:
-    """Render a Windows icon-font glyph as a QIcon, or None if no icon font is installed."""
+def glyph_icon(
+    name: str, color: str, disabled_color: str, size: int = 32, weight: float = 0.0
+) -> QIcon | None:
+    """Render a Windows icon-font glyph as a QIcon, or None if no icon font is installed.
+
+    ``weight`` thickens the glyph's thin lines by tracing them, as a fraction of ``size``."""
     family = _icon_font_family()
     if family is None:
         return None
@@ -73,7 +80,19 @@ def glyph_icon(name: str, color: str, disabled_color: str, size: int = 32) -> QI
         font.setPixelSize(int(size * 0.62))
         painter.setFont(font)
         painter.setPen(QColor(tint))
-        painter.drawText(QRectF(0, 0, size, size), Qt.AlignmentFlag.AlignCenter, GLYPHS[name])
+        if weight > 0:
+            path = QPainterPath()
+            metrics = QFontMetricsF(font)
+            text = GLYPHS[name]
+            x = (size - metrics.horizontalAdvance(text)) / 2
+            y = (size + metrics.ascent() - metrics.descent()) / 2
+            path.addText(x, y, font, text)
+            painter.setPen(QPen(QColor(tint), size * weight, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap,
+                                Qt.PenJoinStyle.RoundJoin))  # fmt: skip
+            painter.setBrush(QColor(tint))
+            painter.drawPath(path)
+        else:
+            painter.drawText(QRectF(0, 0, size, size), Qt.AlignmentFlag.AlignCenter, GLYPHS[name])
         painter.end()
         icon.addPixmap(pixmap, mode)
     return icon

@@ -10,6 +10,7 @@ from PySide6.QtGui import QColor, QFontDatabase, QIcon, QLinearGradient, QPainte
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
+    QFileDialog,
     QFormLayout,
     QFrame,
     QHBoxLayout,
@@ -25,7 +26,7 @@ from PySide6.QtWidgets import (
 from babarify_frame.ai.models import MODELS, ModelStatus
 from babarify_frame.configuration.preferences import LANGUAGES, SEEK_STEPS_S, Preferences
 from babarify_frame.core.models import SubtitlePosition, SubtitleStyle
-from babarify_frame.core.music import STYLE_LABELS
+from babarify_frame.core.music import AUDIO_EFFECT_LABELS, FADE_CHOICES_S, STYLE_LABELS
 from babarify_frame.core.themes import THEMES
 from babarify_frame.ui import theme
 from babarify_frame.ui.widgets import plain_text
@@ -155,18 +156,38 @@ class SettingsPage(QWidget):
         self.show_status_bar.setToolTip(
             "Technical details and short messages. Playback info (Ctrl+I) has the same details."
         )
+        self.background_button = QPushButton("Choose a background picture…")
+        self.background_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.background_button.clicked.connect(self.choose_background)
+        self.background_remove = QPushButton("Remove the picture")
+        self.background_remove.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.background_remove.clicked.connect(lambda: self.set_background(""))
         appearance = self._card(
             "Appearance",
             [
                 ("Colour theme", self.colour_theme),
                 ("Animation for audio with no picture", self.visual_style),
                 ("", self.show_status_bar),
+                ("", self.background_button),
+                ("", self.background_remove),
             ],
         )
+        self.fade = QComboBox()
+        for seconds in FADE_CHOICES_S:
+            self.fade.addItem("Off" if seconds == 0 else f"{seconds} seconds", seconds)
+        self.fade.setAccessibleName("Fade between songs")
+        self.fade.setToolTip("The end of a song fades out and the next fades in, in a playlist or queue")
+        self.audio_effect = QComboBox()
+        for key, label in AUDIO_EFFECT_LABELS.items():
+            self.audio_effect.addItem(label, key)
+        self.audio_effect.setAccessibleName("Sound effect")
+        self.audio_effect.setToolTip("Room adds a sense of space; wider stereo spreads the sound")
         playback = self._card(
             "Playback",
             [
                 ("Seek step (← →)", self.seek_step),
+                ("Fade between songs", self.fade),
+                ("Sound effect", self.audio_effect),
                 ("Hardware decoding", self.hardware_decoding),
                 ("", self.remember_volume),
                 ("", self.allow_boost),
@@ -296,6 +317,8 @@ class SettingsPage(QWidget):
 
         self.set_preferences(prefs)
         self.seek_step.currentIndexChanged.connect(self._changed)
+        self.fade.currentIndexChanged.connect(self._changed)
+        self.audio_effect.currentIndexChanged.connect(self._changed)
         self.remember_volume.toggled.connect(self._changed)
         self.allow_boost.toggled.connect(self._changed)
         self.seek_previews.toggled.connect(self._changed)
@@ -440,7 +463,10 @@ class SettingsPage(QWidget):
     def set_preferences(self, prefs: Preferences) -> None:
         self._loading = True
         self._prefs = prefs
+        self.background_remove.setEnabled(bool(prefs.background_picture))
         self.seek_step.setCurrentIndex(max(0, SEEK_STEPS_S.index(prefs.seek_step_s)))
+        self.fade.setCurrentIndex(max(0, self.fade.findData(prefs.fade_seconds)))
+        self.audio_effect.setCurrentIndex(max(0, self.audio_effect.findData(prefs.audio_effect)))
         self.remember_volume.setChecked(prefs.remember_volume)
         self.allow_boost.setChecked(prefs.allow_volume_boost)
         self.seek_previews.setChecked(prefs.seek_previews)
@@ -471,12 +497,26 @@ class SettingsPage(QWidget):
         _select(self.subtitle_position, style.position.value, style.position.value)
         self._loading = False
 
+    def choose_background(self) -> None:
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Choose a background picture", "", "Pictures (*.png *.jpg *.jpeg *.webp *.bmp)"
+        )
+        if path:
+            self.set_background(path)
+
+    def set_background(self, path: str) -> None:
+        self._prefs = replace(self._prefs, background_picture=path)
+        self.background_remove.setEnabled(bool(path))
+        self.preferences_changed.emit(self._prefs)
+
     def _changed(self) -> None:
         if self._loading:
             return
         self._prefs = replace(
             self._prefs,
             seek_step_s=int(self.seek_step.currentData()),
+            fade_seconds=int(self.fade.currentData()),
+            audio_effect=str(self.audio_effect.currentData()),
             remember_volume=self.remember_volume.isChecked(),
             allow_volume_boost=self.allow_boost.isChecked(),
             seek_previews=self.seek_previews.isChecked(),

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Colours from the desktop theme (ui/theme.py). -->
     <color name="background">#070B15</color>
     <color name="surface">#0E1628</color>
@@ -36,9 +36,14 @@
         <item name="android:textColorPrimaryDisableOnly">?attr/inkColor</item>
         <item name="android:statusBarColor">?attr/bgColor</item>
         <item name="android:navigationBarColor">?attr/surfaceColor</item>
+        <item name="android:fontFamily">@font/arimo_family</item>
         <item name="android:buttonStyle">@style/SoftButton</item>
         <item name="android:seekBarStyle">@style/Slider</item>
         <item name="android:alertDialogTheme">@style/Theme.Babarify.Dialog</item>
+        <!-- Android 12 and later: a plain start-up screen in the intro's colour, so the intro isn't shown twice. -->
+        <item name="android:windowSplashScreenBackground" tools:targetApi="31">@color/background</item>
+        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="31">@drawable/splash_blank</item>
+        <item name="android:windowSplashScreenIconBackgroundColor" tools:targetApi="31">@color/background</item>
     </style>
 
     <!-- The video reaches every edge of the screen, around the camera too. -->
@@ -149,6 +154,7 @@
         <item name="android:textColorPrimary">?attr/inkColor</item>
         <item name="android:textColorSecondary">?attr/inkMutedColor</item>
         <item name="android:textColorAlertDialogListItem">?attr/inkColor</item>
+        <item name="android:fontFamily">@font/arimo_family</item>
         <item name="android:textColorPrimaryDisableOnly">?attr/inkColor</item>
         <item name="android:buttonStyle">@style/SoftButton</item>
         <item name="android:seekBarStyle">@style/Slider</item>

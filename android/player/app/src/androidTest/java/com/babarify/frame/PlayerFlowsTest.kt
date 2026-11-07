@@ -339,6 +339,8 @@ class PlayerFlowsTest {
             "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
             "android.permission.WAKE_LOCK",
             "android.permission.READ_MEDIA_AUDIO",
+            // Only for Set as ringtone, and Android asks the person before granting it.
+            "android.permission.WRITE_SETTINGS",
         )
         // Android 13 and later ignore this older, wider one, because the manifest limits it to before them.
         if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.S_V2) {

@@ -21,6 +21,7 @@ from babarify_frame.playback.factory import EngineDescriptor, EngineFactory, Eng
 from babarify_frame.playback.media_probe import MediaProbe, ProbeResult
 from babarify_frame.ui.app import load_icon
 from babarify_frame.ui.main_window import MainWindow
+from babarify_frame.ui.music_panel import EditDetailsDialog
 
 pytestmark = pytest.mark.ui
 
@@ -215,6 +216,40 @@ def test_a_songs_menu_lines_it_up_and_hides_it(qtbot: QtBot, window: MainWindow,
     choose(first, "Hide")
     assert first.path not in [entry.path for entry in panel.songs.entries]
     assert window.library_service.db.hidden_media() == [first.path]
+
+
+def test_the_for_you_tab_shows_the_recap_and_plays(
+    qtbot: QtBot, window: MainWindow, songs: list[str]
+) -> None:
+    open_tab(window, "For you")
+    panel = window.library.for_you
+    assert "Play some songs" in panel.summary.text()
+    assert panel.never_played.count() > 0
+    entry = window.library_service.db.songs()[0]
+    window.library_service.db.record_play(entry.path, entry.display_title, 1000)
+    window.library.refresh_current_tab()
+    assert "1 song 1 time" in panel.summary.text()
+    assert panel.most_played.count() == 1
+    received: list[list[str]] = []
+    panel.play_requested.connect(lambda paths, _start: received.append(paths))
+    panel.most_played.itemActivated.emit(panel.most_played.item(0))
+    assert received == [[entry.path]]
+
+
+def test_a_songs_details_can_be_edited(qtbot: QtBot, window: MainWindow, songs: list[str]) -> None:
+    open_tab(window, "Songs")
+    panel = window.library.songs_panel
+    entry = panel.songs.entries[0]
+    assert "Edit details…" in [a.text() for a in panel.build_context_menu([entry]).actions()]
+    assert "Edit details…" not in [
+        a.text() for a in panel.build_context_menu(panel.songs.entries[:2]).actions()
+    ]
+    dialog = EditDetailsDialog(window.library_service, entry, window)
+    qtbot.addWidget(dialog)
+    dialog.title_box.setText("A better title")
+    dialog.save()
+    panel.refresh()
+    assert "A better title" in [e.title for e in panel.songs.entries]
 
 
 def test_automatic_lists_show_and_play(qtbot: QtBot, window: MainWindow, songs: list[str]) -> None:
