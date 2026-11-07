@@ -48,6 +48,12 @@ def clean_env(profile: Path) -> dict[str, str]:
     return env
 
 
+def app_of(setup: Path, target: Path) -> Path:
+    """The program an installer puts in ``target``: versions before 0.10 were called Babarify Frame."""
+    name = "Babarify Frame.exe" if setup.name.startswith("BabarifyFrame-") else "Babarify Media Player.exe"
+    return target / name
+
+
 def install(setup: Path, target: Path, log: Path, tasks: str = "") -> int:
     args = [str(setup), "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CURRENTUSER",
             f"/DIR={target}", f"/LOG={log}"]  # fmt: skip
@@ -119,7 +125,7 @@ def main() -> int:
 
     # 1. Fresh install of the older version, with "Open with".
     results["install_old"] = install(old_setup, target, work / "install-old.log", "openwith")
-    app = target / "Babarify Media Player.exe"
+    app = app_of(old_setup, target)
     results["installed_version_old"] = file_version(app)
     results["openwith_registered"] = (
         reg_value(r"Software\Classes\.mp4\OpenWithProgids", "BabarifyFrame.Media") is not None
@@ -152,10 +158,12 @@ def main() -> int:
 
     # 4. Upgrade, then roll back to the older version.
     results["upgrade"] = install(new_setup, target, work / "install-new.log")
+    app = app_of(new_setup, target)
     results["installed_version_new"] = file_version(app)
     results["run_new"] = run_app(app, env, MEDIA)
     results["data_kept_after_upgrade"] = marker.is_file() and settings.is_file()
     results["rollback"] = install(old_setup, target, work / "install-rollback.log")
+    app = app_of(old_setup, target)
     results["installed_version_after_rollback"] = file_version(app)
     results["run_rollback"] = run_app(app, env, MEDIA)
     results["data_kept_after_rollback"] = marker.is_file() and settings.is_file()
