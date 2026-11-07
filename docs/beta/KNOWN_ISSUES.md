@@ -1,6 +1,6 @@
 # Known issues — Babarify Media Player beta
 
-Last updated: 2026-11-01 (0.9.1). Please do not report these again, but do add details to the
+Last updated: 2026-11-07 (0.10.0). Please do not report these again, but do add details to the
 linked issue if you have new information.
 
 | Area | Issue | Workaround | Since |
@@ -18,6 +18,11 @@ linked issue if you have new information.
 | Previews | Some AV1 files show no preview picture for some positions; 4K previews are slow | — | M8 |
 | AI | Generated subtitles are a machine draft; speed is about 6× real time (base model) on a mid-range laptop CPU | Use the tiny model for speed | M9 |
 | Library | Moving or renaming a file loses its history, bookmarks and generated subtitles | — | M6 |
+| Music | There is a short gap (about 0.4 s) between songs; playback can't run them together | Fade between songs makes the change smooth | 0.10.0 |
+| Music | Fade between songs fades out and in; the songs don't overlap | — | 0.10.0 |
+| Sound | The Room and Wider stereo effects are new and only lightly tested by ear | Tell us how they sound | 0.10.0 |
+| Library | Edited details and covers are kept by the app, not written into the files, so other apps don't see them | — | 0.10.0 |
+| Update | Going back to 0.9.1 after 0.10.0 starts 0.9.1 with an empty library (it can't read the newer one); your data stays for the next update | Keep using 0.10.0 | 0.10.0 |
 | Accessibility | Windows contrast themes are not followed: the app keeps its own dark theme (all text at least 5.6:1 contrast, control outlines at least 3:1) | — | 0.9.0 |
 
-Fixed in 0.9.1: control outlines were hard to see (low contrast); see the release notes.
+Fixed in 0.9.1: control outlines were hard to see (low contrast). 0.10.0 renames the app to Babarify Media Player; see the release notes.

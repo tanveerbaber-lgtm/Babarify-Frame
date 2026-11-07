@@ -4,7 +4,9 @@ Released versions are published on the
 [releases page](https://github.com/tanveerbaber-lgtm/Babarify-Media-Player/releases). Details for Windows
 releases are in [`docs/release-notes/`](docs/release-notes/).
 
-## Windows, next version (not released)
+## Windows 0.10.0 (ready to publish, 7 November 2026)
+
+Release notes: [0.10.0](docs/release-notes/0.10.0.md).
 
 - Changed: the app is now called Babarify Media Player, and installs in a folder of that name. Upgrading moves it
   there and keeps your settings and library. A taskbar pin to the old copy has to be pinned again. New snapshots go to `Pictures\Babarify Media Player`; existing ones stay where they are.
@@ -38,11 +40,11 @@ releases are in [`docs/release-notes/`](docs/release-notes/).
 - New: back up settings, playlists, favourites and hidden files to a file, and restore them.
 - New: import and export playlists as M3U.
 - New: sort songs by folder, oldest first, most played or year. Songs are read once more for their year.
-- New: volume from 1 to 100, with optional boost to 200 (already on main, listed here until released).
+- New: volume from 1 to 100, with optional boost to 200.
 
-## Android 0.2.0-beta (not released)
+## Android 0.2.0-beta (ready to publish, 7 November 2026)
 
-Brings the Android app close to the Windows app. Not yet published.
+Brings the Android app close to the Windows app. Release notes: [Android 0.2.0-beta](docs/release-notes/android-0.2.0-beta.md).
 
 - Changed: the app is now called Babarify Media Player.
 - New: library of folders you choose, with search, sorting and pictures; playlists; bookmarks.
@@ -82,7 +84,7 @@ Brings the Android app close to the Windows app. Not yet published.
 - New: the notification shows the song's title, artist and picture, with a favourite button.
 - New: audio files keep playing with the app closed, in a mini player in the notifications, until you close
   it there. Video stops when you leave unless you choose otherwise. This needs three new permissions; still no
-  internet or storage permission.
+  internet permission.
 - New: swipe gestures and a small floating window.
 - Not included: network streams and local AI subtitles, by the owner's decision.
 
