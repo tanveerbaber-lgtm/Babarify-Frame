@@ -756,6 +756,7 @@ class PlayerActivity : Activity(), SessionListener {
                 add(R.string.zoom to { showZoom() })
                 add(R.string.rotate_or_flip to { showTransform() })
             }
+            add(R.string.lyrics to { showLyrics() })
             add(R.string.sleep_timer to { showSleepTimer() })
             add(R.string.add_to_playlist to { choosePlaylist() })
             add(R.string.lock_controls to { setLocked(true) })
@@ -1220,6 +1221,28 @@ class PlayerActivity : Activity(), SessionListener {
     }
 
     // ----------------------------------------------------------- subtitles
+    private fun showLyrics() = LyricsDialog.show(this, session, ::pickLyrics)
+
+    private fun pickLyrics() {
+        val pick = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+        }
+        @Suppress("DEPRECATION")
+        startActivityForResult(pick, REQUEST_LYRICS)
+    }
+
+    private fun addLyrics(file: Uri) {
+        val media = session.mediaUri?.toString() ?: return
+        try {
+            val text = contentResolver.openInputStream(file)?.use { it.readBytes().toString(Charsets.UTF_8) } ?: return
+            LyricsStore.save(this, media, text)
+            showLyrics()
+        } catch (_: java.io.IOException) {
+            Toast.makeText(this, R.string.lyrics_not_read, Toast.LENGTH_LONG).show()
+        }
+    }
+
     private fun pickSubtitle() {
         val pick = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
@@ -1234,6 +1257,10 @@ class PlayerActivity : Activity(), SessionListener {
         @Suppress("DEPRECATION")
         super.onActivityResult(requestCode, resultCode, data)
         val uri = data?.data
+        if (requestCode == REQUEST_LYRICS && resultCode == RESULT_OK && uri != null) {
+            addLyrics(uri)
+            return
+        }
         if (requestCode != REQUEST_SUBTITLE || resultCode != RESULT_OK || uri == null) return
         // Android calls onStart before delivering this result, so the engine is already running.
         addSubtitle(uri)
@@ -1573,6 +1600,7 @@ class PlayerActivity : Activity(), SessionListener {
             private set
 
         private const val REQUEST_SUBTITLE = 2
+        private const val REQUEST_LYRICS = 3
         private const val TICK_MS = 500L
         private const val HIDE_CONTROLS_MS = 4_000L
         private const val GESTURE_LABEL_MS = 800L

@@ -28,7 +28,7 @@ from babarify_frame.core.enhancements import (
     PictureSettings,
 )
 from babarify_frame.core.models import SubtitleStyle
-from babarify_frame.core.music import RepeatMode, VisualStyle
+from babarify_frame.core.music import AUDIO_EFFECTS, FADE_CHOICES_S, RepeatMode, VisualStyle
 from babarify_frame.core.themes import DEFAULT_THEME, THEMES
 
 log = logging.getLogger(__name__)
@@ -102,6 +102,8 @@ class Preferences:
     muted: bool = False
     remember_volume: bool = True
     seek_step_s: int = 10  # one of SEEK_STEPS_S
+    fade_seconds: int = 0  # between songs in a list; one of FADE_CHOICES_S
+    audio_effect: str = "none"  # a key of AUDIO_EFFECTS
     controls_hide_delay_ms: int = 3000  # fullscreen auto-hide, 1000..10000 (whole seconds in the UI)
     start_fullscreen: bool = False
     hardware_decoding: bool = True  # Automatic: use the GPU when the engine confirms support
@@ -125,6 +127,7 @@ class Preferences:
     repeat_mode: str = "off"  # a RepeatMode value
     visual_style: str = "auto"  # a VisualStyle value
     colour_theme: str = DEFAULT_THEME  # a THEMES key
+    background_picture: str = ""  # a picture of the person's own, behind the main pages
     show_status_bar: bool = False  # the line of technical details along the bottom of the window
     # Local AI (M9): off until the user switches it on; nothing is uploaded
     ai_enabled: bool = False
@@ -187,6 +190,8 @@ class Preferences:
             self,
             volume=max(1, min(100, self.volume)),
             seek_step_s=self.seek_step_s if self.seek_step_s in SEEK_STEPS_S else 10,
+            fade_seconds=self.fade_seconds if self.fade_seconds in FADE_CHOICES_S else 0,
+            audio_effect=self.audio_effect if self.audio_effect in AUDIO_EFFECTS else "none",
             controls_hide_delay_ms=max(1000, min(10_000, self.controls_hide_delay_ms)),
             preferred_audio_language=_language(self.preferred_audio_language),
             preferred_subtitle_language=_language(self.preferred_subtitle_language),

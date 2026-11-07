@@ -22,6 +22,20 @@ data class SongGroup(val kind: GroupKind, val key: String, val title: String, va
 enum class SongSort { TITLE, ARTIST, FOLDER, RECENTLY_ADDED, OLDEST_ADDED, MOST_PLAYED, YEAR, DURATION }
 
 object MusicRules {
+    val FADE_CHOICES_S = listOf(0, 2, 4, 6)
+
+    /** Sound effects, as libVLC audio filters. */
+    val AUDIO_EFFECTS = linkedMapOf(
+        "none" to "",
+        "room" to "spatializer",
+        "wide" to "stereo_widen",
+        "both" to "spatializer:stereo_widen",
+    )
+
+    /** The volume [ms] into a fade in, or [ms] before the end of a fade out. */
+    fun fadeLevel(base: Int, ms: Long, fadeMs: Long): Int =
+        if (fadeMs <= 0) base else Math.round(base * ms.coerceIn(0, fadeMs).toDouble() / fadeMs).toInt()
+
     private const val UNKNOWN = "<unknown>"
     private val BASS_WEIGHTS = listOf(1f, 0.8f, 0.5f, 0.2f)
 

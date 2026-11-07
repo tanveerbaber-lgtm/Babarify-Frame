@@ -123,6 +123,8 @@ fun showSongActions(activity: Activity, store: LibraryStore, song: Song, onHidde
             store.setFavourite(song.uri, song.fileName, !favourite)
         },
         R.string.add_to_playlist to { chooseSongPlaylist(activity, store, listOf(song)) },
+        R.string.edit_details to { SongEditor.show(activity, song) },
+        R.string.set_as_ringtone to { Ringtone.ask(activity, song) },
         R.string.hide_song to { hideSongs(activity, listOf(song), onHidden) },
         R.string.delete_from_device to { SongDeletion.ask(activity, listOf(song), onHidden) },
     )
@@ -416,6 +418,7 @@ class MusicActivity : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         SongDeletion.onResult(this, requestCode, resultCode, data)
+        SongEditor.onResult(this, requestCode, resultCode, data?.data)
     }
 
     private fun forgetHidden(songs: List<Song>) {
@@ -593,6 +596,7 @@ class MusicGroupActivity : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         SongDeletion.onResult(this, requestCode, resultCode, data)
+        SongEditor.onResult(this, requestCode, resultCode, data?.data)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

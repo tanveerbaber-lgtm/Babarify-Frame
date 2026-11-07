@@ -4,11 +4,16 @@
     app's share. The first three below are only for sound that keeps playing after leaving: audio files, and video
     if chosen. The last two read songs only, are asked for when the user taps to find their music, and are optional.
 -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <!-- Only for Set as ringtone. Android asks the person to allow it in its own settings screen. -->
+    <uses-permission
+        android:name="android.permission.WRITE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
@@ -55,6 +60,9 @@
             android:name=".ui.MusicGroupActivity"
             android:exported="false" />
         <activity
+            android:name=".ui.ForYouActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.LibraryActivity"
             android:exported="false" />
         <activity
@@ -67,6 +75,17 @@
             android:name=".ui.SettingsActivity"
             android:exported="false" />
         <!-- Not exported: only the small window's own button can reach it. -->
+        <receiver
+            android:name=".ui.NowPlayingWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/now_playing_widget" />
+        </receiver>
         <receiver
             android:name=".ui.PictureToggleReceiver"
             android:exported="false" />

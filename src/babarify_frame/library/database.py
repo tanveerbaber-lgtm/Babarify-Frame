@@ -150,9 +150,24 @@ MIGRATIONS: tuple[tuple[str, ...], ...] = (
             OR lower(name) LIKE '%.opus' OR lower(name) LIKE '%.wma' OR lower(name) LIKE '%.ac3'
             OR lower(name) LIKE '%.mka'""",
     ),
+    (  # 7: corrections to a song's tags, kept here so its file isn't changed
+        """CREATE TABLE tag_edits(
+            path_key TEXT PRIMARY KEY,
+            title TEXT,
+            artist TEXT,
+            album TEXT,
+            thumbnail TEXT)""",
+    ),
 )
 SCHEMA_VERSION = len(MIGRATIONS)
 _NOT_HIDDEN = "m.path_key NOT IN (SELECT path_key FROM hidden_media)"
+_APPLY_TAG_EDITS = """UPDATE media SET
+    title = COALESCE((SELECT e.title FROM tag_edits e WHERE e.path_key = media.path_key), title),
+    artist = COALESCE((SELECT e.artist FROM tag_edits e WHERE e.path_key = media.path_key), artist),
+    album = COALESCE((SELECT e.album FROM tag_edits e WHERE e.path_key = media.path_key), album),
+    thumbnail = COALESCE(
+        (SELECT e.thumbnail FROM tag_edits e WHERE e.path_key = media.path_key), thumbnail
+    )"""
 AUTOMATIC_LIST_SIZE = 50
 # What counts as a song, in SQL. The name counts too: a cover can look like a video track.
 _IS_SONG = (
@@ -454,6 +469,7 @@ class LibraryDatabase:
                 (result.duration_ms, result.width, result.height, result.video_codec, result.audio_codec,
                  result.thumbnail, result.title, result.artist, result.album, result.year, media_id),
             )  # fmt: skip
+            conn.execute(_APPLY_TAG_EDITS + " WHERE id = ?", (media_id,))
 
     def media(
         self, search: str = "", sort: SortOrder = SortOrder.NAME, limit: int = 10_000, offset: int = 0
@@ -480,6 +496,40 @@ class LibraryDatabase:
             (*params, limit, offset),
         )
         return [self._media_entry(r) for r in rows]
+
+    def edit_tags(self, path: str, title: str, artist: str, album: str) -> None:
+        """Correct a song in the library. A blank value goes back to the file's tag at its next read."""
+        values = (title.strip() or None, artist.strip() or None, album.strip() or None)
+        key = path_key(path)
+        with self._transaction() as conn:
+            conn.execute(
+                """INSERT INTO tag_edits(path_key, title, artist, album) VALUES (?, ?, ?, ?)
+                   ON CONFLICT(path_key) DO UPDATE SET
+                   title = excluded.title, artist = excluded.artist, album = excluded.album""",
+                (key, *values),
+            )
+            conn.execute(
+                "UPDATE media SET probed = "
+                "CASE WHEN ? IS NULL OR ? IS NULL OR ? IS NULL THEN 0 ELSE probed END "
+                "WHERE path_key = ?",
+                (*values, key),
+            )
+            conn.execute(_APPLY_TAG_EDITS + " WHERE path_key = ?", (key,))
+
+    def set_cover(self, path: str, thumbnail: str) -> None:
+        key = path_key(path)
+        with self._transaction() as conn:
+            conn.execute(
+                """INSERT INTO tag_edits(path_key, thumbnail) VALUES (?, ?)
+                   ON CONFLICT(path_key) DO UPDATE SET thumbnail = excluded.thumbnail""",
+                (key, thumbnail),
+            )
+            conn.execute(_APPLY_TAG_EDITS + " WHERE path_key = ?", (key,))
+
+    def play_counts(self) -> dict[str, int]:
+        """How many times each file has been played, by its path."""
+        rows = self._query("SELECT path, play_count FROM history WHERE play_count > 0")
+        return {r["path"]: r["play_count"] for r in rows}
 
     def hide_media(self, paths: list[str]) -> None:
         """Keep files out of the library's lists. The files aren't touched, and a rescan keeps them hidden."""

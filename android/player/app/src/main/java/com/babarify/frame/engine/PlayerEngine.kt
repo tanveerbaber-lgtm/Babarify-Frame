@@ -11,7 +11,7 @@ import com.babarify.frame.core.TrackInfo
 import com.babarify.frame.core.TrackKind
 import java.io.File
 
-data class EngineOptions(val hardwareDecoding: Boolean, val subtitleStyle: SubtitleStyle)
+data class EngineOptions(val hardwareDecoding: Boolean, val audioEffect: String = "none", val subtitleStyle: SubtitleStyle)
 
 data class EngineStats(val decodedVideo: Int, val lostPictures: Int, val decodedAudio: Int, val lostAudio: Int)
 

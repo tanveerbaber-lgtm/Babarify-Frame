@@ -6,6 +6,10 @@ import android.content.Context
 import android.os.Bundle
 import android.util.TypedValue
 import com.babarify.frame.R
+import com.babarify.frame.core.ErrorCode
+import com.babarify.frame.core.PlaybackState
+import com.babarify.frame.engine.PlaybackSession
+import com.babarify.frame.engine.SessionListener
 import com.babarify.frame.core.VisualStyle
 import com.babarify.frame.data.Preferences
 import java.util.WeakHashMap
@@ -54,6 +58,12 @@ class BabarifyApp : Application(), Application.ActivityLifecycleCallbacks {
     override fun onCreate() {
         super.onCreate()
         registerActivityLifecycleCallbacks(this)
+        PlaybackSession.get(this).addListener(object : SessionListener {
+            override fun onPlaybackStateChanged(state: PlaybackState, error: ErrorCode?) =
+                NowPlayingWidget.refresh(this@BabarifyApp)
+
+            override fun onMediaChanged() = NowPlayingWidget.refresh(this@BabarifyApp)
+        })
     }
 
     override fun onActivityPreCreated(activity: Activity, savedInstanceState: Bundle?) {
@@ -65,6 +75,7 @@ class BabarifyApp : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     override fun onActivityStarted(activity: Activity) {
+        if (activity !is PlayerActivity) PictureBackground.apply(activity)
         // Not the player: it has no colours worth interrupting a video for.
         if (activity !is PlayerActivity && applied[activity] != ColourThemes.current(preferences).key) activity.recreate()
     }

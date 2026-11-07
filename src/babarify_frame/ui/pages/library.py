@@ -49,6 +49,7 @@ from babarify_frame.library.service import (
 )
 from babarify_frame.ui import theme
 from babarify_frame.ui.bridge import UiBridge
+from babarify_frame.ui.for_you_panel import ForYouPanel
 from babarify_frame.ui.library_view import CARD, LibraryDelegate, LibraryModel
 from babarify_frame.ui.music_panel import MusicPanel, delete_from_disk
 
@@ -491,7 +492,7 @@ class LibraryPage(QWidget):
         outer.addLayout(header)
 
         self.tabs = QTabBar()
-        for name in ("Media", "Songs", "Albums", "Artists", "Playlists"):
+        for name in ("Media", "Songs", "Albums", "Artists", "Playlists", "For you"):
             self.tabs.addTab(name)
         self.tabs.setAccessibleName("Library sections")
         self.tabs.setDrawBase(False)
@@ -568,6 +569,9 @@ class LibraryPage(QWidget):
         self.artists_panel = self._music_panel(GroupKind.ARTIST)
         self.playlists = PlaylistsPanel(service)
         self.stack.addWidget(self.playlists)
+        self.for_you = ForYouPanel(service)
+        self.for_you.play_requested.connect(self.play_list_requested)
+        self.stack.addWidget(self.for_you)
 
         self._search_timer = QTimer(self)
         self._search_timer.setSingleShot(True)
@@ -615,6 +619,8 @@ class LibraryPage(QWidget):
             current.refresh()
         elif current is self.playlists:
             self.playlists.refresh()
+        elif current is self.for_you:
+            self.for_you.refresh()
 
     def _fill_playlist_menu(self, menu: QMenu, entries: list[MediaEntry]) -> None:
         for playlist in self._service.db.playlists():

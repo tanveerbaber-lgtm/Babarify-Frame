@@ -24,10 +24,17 @@ releases are in [`docs/release-notes/`](docs/release-notes/).
 - New: favourites, with a heart on the player, and automatic Favourites, Recently played, Most played and
   Recently added lists.
 - Changed: in full screen, audio keeps its controls until you hide them.
+- Changed: the player's control buttons are larger, with bolder icons that are easier to see.
+- Changed: clearer tabs, buttons and side bar icons; buttons lift with a soft shadow when you point at them.
 - Changed: the status bar along the bottom is hidden unless you switch it on in Settings or the View menu.
 - New: Play next and Add to queue from a song's menu.
 - New: hide files from the library, and bring them back in Settings. The files aren't touched.
 - New: delete from disk, which asks first and moves the file to the Recycle Bin.
+- New: lyrics from an .lrc or text file, or typed in, that follow along when they have times.
+- New: a For you tab: a recap of what you've played, top songs, artists and albums, and songs never played.
+- New: edit a song's title, artist, album and cover. Saved in the app; the file isn't changed.
+- New: your own picture as the background of the main pages.
+- New: fade between songs in a playlist or queue, and a sound effect: room, wider stereo or both (Settings → Playback).
 - New: back up settings, playlists, favourites and hidden files to a file, and restore them.
 - New: import and export playlists as M3U.
 - New: sort songs by folder, oldest first, most played or year. Songs are read once more for their year.
@@ -53,9 +60,18 @@ Brings the Android app close to the Windows app. Not yet published.
 - New: favourites, and automatic Recently played, Most played and Recently added lists.
 - New: a queue you can jump around in, and shuffle that can be switched off again.
 - New: an equalizer screen with preset chips, upright sliders, and bass boost and preamp dials.
-- New: an opening animation with the icon and name when the app starts. Tap to skip it.
+- New: an opening animation in 3D with the icon and name when the app starts. Tap to skip it. Android 12 and later
+  no longer show the icon twice at start-up.
 - New: Play next and Add to queue, selecting several songs, and hiding songs (Settings brings them back).
 - New: delete songs from the phone, always after a confirmation.
+- New: lyrics from an .lrc or text file, or typed in, that follow along when they have times.
+- New: a For you screen: a recap of what you've played, top songs, artists and albums, and songs never played.
+- New: a home screen widget with play controls.
+- New: edit a song's title, artist, album and cover. Saved in the app; the file isn't changed.
+- New: set a song as the ringtone. This needs one new permission, which Android asks for.
+- New: your own picture as the background of the main screens.
+- New: fade between songs in a playlist or queue, and a sound effect: room, wider stereo or both (Settings → Playback).
+- Changed: text uses Arimo, which matches Arial, and the name on Home has the brand colours.
 - New: back up settings, playlists and favourites to a file, and restore them.
 - New: import and export playlists as M3U. Songs are matched by file name.
 - New: sort songs by folder, oldest first, most played or year.

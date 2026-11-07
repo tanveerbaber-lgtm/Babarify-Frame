@@ -29,6 +29,11 @@ object MusicLibrary {
     }
 
     fun everySong(context: Context): List<Song> {
+        val edits = SongEdits(context)
+        return indexedSongs(context).map(edits::applied)
+    }
+
+    private fun indexedSongs(context: Context): List<Song> {
         if (!allowed(context)) return emptyList()
         val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
         val columns = arrayOf(

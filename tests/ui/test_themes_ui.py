@@ -203,6 +203,34 @@ def test_home_shows_the_name_once_in_the_brand_colours(window: MainWindow) -> No
     assert closest(theme.CYAN, range(image.width() - third, image.width())) < 40, "cyan at the end"
 
 
+def test_a_background_picture_goes_behind_the_pages_until_removed(window: MainWindow, tmp_path: Path) -> None:
+    picture = tmp_path / "mine.png"
+    image = QImage(8, 8, QImage.Format.Format_RGB32)
+    image.fill(QColor("#FF0000"))
+    assert image.save(str(picture))
+    window.settings.set_background(str(picture))
+    assert "border-image" in theme.STYLESHEET
+    assert PreferencesStore(tmp_path / "settings.json").load().background_picture == str(picture)
+    prepared = QImage(theme.BACKGROUND_FILE)
+    assert prepared.pixelColor(0, 0).red() < 255, "dimmed so text stays readable"
+    assert window.player.objectName() == "playerPage", "the player keeps its plain background"
+    window.settings.set_background("")
+    assert theme.BACKGROUND_FILE == "" and "border-image" not in theme.STYLESHEET
+
+
+def test_the_speed_button_is_the_same_square_as_the_others(window: MainWindow) -> None:
+    controls = window.player.controls
+    assert controls.speed_button.size() == controls.stop_button.size()
+    assert controls.speed_button.width() == controls.speed_button.height()
+    metrics = controls.speed_button.fontMetrics()
+    if real_display():  # with no display there is no Arial, so the widths mean nothing
+        for action in controls.speed_button.menu().actions():
+            if action.text():
+                assert metrics.horizontalAdvance(action.text()) <= controls.speed_button.width() - 4, (
+                    action.text()
+                )
+
+
 def test_a_songs_colours_stay_readable_in_light(window: MainWindow) -> None:
     image = QImage(4, 4, QImage.Format.Format_RGB32)
     image.fill(QColor("#102040"))

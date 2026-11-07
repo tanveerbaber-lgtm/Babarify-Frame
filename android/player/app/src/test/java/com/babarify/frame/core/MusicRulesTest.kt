@@ -18,6 +18,45 @@ class MusicRulesTest {
     ) = Song("content://media/$title", title, artist, album, albumId, folder, "$title.mp3", durationMs, addedAt)
 
     @Test
+    fun fadesRiseAndFallWithTheTime() {
+        assertEquals(0, MusicRules.fadeLevel(80, 0, 4000))
+        assertEquals(40, MusicRules.fadeLevel(80, 2000, 4000))
+        assertEquals(80, MusicRules.fadeLevel(80, 9000, 4000))
+        assertEquals(0, MusicRules.fadeLevel(80, -5, 4000))
+        assertEquals("off", 80, MusicRules.fadeLevel(80, 100, 0))
+    }
+
+    @Test
+    fun theRecapCountsWhatWasPlayed() {
+        val one = song("One", artist = "Zed", durationMs = 60_000).copy(uri = "u1", album = "Hits")
+        val two = song("Two", artist = "Zed", durationMs = 120_000).copy(uri = "u2", album = "Hits")
+        val three = song("Three", durationMs = 30_000).copy(uri = "u3", album = null)
+        val recap = Recap.of(listOf(one, two, three), mapOf("u1" to 3, "u2" to 1, "other" to 9))
+        assertEquals(4, recap.plays)
+        assertEquals(2, recap.songsPlayed)
+        assertEquals(300_000L, recap.listenedMs)
+        assertEquals(listOf("One", "Two"), recap.topSongs.map { it.first.title })
+        assertEquals(listOf("Zed" to 4), recap.topArtists)
+        assertEquals(listOf("Hits" to 4), recap.topAlbums)
+        assertEquals(listOf("Three"), recap.neverPlayed.map { it.title })
+    }
+
+    @Test
+    fun lyricsAreReadAndFollowed() {
+        val text = "[ar:Someone]\n[00:12.50]Second\n[00:05.00][00:30.00]First\n\n"
+        val lines = Lyrics.parse(text)
+        assertEquals(listOf("First", "Second", "First"), lines.map { it.text })
+        assertEquals(listOf(5_000L, 12_500L, 30_000L), lines.map { it.timeMs })
+        assertEquals(-1, Lyrics.currentLine(lines, 4_999))
+        assertEquals(0, Lyrics.currentLine(lines, 5_000))
+        assertEquals(1, Lyrics.currentLine(lines, 29_999))
+        assertEquals(2, Lyrics.currentLine(lines, 99_000))
+        val plain = Lyrics.parse("\nOne\n\nTwo\n")
+        assertEquals(listOf("One", "", "Two"), plain.map { it.text })
+        assertEquals("no timing, nothing to follow", -1, Lyrics.currentLine(plain, 50_000))
+    }
+
+    @Test
     fun anM3uFileIsReadAndMatchedByFileName() {
         val text = "\uFEFF#EXTM3U\r\n#EXTINF:12,One\r\nC:\\Music\\one.mp3\r\n\r\n../two.MP3\nhttp://x/three.mp3\n"
         val names = M3u.fileNames(text)

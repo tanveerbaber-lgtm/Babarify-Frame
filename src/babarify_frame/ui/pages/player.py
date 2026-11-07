@@ -48,7 +48,7 @@ from babarify_frame.core.models import (
     TrackInfo,
     TrackKind,
 )
-from babarify_frame.core.music import RepeatMode, VisualStyle, index_after_end, shuffled
+from babarify_frame.core.music import RepeatMode, VisualStyle, fade_level, index_after_end, shuffled
 from babarify_frame.core.network import is_network_uri, stream_display_name
 from babarify_frame.library.database import LibraryDatabase, LibraryError
 from babarify_frame.library.history import SAVE_INTERVAL_MS, resume_position
@@ -135,7 +135,7 @@ class PlayerPage(QWidget):
         preview_factory: Callable[[], FramePreview] | None = None,
     ) -> None:
         super().__init__(parent)
-        self.setObjectName("page")
+        self.setObjectName("playerPage")
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self._factory = factory
         self._engine_name = engine_name
@@ -187,6 +187,8 @@ class PlayerPage(QWidget):
         self._video_announced = False
         self._closing = False
         self._ticks = 0
+        self._fading_in = False
+        self._faded_to = -1
         self._fullscreen = False
         self._last_cursor = QPoint()
         self._idle_ms = 0
@@ -302,6 +304,7 @@ class PlayerPage(QWidget):
             hardware_decoding=self._prefs.hardware_decoding,
             subtitle_style=self._prefs.subtitle_style,
             video_transform=self._transform,
+            audio_effect=self._prefs.audio_effect,
         )
 
         started = time.monotonic()
@@ -646,6 +649,10 @@ class PlayerPage(QWidget):
         if shuffle and len(self._queue) > 1:
             self.toggle_shuffle()
 
+    @property
+    def position_ms(self) -> int:
+        return self._controller.status().position_ms if self.engine_is_ready else 0
+
     def play_next(self, paths: list[str]) -> None:
         """Line files up straight after what's playing."""
         self._line_up(paths, next_up=True)
@@ -921,6 +928,7 @@ class PlayerPage(QWidget):
         style_changed = prefs.subtitle_style != self._prefs.subtitle_style
         restart = self.engine_is_ready and (
             prefs.hardware_decoding != self._prefs.hardware_decoding
+            or prefs.audio_effect != self._prefs.audio_effect
             or (style_changed and self._controller.capabilities().subtitle_style == "restart")
         )
         previews_changed = prefs.seek_previews != self._prefs.seek_previews
@@ -1367,6 +1375,30 @@ class PlayerPage(QWidget):
             self._show_controls()
         self.state_changed.emit(state)
 
+    def _fade(self, position_ms: int) -> None:
+        """Between songs in a list: quieter towards the end of one, louder at the start of the next."""
+        fade_ms = self._prefs.fade_seconds * 1000
+        if not fade_ms or self._controller.status().muted or not self._named_as_audio(self._current_uri):
+            self._fading_in = False
+            return
+        base = self.controls.volume.value()
+        level = base
+        if self._fading_in and position_ms < fade_ms:
+            level = fade_level(base, position_ms, fade_ms)
+        elif self._duration_ms and self._next_song_follows():
+            level = fade_level(base, self._duration_ms - position_ms, fade_ms)
+        else:
+            self._fading_in = False
+        if level != self._faded_to:
+            self._faded_to = level
+            self._run(lambda: self._controller.set_volume(level))
+
+    def _next_song_follows(self) -> bool:
+        if not self._queue:
+            return False
+        following = index_after_end(self._queue_index, len(self._queue), self._repeat)
+        return following is not None and following != self._queue_index
+
     def _after_end(self) -> None:
         """Repeat this file, move on through the list, or stop."""
         path = self._current_uri
@@ -1375,6 +1407,7 @@ class PlayerPage(QWidget):
             if following == self._queue_index and path is not None:
                 QTimer.singleShot(0, lambda: self.open_path(path, keep_queue=True))
             elif following is not None:
+                self._fading_in = self._prefs.fade_seconds > 0
                 QTimer.singleShot(0, lambda: self.play_queue_item(following))
         elif self._repeat is not RepeatMode.OFF and path is not None:
             QTimer.singleShot(0, lambda: self.open_path(path))
@@ -1457,6 +1490,7 @@ class PlayerPage(QWidget):
         self.controls.set_position(status.position_ms, self._duration_ms)
         if status.state is S.PLAYING:
             self._check_ab_loop(status.position_ms)
+            self._fade(status.position_ms)
         self._ticks += 1
         if status.state is S.PLAYING and self._ticks % STATUS_REFRESH_TICKS == 0:
             self._show_engine_status()

@@ -32,6 +32,7 @@ import com.babarify.frame.core.MusicRules
 import com.babarify.frame.core.PlaybackState
 import com.babarify.frame.core.RepeatMode
 import com.babarify.frame.data.LibraryStore
+import com.babarify.frame.data.SongEdits
 import com.babarify.frame.ui.PlayerActivity
 import java.io.IOException
 import java.util.concurrent.Executors
@@ -180,6 +181,10 @@ class BackgroundPlaybackService : Service(), SessionListener {
                     // Nothing more to do with it.
                 }
             }
+            val edit = SongEdits(this).get(uri.toString())
+            title = edit?.title ?: title
+            artist = edit?.artist ?: artist
+            album = edit?.album ?: album
             handler.post {
                 if (session.mediaUri == uri) {
                     cover = picture

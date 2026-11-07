@@ -203,6 +203,7 @@ class EngineOptions:
     hardware_decoding: bool = True  # allow GPU decoding when the engine and hardware support it
     subtitle_style: SubtitleStyle = field(default_factory=SubtitleStyle)
     video_transform: VideoTransform = VideoTransform.NONE  # rotation/flip (M7)
+    audio_effect: str = "none"  # a key of core.music.AUDIO_EFFECTS
 
 
 @dataclass(frozen=True)

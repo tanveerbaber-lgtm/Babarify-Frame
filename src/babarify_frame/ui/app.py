@@ -18,6 +18,7 @@ from babarify_frame.library.service import LibraryService, default_thumbnail_dir
 from babarify_frame.playback.factory import EngineFactory, default_factory
 from babarify_frame.playback.media_probe import MediaProbe
 from babarify_frame.playback.preview import FramePreview
+from babarify_frame.ui import hover_lift
 from babarify_frame.ui.main_window import MainWindow
 from babarify_frame.ui.theme import FONT_BODY, FONT_FAMILY, STYLESHEET
 
@@ -93,6 +94,7 @@ def main(argv: Sequence[str] | None = None, factory: EngineFactory | None = None
     app.setApplicationVersion(__version__)
     app.setFont(QFont(FONT_FAMILY, FONT_BODY))  # For what the stylesheet doesn't reach, like some dialogs.
     app.setStyleSheet(STYLESHEET)
+    hover_lift.install(app)
     icon = load_icon()
     app.setWindowIcon(icon)
 

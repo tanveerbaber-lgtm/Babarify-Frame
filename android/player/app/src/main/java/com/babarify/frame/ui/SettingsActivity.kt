@@ -18,6 +18,7 @@ import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import com.babarify.frame.R
+import com.babarify.frame.core.MusicRules
 import com.babarify.frame.core.LeaveAction
 import com.babarify.frame.core.PlaybackRules
 import com.babarify.frame.data.Backup
@@ -79,11 +80,30 @@ class SettingsActivity : Activity() {
             }
         }
 
+        choice(getString(R.string.background_picture)) { chooseBackground() }
+
         section(R.string.section_playback)
         check(R.string.hardware_decoding, preferences.hardwareDecoding) { preferences.hardwareDecoding = it }
         check(R.string.resume_playback, preferences.resumePlayback) { preferences.resumePlayback = it }
         check(R.string.seek_previews, preferences.seekPreviews) { preferences.seekPreviews = it }
         check(R.string.gestures, preferences.gestures) { preferences.gestures = it }
+        val fades = MusicRules.FADE_CHOICES_S
+        fun fadeLabel(seconds: Int) = if (seconds == 0) getString(R.string.off) else getString(R.string.seconds, seconds)
+        choice(getString(R.string.fade_value, fadeLabel(preferences.fadeSeconds))) {
+            pick(fades.map(::fadeLabel), fades.indexOf(preferences.fadeSeconds)) { which ->
+                preferences.fadeSeconds = fades[which]
+                build()
+            }
+        }
+        val effects = MusicRules.AUDIO_EFFECTS.keys.toList()
+        val effectLabels = listOf(R.string.effect_none, R.string.effect_room, R.string.effect_wide, R.string.effect_both)
+        choice(getString(R.string.effect_value, getString(effectLabels[effects.indexOf(preferences.audioEffect)]))) {
+            pick(effectLabels.map(::getString), effects.indexOf(preferences.audioEffect)) { which ->
+                preferences.audioEffect = effects[which]
+                Toast.makeText(this, R.string.effect_from_next, Toast.LENGTH_SHORT).show()
+                build()
+            }
+        }
         choice(getString(R.string.seek_step, preferences.seekStepSeconds)) {
             val steps = PlaybackRules.SEEK_STEPS_S
             pick(steps.map { getString(R.string.seek_step, it) }, steps.indexOf(preferences.seekStepSeconds)) { which ->
@@ -167,6 +187,31 @@ class SettingsActivity : Activity() {
         }
     }
 
+    private fun chooseBackground() {
+        if (!PictureBackground.file(this).isFile) {
+            pickBackgroundPicture()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.background_picture)
+            .setPositiveButton(R.string.background_choose) { _, _ -> pickBackgroundPicture() }
+            .setNeutralButton(R.string.background_remove) { _, _ ->
+                PictureBackground.remove(this)
+                recreate()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun pickBackgroundPicture() {
+        val pick = android.content.Intent(android.content.Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(android.content.Intent.CATEGORY_OPENABLE)
+            type = "image/*"
+        }
+        @Suppress("DEPRECATION")
+        startActivityForResult(pick, REQUEST_BACKGROUND)
+    }
+
     private fun pickBackupFile() {
         val pick = android.content.Intent(android.content.Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(android.content.Intent.CATEGORY_OPENABLE)
@@ -194,6 +239,12 @@ class SettingsActivity : Activity() {
         if (resultCode != RESULT_OK || uri == null) return
         when (requestCode) {
             REQUEST_BACKUP -> writeBackup(uri)
+            REQUEST_BACKGROUND -> try {
+                PictureBackground.set(this, uri)
+                recreate()
+            } catch (_: java.io.IOException) {
+                Toast.makeText(this, R.string.cover_not_saved, Toast.LENGTH_LONG).show()
+            }
             REQUEST_RESTORE -> AlertDialog.Builder(this)
                 .setTitle(R.string.backup_restore)
                 .setMessage(R.string.backup_restore_question)
@@ -372,5 +423,6 @@ class SettingsActivity : Activity() {
     private companion object {
         const val REQUEST_BACKUP = 21
         const val REQUEST_RESTORE = 22
+        const val REQUEST_BACKGROUND = 23
     }
 }

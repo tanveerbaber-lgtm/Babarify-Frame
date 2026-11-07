@@ -45,6 +45,29 @@ STYLE_LABELS = {
 STYLE_CYCLE = tuple(style for style in VisualStyle if style is not VisualStyle.AUTO)
 
 
+FADE_CHOICES_S = (0, 2, 4, 6)
+# Sound effects, as libVLC audio filters. "none" adds nothing.
+AUDIO_EFFECTS = {
+    "none": "",
+    "room": "spatializer",
+    "wide": "stereo_widen",
+    "both": "spatializer:stereo_widen",
+}
+AUDIO_EFFECT_LABELS = {
+    "none": "None",
+    "room": "Room",
+    "wide": "Wider stereo",
+    "both": "Room and wider stereo",
+}
+
+
+def fade_level(base: int, ms: int, fade_ms: int) -> int:
+    """The volume ``ms`` into a fade in, or ``ms`` before the end of a fade out."""
+    if fade_ms <= 0:
+        return base
+    return round(base * max(0, min(ms, fade_ms)) / fade_ms)
+
+
 def index_after_end(index: int, length: int, mode: RepeatMode) -> int | None:
     """Which queue item plays when the current one ends; None means playback stops."""
     if length <= 0:

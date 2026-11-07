@@ -1012,17 +1012,21 @@ class FeatureFlowsTest {
     fun theIntroPlaysOnceAndThenLeavesTheHomeScreenFree() {
         fun overlay(activity: android.app.Activity): android.view.View? =
             activity.window.decorView.findViewWithTag(com.babarify.frame.ui.AppIntro.TAG)
-        com.babarify.frame.ui.AppIntro.forget()
+        val intro = com.babarify.frame.ui.AppIntro
+        intro.forget()
+        val before = intro.plays
         ActivityScenario.launch(HomeActivity::class.java).use { home ->
-            if (android.animation.ValueAnimator.areAnimatorsEnabled()) {
-                assertTrue("playing", home.read { overlay(it) != null })
-            }
+            // It may already be over by the time a slow test device shows the screen, so it's counted.
+            val expected = if (android.animation.ValueAnimator.areAnimatorsEnabled()) before + 1 else before
+            assertEquals("played", expected, intro.plays)
             val deadline = SystemClock.uptimeMillis() + 10_000
             while (home.read { overlay(it) != null } && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(100)
             assertTrue("gone", home.read { overlay(it) == null })
         }
+        val once = intro.plays
         ActivityScenario.launch(HomeActivity::class.java).use { home ->
             assertTrue("not played twice", home.read { overlay(it) == null })
+            assertEquals(once, intro.plays)
         }
     }
 

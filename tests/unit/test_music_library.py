@@ -7,6 +7,8 @@ import time
 from dataclasses import replace
 from pathlib import Path
 
+from babarify_frame.core.music import AUDIO_EFFECT_LABELS, AUDIO_EFFECTS, fade_level
+from babarify_frame.library import recap
 from babarify_frame.library.database import (
     AUTOMATIC_LIST_SIZE,
     SCHEMA_VERSION,
@@ -117,6 +119,49 @@ def test_songs_sort_by_plays_and_year(tmp_path: Path) -> None:
         record = ProbeRecord(1000, None, None, None, "mp3", None, entry.title, None, None, year)
         db.set_probe_result(entry.id, record)
     assert titles(SongSort.YEAR) == ["Aa", "Bb", "Cc"]
+
+
+def test_the_recap_counts_what_was_played(tmp_path: Path) -> None:
+    db, folder = library(tmp_path)
+    one = add(db, folder, "a.mp3", title="One", artist="Zed", album="Hits", duration_ms=60_000)
+    two = add(db, folder, "b.mp3", title="Two", artist="Zed", album="Hits", duration_ms=120_000)
+    add(db, folder, "c.mp3", title="Three", duration_ms=30_000)
+    for _ in range(3):
+        db.record_play(one, "One", 60_000)
+    db.record_play(two, "Two", 120_000)
+    found = recap.build(db.songs(), db.play_counts())
+    assert (found.plays, found.songs_played, found.listened_ms) == (4, 2, 300_000)
+    assert [(song.title, times) for song, times in found.top_songs] == [("One", 3), ("Two", 1)]
+    assert found.top_artists == [("Zed", 4)]
+    assert found.top_albums == [("Hits", 4)]
+    assert [song.title for song in found.never_played] == ["Three"]
+    assert recap.listening_time(300_000) == "5 min"
+    assert recap.listening_time(3_900_000) == "1 h 5 min"
+
+
+def test_edited_tags_survive_reading_the_file_again(tmp_path: Path) -> None:
+    db, folder = library(tmp_path)
+    path = add(db, folder, "a.mp3", title="From file", artist="File artist", album="File album")
+    db.edit_tags(path, "Better", "  ", "Album two")
+    db.set_cover(path, "cover.jpg")
+    entry = db.media_by_path(path)
+    assert entry is not None
+    assert (entry.title, entry.album, entry.thumbnail) == ("Better", "Album two", "cover.jpg")
+    assert entry.artist == "File artist", "blank keeps the file's"
+    record = ProbeRecord(1000, None, None, None, "mp3", "thumb.jpg", "From file", "File artist", "File album")
+    db.set_probe_result(entry.id, record)
+    again = db.media_by_path(path)
+    assert again is not None
+    assert (again.title, again.album, again.thumbnail) == ("Better", "Album two", "cover.jpg")
+
+
+def test_fades_rise_and_fall_with_the_time() -> None:
+    assert fade_level(80, 0, 4000) == 0
+    assert fade_level(80, 2000, 4000) == 40
+    assert fade_level(80, 9000, 4000) == 80
+    assert fade_level(80, -5, 4000) == 0
+    assert fade_level(80, 100, 0) == 80, "off"
+    assert set(AUDIO_EFFECTS) == set(AUDIO_EFFECT_LABELS)
 
 
 def test_a_date_tag_gives_its_year() -> None:

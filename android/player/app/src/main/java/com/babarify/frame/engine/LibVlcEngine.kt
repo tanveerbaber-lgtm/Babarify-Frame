@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import android.view.TextureView
+import com.babarify.frame.core.MusicRules
 import com.babarify.frame.core.ChapterInfo
 import com.babarify.frame.core.EqualizerSettings
 import com.babarify.frame.core.ErrorCode
@@ -116,6 +117,7 @@ class LibVlcEngine(
 
         val item = Media(libVlc, fd.fileDescriptor)
         item.setHWDecoderEnabled(options.hardwareDecoding, false)
+        MusicRules.AUDIO_EFFECTS[options.audioEffect]?.takeIf { it.isNotEmpty() }?.let { item.addOption(":audio-filter=$it") }
         if (startMs > 0) item.addOption(":start-time=${startMs / 1000.0}")
         if (startPaused) item.addOption(":start-paused")
         if (!withVideo) item.addOption(":no-video")

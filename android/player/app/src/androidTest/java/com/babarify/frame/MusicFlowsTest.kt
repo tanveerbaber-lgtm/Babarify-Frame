@@ -207,6 +207,81 @@ class MusicFlowsTest {
     }
 
     @Test
+    fun theWidgetDrawsWithAndWithoutASong() {
+        instrumentation.runOnMainSync {
+            val parent = android.widget.FrameLayout(context)
+            val idle = com.babarify.frame.ui.NowPlayingWidget.views(context, false, "", null, false, false, null)
+            val idleView = idle.apply(context, parent)
+            assertEquals(
+                context.getString(R.string.app_name),
+                idleView.findViewById<android.widget.TextView>(R.id.widgetTitle).text.toString(),
+            )
+            val picture = android.graphics.Bitmap.createBitmap(8, 8, android.graphics.Bitmap.Config.ARGB_8888)
+            val playing = com.babarify.frame.ui.NowPlayingWidget.views(context, true, "Song", "Artist", true, true, picture)
+            val view = playing.apply(context, parent)
+            assertEquals("Song", view.findViewById<android.widget.TextView>(R.id.widgetTitle).text.toString())
+            assertEquals("Artist", view.findViewById<android.widget.TextView>(R.id.widgetArtist).text.toString())
+            assertEquals(android.view.View.VISIBLE, view.findViewById<android.view.View>(R.id.widgetNext).visibility)
+        }
+        com.babarify.frame.ui.NowPlayingWidget.refresh(context) // No widget added: nothing to do.
+    }
+
+    @Test
+    fun editedDetailsShowWithoutChangingTheFile() {
+        val song = testSongs().first()
+        val edits = com.babarify.frame.data.SongEdits(context)
+        try {
+            edits.set(song.uri, "Better title", "Better artist", "")
+            val shown = testSongs().first { it.uri == song.uri }
+            assertEquals("Better title", shown.title)
+            assertEquals("Better artist", shown.artist)
+            assertEquals("a blank value keeps the file's", song.album, shown.album)
+            edits.set(song.uri, "", "", "")
+            assertEquals(song.title, testSongs().first { it.uri == song.uri }.title)
+        } finally {
+            edits.set(song.uri, "", "", "")
+        }
+    }
+
+    @Test
+    fun aBackgroundPictureGoesBehindTheScreensUntilRemoved() {
+        val background = com.babarify.frame.ui.PictureBackground
+        val picture = java.io.File(context.cacheDir, "test_background.png")
+        picture.outputStream().use {
+            android.graphics.Bitmap.createBitmap(4, 4, android.graphics.Bitmap.Config.ARGB_8888)
+                .compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)
+        }
+        try {
+            background.set(context, android.net.Uri.fromFile(picture))
+            ActivityScenario.launch(MusicActivity::class.java).use { scenario ->
+                assertTrue(
+                    scenario.read { it.window.decorView.background is android.graphics.drawable.LayerDrawable },
+                )
+            }
+            background.remove(context)
+            assertFalse(background.file(context).exists())
+            ActivityScenario.launch(MusicActivity::class.java).use { scenario ->
+                assertFalse(
+                    scenario.read { it.window.decorView.background is android.graphics.drawable.LayerDrawable },
+                )
+            }
+        } finally {
+            background.remove(context)
+            picture.delete()
+        }
+    }
+
+    @Test
+    fun forYouShowsTheRecap() {
+        val song = testSongs().first()
+        LibraryStore(context).use { it.recordPlay(song.uri, "Song") }
+        ActivityScenario.launch(com.babarify.frame.ui.ForYouActivity::class.java).use { scenario ->
+            waitUntil("the recap") { scenario.read { it.shown != null } }
+            assertTrue(scenario.read { activity -> activity.shown!!.topSongs.any { it.first.uri == song.uri } })
+        }
+    }
+
+    @Test
     fun aBackupBringsBackSettingsAndLists() {
         val preferences = session().preferences
         val before = preferences.hiddenSongs

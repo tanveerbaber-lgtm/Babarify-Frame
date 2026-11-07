@@ -20,4 +20,8 @@ Kotlin Standard Library 2.2.10, JetBrains Annotations 13.0
   (c) JetBrains s.r.o. and Kotlin contributors. Apache License 2.0.
   Source: https://github.com/JetBrains/kotlin
 
+Arimo (variable font, from github.com/google/fonts, ofl/arimo)
+  Copyright 2026 The Arimo Project Authors. SIL Open Font License 1.1.
+  Source: https://github.com/googlefonts/arimo
+
 Licence texts follow.
